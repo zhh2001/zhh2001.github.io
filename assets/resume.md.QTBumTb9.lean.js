@@ -1,1 +1,0 @@
-import{_ as e,o as a,c as t,R as r}from"./chunks/framework.FghLVCew.js";const m=JSON.parse('{"title":"关于我","description":"","frontmatter":{},"headers":[],"relativePath":"resume.md","filePath":"resume.md"}'),o={name:"resume.md"},s=r("",8),n=[s];function i(c,d,h,_,l,p){return a(),t("div",null,n)}const b=e(o,[["render",i]]);export{m as __pageData,b as default};
