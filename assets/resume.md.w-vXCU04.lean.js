@@ -1,0 +1,1 @@
+import{_ as e,o as a,c as o,R as t}from"./chunks/framework._QHn8SP1.js";const m=JSON.parse('{"title":"关于我","description":"","frontmatter":{},"headers":[],"relativePath":"resume.md","filePath":"resume.md"}'),r={name:"resume.md"},c=t("",8),d=[c];function n(s,i,h,_,l,p){return a(),o("div",null,d)}const b=e(r,[["render",n]]);export{m as __pageData,b as default};
