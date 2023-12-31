@@ -1,1 +1,0 @@
-import{_ as s,o as i,c as a,R as n}from"./chunks/framework._QHn8SP1.js";const F=JSON.parse('{"title":"","description":"","frontmatter":{},"headers":[],"relativePath":"notes/C++.md","filePath":"notes/C++.md"}'),t={name:"notes/C++.md"},h=n("",25),l=[h];function k(p,e,E,d,r,g){return i(),a("div",null,l)}const c=s(t,[["render",k]]);export{F as __pageData,c as default};
