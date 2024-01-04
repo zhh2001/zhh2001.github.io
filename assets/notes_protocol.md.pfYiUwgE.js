@@ -11,7 +11,7 @@ import{_ as s,o as i,c as a,R as n}from"./chunks/framework._QHn8SP1.js";const l=
 <span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">// 空行</span></span>
 <span class="line"></span>
 <span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">// 请求体，POST请求才有，GET没有</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">username=zhh&amp;password=666</span></span></code></pre></div><p>响应报文：</p><div class="language-HTTP vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">HTTP</span><pre class="shiki shiki-themes github-light github-dark vp-code"><code><span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">// 请求行/状态行</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">username=zhh&amp;password=666</span></span></code></pre></div><p>响应报文：</p><div class="language-HTTP vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">HTTP</span><pre class="shiki shiki-themes github-light github-dark vp-code"><code><span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">// 响应行/状态行</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">HTTP/1.1 200 OK                      # 协议版本 状态码 状态描述</span></span>
 <span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">// 响应头</span></span>
 <span class="line"><span style="--shiki-light:#22863A;--shiki-dark:#85E89D;">Content-Type</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">:</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;"> text/html              # 内容类型</span></span>
