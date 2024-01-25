@@ -1,0 +1,126 @@
+import{_ as s,c as a,o as n,V as p}from"./chunks/framework.7l-q_CRe.js";const k=JSON.parse('{"title":"ArkTS","description":"","frontmatter":{},"headers":[],"relativePath":"notes/ArkTS.md","filePath":"notes/ArkTS.md"}'),e={name:"notes/ArkTS.md"},i=p(`<h1 id="arkts" tabindex="-1">ArkTS <a class="header-anchor" href="#arkts" aria-label="Permalink to &quot;ArkTS&quot;">​</a></h1><h2 id="自定义组件" tabindex="-1">自定义组件 <a class="header-anchor" href="#自定义组件" aria-label="Permalink to &quot;自定义组件&quot;">​</a></h2><p>定义名为 TitleComponent 的自定义组件：</p><div class="language-ArkTS vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">ArkTS</span><pre class="shiki shiki-themes github-light github-dark vp-code"><code><span class="line"><span>@Component  // 装饰器 @Component 表示这是个自定义组件</span></span>
+<span class="line"><span>export struct TitleComponent {  // @Component 装饰的 struct 表示该结构体具有组件化能力，能够成为一个独立的组件</span></span>
+<span class="line"><span>    build() {}  // 自定义组件必须定义 build 方法，在其中进行 UI 描述</span></span>
+<span class="line"><span>}</span></span></code></pre></div><p>定义名为 RankPage 的自定义组件，在其中使用 TitleComponent 组件：</p><div class="language-ArkTS vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">ArkTS</span><pre class="shiki shiki-themes github-light github-dark vp-code"><code><span class="line"><span>import { TitleComponent } from &#39;../view/TitleComponent&#39;;</span></span>
+<span class="line"><span>@Entry  // 装饰器 @Entry 表示这是个入口组件，加载页面时，将首先创建并呈现 @Entry 装饰的自定义组件，一个页面有且仅有一个 @Entry 装饰的组件</span></span>
+<span class="line"><span>@Component</span></span>
+<span class="line"><span>struct RankPage {</span></span>
+<span class="line"><span>    build() {</span></span>
+<span class="line"><span>        Column() {</span></span>
+<span class="line"><span>            TitleComponent()</span></span>
+<span class="line"><span>        }</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span>}</span></span></code></pre></div><h2 id="生命周期" tabindex="-1">生命周期 <a class="header-anchor" href="#生命周期" aria-label="Permalink to &quot;生命周期&quot;">​</a></h2><h3 id="自定义组件-1" tabindex="-1">自定义组件 <a class="header-anchor" href="#自定义组件-1" aria-label="Permalink to &quot;自定义组件&quot;">​</a></h3><ol><li>自定义组件创建</li><li>aboutToAppear()</li><li>aboutToDisappear()</li><li>自定义组件销毁</li></ol><div class="language-ArkTS vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">ArkTS</span><pre class="shiki shiki-themes github-light github-dark vp-code"><code><span class="line"><span>@Component</span></span>
+<span class="line"><span>struct RankPage {</span></span>
+<span class="line highlighted"><span>    aboutToAppear() {}</span></span>
+<span class="line highlighted"><span>    aboutToDisappear() {}</span></span>
+<span class="line"><span>}</span></span></code></pre></div><h3 id="入口组件" tabindex="-1">入口组件 <a class="header-anchor" href="#入口组件" aria-label="Permalink to &quot;入口组件&quot;">​</a></h3><ol><li>页面入口组件创建</li><li>aboutToAppear()</li><li>onPageShow()，页面显示时自动调用</li><li>onBackPress()，用户点击返回按钮时自动调用</li><li>onPageHide()，页面消失时自动调用</li><li>aboutToDisappear()</li><li>页面入口组件销毁</li></ol><div class="language-ArkTS vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">ArkTS</span><pre class="shiki shiki-themes github-light github-dark vp-code"><code><span class="line"><span>@Entry</span></span>
+<span class="line"><span>@Component</span></span>
+<span class="line"><span>struct RankPage {</span></span>
+<span class="line highlighted"><span>    onPageShow() {}</span></span>
+<span class="line highlighted"><span>    onPageHide() {}</span></span>
+<span class="line highlighted"><span>    onBackPress() {</span></span>
+<span class="line"><span>        // 返回值为 true 时，表示页面自己处理返回逻辑，不进行页面返回</span></span>
+<span class="line"><span>        // 返回值为 false 时，表示由系统处理返回逻辑，默认为 false</span></span>
+<span class="line"><span>        return true;</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span>}</span></span></code></pre></div><h2 id="渲染控制" tabindex="-1">渲染控制 <a class="header-anchor" href="#渲染控制" aria-label="Permalink to &quot;渲染控制&quot;">​</a></h2><p>条件渲染：<code>if ... else if ... else ...</code></p><p>循环渲染：使用 <code>ForEach</code> 迭代数组，并为每个数组项创建相应的组件</p><h2 id="状态管理" tabindex="-1">状态管理 <a class="header-anchor" href="#状态管理" aria-label="Permalink to &quot;状态管理&quot;">​</a></h2><div class="language-ArkTS vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">ArkTS</span><pre class="shiki shiki-themes github-light github-dark vp-code"><code><span class="line"><span>@Component</span></span>
+<span class="line"><span>export struct ListItemComponent {</span></span>
+<span class="line"><span>    @State isChange: boolean = false;  // 装饰器 @State 表示组件中的状态变量，此状态变化会引起 UI 变更</span></span>
+<span class="line"><span>    build() {</span></span>
+<span class="line"><span>        Row() {</span></span>
+<span class="line"><span>            Text(this.name).fontColor(this.isChange ? ItemStyle.COLOR_BLUE : ItemStyle.COLOR_BLACK)</span></span>
+<span class="line"><span>        }.onClick(() =&gt; {</span></span>
+<span class="line"><span>            this.isChange = !this.isChange;</span></span>
+<span class="line"><span>        })</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span>}</span></span></code></pre></div><div class="language-ArkTS vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">ArkTS</span><pre class="shiki shiki-themes github-light github-dark vp-code"><code><span class="line"><span>@Component</span></span>
+<span class="line"><span>export struct TitleComponent {</span></span>
+<span class="line"><span>    // @Link 装饰的变量可以和父组件的 @State 变量建立双向数据绑定。任何一方所做的修改都会反映给另一方。</span></span>
+<span class="line"><span>    @Link isRefreshData: boolean;  // 没有对该变量初始化，需要父组件创建时该组件时赋值</span></span>
+<span class="line"><span>}</span></span></code></pre></div><h2 id="应用程序入口——uiability" tabindex="-1">应用程序入口——UIAbility <a class="header-anchor" href="#应用程序入口——uiability" aria-label="Permalink to &quot;应用程序入口——UIAbility&quot;">​</a></h2><p>每一个UIAbility实例，都对应于一个最近任务列表中的任务。一个应用可以有一个UIAbility，也可以有多个UIAbility。</p><h3 id="uiability-内的页面跳转" tabindex="-1">UIAbility 内的页面跳转 <a class="header-anchor" href="#uiability-内的页面跳转" aria-label="Permalink to &quot;UIAbility 内的页面跳转&quot;">​</a></h3><p>先导入路由模块：<code>import router from &#39;@ohos.router&#39;</code></p><div class="language-ArkTS vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">ArkTS</span><pre class="shiki shiki-themes github-light github-dark vp-code"><code><span class="line"><span>// index页面</span></span>
+<span class="line"><span>@Entry</span></span>
+<span class="line"><span>@Component</span></span>
+<span class="line"><span>struct Index {</span></span>
+<span class="line"><span>    build() {</span></span>
+<span class="line"><span>        Button(&#39;Next&#39;)</span></span>
+<span class="line"><span>            .onClick(() =&gt; {</span></span>
+<span class="line highlighted"><span>                router.pushUrl({</span></span>
+<span class="line highlighted"><span>                    url: &#39;pages/second&#39;,  // 跳转</span></span>
+<span class="line highlighted"><span>                    params: {  // 参数</span></span>
+<span class="line highlighted"><span>                        &#39;msg&#39;: &#39;123&#39;</span></span>
+<span class="line highlighted"><span>                    }</span></span>
+<span class="line highlighted"><span>                })</span></span>
+<span class="line"><span>            })</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span>}</span></span></code></pre></div><div class="language-ArkTS vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">ArkTS</span><pre class="shiki shiki-themes github-light github-dark vp-code"><code><span class="line"><span>// second 页面</span></span>
+<span class="line"><span>@Entry</span></span>
+<span class="line"><span>@Component</span></span>
+<span class="line"><span>struct Second {</span></span>
+<span class="line highlighted"><span>    @State msg: string = router.getParams()[&#39;msg&#39;]  // 接收参数</span></span>
+<span class="line"><span>    build() {</span></span>
+<span class="line"><span>        Column() {</span></span>
+<span class="line"><span>            Text(this.msg)</span></span>
+<span class="line"><span>            Button(&#39;Back&#39;)</span></span>
+<span class="line"><span>                .onClick(() =&gt; {</span></span>
+<span class="line highlighted"><span>                    router.back()  // 返回上一页</span></span>
+<span class="line"><span>                })</span></span>
+<span class="line"><span>        }</span></span>
+<span class="line"><span>    }</span></span>
+<span class="line"><span>}</span></span></code></pre></div><h3 id="生命周期-1" tabindex="-1">生命周期 <a class="header-anchor" href="#生命周期-1" aria-label="Permalink to &quot;生命周期&quot;">​</a></h3><div class="language-ArkTS vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">ArkTS</span><pre class="shiki shiki-themes github-light github-dark vp-code"><code><span class="line"><span>onCreate(want, launchParam) {}</span></span>
+<span class="line"><span>onDestroy() {}</span></span>
+<span class="line"><span>onWindowStageCreate(windowStage: window.WindowStage) {}</span></span>
+<span class="line"><span>onWindowStageDestroy() {}</span></span>
+<span class="line"><span>onForeground() {}</span></span>
+<span class="line"><span>onBackground() {}</span></span></code></pre></div><h2 id="基础组件" tabindex="-1">基础组件 <a class="header-anchor" href="#基础组件" aria-label="Permalink to &quot;基础组件&quot;">​</a></h2><p>组件（Component）是界面搭建与显示的最小单位，ArkUI 提供了丰富多样的 UI 组件，我们可以使用这些组件轻松的编写出更加丰富、漂亮的界面。</p><p>组件根据功能可以分为以下五大类：基础组件、容器组件、媒体组件、绘制组件、画布组件。其中基础组件是视图层的基本组成单元，包括 <code>Text</code>、<code>Image</code>、<code>TextInput</code>、<code>Button</code>、<code>LoadingProgress</code> 等。</p><h3 id="image" tabindex="-1">Image <a class="header-anchor" href="#image" aria-label="Permalink to &quot;Image&quot;">​</a></h3><p>设置图片数据源：<code>Image(src: string|Resource)</code></p><div class="language-ArkTS vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">ArkTS</span><pre class="shiki shiki-themes github-light github-dark vp-code"><code><span class="line"><span>Image(&#39;https://xxxxxx&#39;)  // 使用string类型数据加载网络图片</span></span>
+<span class="line"><span>Image($r(&#39;app.media.logo&#39;))  // 使用Resource加载图片</span></span></code></pre></div><p>其中加载网络图片需要在 <code>module.json5</code> 文件中添加网络访问权限：</p><div class="language-json5 vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">json5</span><pre class="shiki shiki-themes github-light github-dark vp-code"><code><span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">{</span></span>
+<span class="line"><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;">    &quot;module&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> : {</span></span>
+<span class="line"><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;">        &quot;requestPermissions&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">:[</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">           {</span></span>
+<span class="line"><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;">             &quot;name&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">: </span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;">&quot;ohos.permission.INTERNET&quot;</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">           }</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        ]</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    }</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">}</span></span></code></pre></div><p>设置图片大小：</p><div class="language-ArkTS vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">ArkTS</span><pre class="shiki shiki-themes github-light github-dark vp-code"><code><span class="line"><span>// 使用number数据设置图片大小</span></span>
+<span class="line"><span>Image($r(&#39;app.media.icon&#39;))</span></span>
+<span class="line"><span>    .width(80)</span></span>
+<span class="line"><span>    .height(80)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>// 使用string数据设置图片大小</span></span>
+<span class="line"><span>Image($r(&#39;app.media.icon&#39;))</span></span>
+<span class="line"><span>    .width(&#39;80vp&#39;)</span></span>
+<span class="line"><span>    .height(&#39;80vp&#39;)</span></span>
+<span class="line"><span>    </span></span>
+<span class="line"><span>// 使用Resource数据设置图片大小</span></span>
+<span class="line"><span>Image($r(&#39;app.media.icon&#39;))</span></span>
+<span class="line"><span>    .width($r(&#39;app.float.logo_image_size&#39;))</span></span>
+<span class="line"><span>    .height($r(&#39;app.float.logo_image_size&#39;))</span></span></code></pre></div><p>使用Resource数据设置图片大小，需要先在resources文件夹下定义：</p><div class="language-json vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">json</span><pre class="shiki shiki-themes github-light github-dark vp-code"><code><span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">{</span></span>
+<span class="line"><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">    &quot;float&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">: [</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        {</span></span>
+<span class="line"><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">            &quot;name&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">: </span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;">&quot;logo_image_size&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">,</span></span>
+<span class="line"><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">            &quot;value&quot;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">: </span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;">&quot;80vp&quot;</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        }</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    ]</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">}</span></span></code></pre></div><h3 id="text" tabindex="-1">Text <a class="header-anchor" href="#text" aria-label="Permalink to &quot;Text&quot;">​</a></h3><p>用于在节界面上展示一段文本信息</p><p>设置文本内容：<code>Text(content?: string|Resource)</code></p><div class="language-ArkTS vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">ArkTS</span><pre class="shiki shiki-themes github-light github-dark vp-code"><code><span class="line"><span>Text(&#39;登录界面&#39;)</span></span>
+<span class="line"><span>Text($r(&#39;app.string.login_page&#39;))  // 需要在resources目录下的string.json文件中定义该资源</span></span></code></pre></div><p>设置文本大小：</p><div class="language-ArkTS vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">ArkTS</span><pre class="shiki shiki-themes github-light github-dark vp-code"><code><span class="line"><span>Text(&#39;abc&#39;).fontSize(24)</span></span>
+<span class="line"><span>Text(&#39;abc&#39;).fontSize(&#39;24fp&#39;)</span></span>
+<span class="line"><span>Text(&#39;abc&#39;).fontSize($r(&#39;app.float.page_title_size&#39;))</span></span></code></pre></div><p>设置文本粗细：</p><div class="language-ArkTS vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">ArkTS</span><pre class="shiki shiki-themes github-light github-dark vp-code"><code><span class="line"><span>Text(&#39;123&#39;).fontWeight(500)  // 默认400</span></span>
+<span class="line"><span>Text(&#39;123&#39;).fontWeight(FontWeight.Medium)  // Lighter, Normal, Regular, Medium, Bold, Bolder</span></span></code></pre></div><p>设置文本颜色：</p><div class="language-ArkTS vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">ArkTS</span><pre class="shiki shiki-themes github-light github-dark vp-code"><code><span class="line"><span>Text(&#39;abc&#39;).fontColor(Color.Black)</span></span>
+<span class="line"><span>Text(&#39;abc&#39;).fontColor(0x182431)</span></span>
+<span class="line"><span>Text(&#39;abc&#39;).fontColor(&#39;#182431&#39;)</span></span>
+<span class="line"><span>Text(&#39;abc&#39;).fontColor($r(&#39;app.color.my_color&#39;))</span></span></code></pre></div><h3 id="textinput" tabindex="-1">TextInput <a class="header-anchor" href="#textinput" aria-label="Permalink to &quot;TextInput&quot;">​</a></h3><div class="language-ArkTS vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">ArkTS</span><pre class="shiki shiki-themes github-light github-dark vp-code"><code><span class="line"><span>TextInput({ placeholder: &quot;账号&quot; })  // 设置提示文本</span></span>
+<span class="line"><span>    .placeholderColor(0x999999)     // 提示文本的颜色</span></span>
+<span class="line"><span>    .fontColor(Color.Blue)          // 设置字体颜色</span></span>
+<span class="line"><span>    .fontSize(20)                   // 设置字体大小</span></span>
+<span class="line"><span>    .fontStyle(FontStyle.Italic)    // 设置斜体</span></span>
+<span class="line"><span>    .fontWeight(FontWeight.Bold)    // 设置字体粗细</span></span>
+<span class="line"><span>    .maxLength(8)                   // 设置最大输入字符数</span></span>
+<span class="line"><span>    .type(InputType.Number)         // 设置文本框输入类型</span></span>
+<span class="line"><span>    .onChange((value: string) =&gt; {  // 设置onChange事件</span></span>
+<span class="line"><span>        console.log(value)</span></span>
+<span class="line"><span>    })</span></span></code></pre></div><h3 id="button" tabindex="-1">Button <a class="header-anchor" href="#button" aria-label="Permalink to &quot;Button&quot;">​</a></h3><div class="language-ArkTS vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">ArkTS</span><pre class="shiki shiki-themes github-light github-dark vp-code"><code><span class="line"><span>Button(&#39;登录&#39;, { type: ButtonType.Capsule, stateEffect: false })</span></span>
+<span class="line"><span>    .width(&#39;90%&#39;)</span></span>
+<span class="line"><span>    .height(40)</span></span>
+<span class="line"><span>    .fontSize(16)</span></span>
+<span class="line"><span>    .fontWeight(FontWeight.Medium)</span></span>
+<span class="line"><span>    .backgroundColor(&#39;#007DFF&#39;)</span></span></code></pre></div><p>type用于定义按钮样式，stateEffect用于设置按钮按下时是否开启切换效果，当状态置为false时，点击效果关闭，默认值为true。</p><p>type的值为枚举类型 <code>ButtonType</code> 中的一种：<code>Capsule</code>(圆角按钮)、<code>Circle</code>(圆形按钮)、<code>Normal</code>(普通按钮、方形)</p><h2 id="容器组件" tabindex="-1">容器组件 <a class="header-anchor" href="#容器组件" aria-label="Permalink to &quot;容器组件&quot;">​</a></h2>`,56),l=[i];function t(o,c,h,r,d,g){return n(),a("div",null,l)}const b=s(e,[["render",t]]);export{k as __pageData,b as default};

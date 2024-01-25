@@ -1,0 +1,1 @@
+import{_ as s,c as a,o as n,V as p}from"./chunks/framework.7l-q_CRe.js";const k=JSON.parse('{"title":"ArkTS","description":"","frontmatter":{},"headers":[],"relativePath":"notes/ArkTS.md","filePath":"notes/ArkTS.md"}'),e={name:"notes/ArkTS.md"},i=p("",56),l=[i];function t(o,c,h,r,d,g){return n(),a("div",null,l)}const b=s(e,[["render",t]]);export{k as __pageData,b as default};
