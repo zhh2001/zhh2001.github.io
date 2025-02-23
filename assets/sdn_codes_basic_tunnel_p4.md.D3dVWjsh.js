@@ -1,31 +1,10 @@
-<!DOCTYPE html>
-<html lang="zh-Hans" dir="ltr">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>advanced_tunnel.p4</title>
-    <meta name="description" content="张恒华的个人网站，存放学习笔记与个人简历。研究领域为软件定义网络（SDN，Software Defined Network）。">
-    <meta name="generator" content="VitePress v1.6.3">
-    <link rel="preload stylesheet" href="/assets/style.LGY472yZ.css" as="style">
-    <link rel="preload stylesheet" href="/vp-icons.css" as="style">
-    
-    <script type="module" src="/assets/app.LaK7v5A9.js"></script>
-    <link rel="preload" href="/assets/inter-roman-latin.Di8DUHzh.woff2" as="font" type="font/woff2" crossorigin="">
-    <link rel="modulepreload" href="/assets/chunks/theme.CHZjguzr.js">
-    <link rel="modulepreload" href="/assets/chunks/framework.BZemHgQ6.js">
-    <link rel="modulepreload" href="/assets/sdn_codes_advanced_tunnel_p4.md.DUVgoyx_.lean.js">
-    <link rel="icon" href="/favicon.ico">
-    <script id="check-dark-mode">(()=>{const e=localStorage.getItem("vitepress-theme-appearance")||"auto",a=window.matchMedia("(prefers-color-scheme: dark)").matches;(!e||e==="auto"?a:e==="dark")&&document.documentElement.classList.add("dark")})();</script>
-    <script id="check-mac-os">document.documentElement.classList.toggle("mac",/Mac|iPhone|iPod|iPad/i.test(navigator.platform));</script>
-  </head>
-  <body>
-    <div id="app"><div class="Layout code-page" data-v-5d98c3a5><!--[--><!--]--><!--[--><span tabindex="-1" data-v-0b0ada53></span><a href="#VPContent" class="VPSkipLink visually-hidden" data-v-0b0ada53>Skip to content</a><!--]--><!----><!----><div class="VPLocalNav empty fixed" data-v-5d98c3a5 data-v-a6f0e41e><div class="container" data-v-a6f0e41e><!----><div class="VPLocalNavOutlineDropdown" style="--vp-vh:0px;" data-v-a6f0e41e data-v-8a42e2b4><button data-v-8a42e2b4>回到顶部</button><!----></div></div></div><!----><div class="VPContent" id="VPContent" data-v-5d98c3a5 data-v-1428d186><div class="VPDoc" data-v-1428d186 data-v-39a288b8><!--[--><!--]--><div class="container" data-v-39a288b8><!----><div class="content" data-v-39a288b8><div class="content-container" data-v-39a288b8><!--[--><!--]--><main class="main" data-v-39a288b8><div style="position:relative;" class="vp-doc _sdn_codes_advanced_tunnel_p4" data-v-39a288b8><div><div class="language-p4 vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">p4</span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">/* -*- P4_16 -*- */</span></span>
+import{_ as i,c as a,o as n,ag as p}from"./chunks/framework.BZemHgQ6.js";const g=JSON.parse('{"title":"basic_tunnel.p4","titleTemplate":false,"description":"","frontmatter":{"navbar":false,"sidebar":false,"aside":false,"prev":false,"next":false,"footer":false,"titleTemplate":false,"pageClass":"code-page","title":"basic_tunnel.p4"},"headers":[],"relativePath":"sdn/codes/basic_tunnel_p4.md","filePath":"sdn/codes/basic_tunnel_p4.md"}'),l={name:"sdn/codes/basic_tunnel_p4.md"};function h(k,s,t,e,E,d){return n(),a("div",null,s[0]||(s[0]=[p(`<div class="language-p4 vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">p4</span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">/* -*- P4_16 -*- */</span></span>
 <span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">#include</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;"> &lt;core.p4&gt;</span></span>
 <span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">#include</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;"> &lt;v1model.p4&gt;</span></span>
 <span class="line"></span>
+<span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">// NOTE: new type added here</span></span>
 <span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">const</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> bit</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">&lt;</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">16</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">&gt;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> TYPE_MYTUNNEL </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;"> 0x</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">1212</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">;</span></span>
 <span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">const</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> bit</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">&lt;</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">16</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">&gt;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> TYPE_IPV4 </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;"> 0x</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">800</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">;</span></span>
-<span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">const</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> bit</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">&lt;</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">32</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">&gt;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> MAX_TUNNEL_ID </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;"> 1</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;"> &lt;&lt;</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;"> 16</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">;</span></span>
 <span class="line"></span>
 <span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">/*************************************************************************</span></span>
 <span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">*********************** H E A D E R S  ***********************************</span></span>
@@ -41,6 +20,7 @@
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    bit</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">&lt;</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">16</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">&gt;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">   etherType;</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">}</span></span>
 <span class="line"></span>
+<span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">// NOTE: added new header type</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">header </span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">myTunnel_t</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> {</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    bit</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">&lt;</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">16</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">&gt;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> proto_id;</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    bit</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">&lt;</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">16</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">&gt;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> dst_id;</span></span>
@@ -65,6 +45,7 @@
 <span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">    /* empty */</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">}</span></span>
 <span class="line"></span>
+<span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">// NOTE: Added new header type to headers struct</span></span>
 <span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">struct</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;"> headers</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> {</span></span>
 <span class="line"><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">    ethernet_t</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">   ethernet;</span></span>
 <span class="line"><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">    myTunnel_t</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">   myTunnel;</span></span>
@@ -75,6 +56,7 @@
 <span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">*********************** P A R S E R  ***********************************</span></span>
 <span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">*************************************************************************/</span></span>
 <span class="line"></span>
+<span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">// TODO: Update the parser to parse the myTunnel header as well</span></span>
 <span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">parser</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;"> MyParser</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">(</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">packet_in</span><span style="--shiki-light:#E36209;--shiki-dark:#FFAB70;"> packet</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">,</span></span>
 <span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">                out</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;"> headers</span><span style="--shiki-light:#E36209;--shiki-dark:#FFAB70;"> hdr</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">,</span></span>
 <span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">                inout</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;"> metadata</span><span style="--shiki-light:#E36209;--shiki-dark:#FFAB70;"> meta</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">,</span></span>
@@ -87,17 +69,8 @@
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    state parse_ethernet {</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        packet.</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">extract</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">(hdr.ethernet);</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        transition </span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">select</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">(hdr.ethernet.etherType) {</span></span>
-<span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">            TYPE_MYTUNNEL</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">: parse_myTunnel;</span></span>
-<span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">            TYPE_IPV4</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">: parse_ipv4;</span></span>
-<span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">            default</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">: accept;</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        }</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    }</span></span>
-<span class="line"></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    state parse_myTunnel {</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        packet.</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">extract</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">(hdr.myTunnel);</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        transition </span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">select</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">(hdr.myTunnel.proto_id) {</span></span>
-<span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">            TYPE_IPV4</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">: parse_ipv4;</span></span>
-<span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">            default</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">: accept;</span></span>
+<span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">            TYPE_IPV4</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> : parse_ipv4;</span></span>
+<span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">            default</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> : accept;</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        }</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    }</span></span>
 <span class="line"></span>
@@ -105,6 +78,7 @@
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        packet.</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">extract</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">(hdr.ipv4);</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        transition accept;</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    }</span></span>
+<span class="line"></span>
 <span class="line"></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">}</span></span>
 <span class="line"></span>
@@ -124,10 +98,6 @@
 <span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">control</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;"> MyIngress</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">(</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">inout</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;"> headers</span><span style="--shiki-light:#E36209;--shiki-dark:#FFAB70;"> hdr</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">,</span></span>
 <span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">                  inout</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;"> metadata</span><span style="--shiki-light:#E36209;--shiki-dark:#FFAB70;"> meta</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">,</span></span>
 <span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">                  inout</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;"> standard_metadata_t</span><span style="--shiki-light:#E36209;--shiki-dark:#FFAB70;"> standard_metadata</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">) {</span></span>
-<span class="line"></span>
-<span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">    counter</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">(MAX_TUNNEL_ID, CounterType.packets_and_bytes) ingressTunnelCounter;</span></span>
-<span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">    counter</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">(MAX_TUNNEL_ID, CounterType.packets_and_bytes) egressTunnelCounter;</span></span>
-<span class="line"></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    action </span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">drop</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">() {</span></span>
 <span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">        mark_to_drop</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">(standard_metadata);</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    }</span></span>
@@ -139,62 +109,30 @@
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        hdr.ipv4.ttl </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> hdr.ipv4.ttl </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">-</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;"> 1</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">;</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    }</span></span>
 <span class="line"></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    action </span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">myTunnel_ingress</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">(bit</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">&lt;</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">16</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">&gt;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> dst_id) {</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        hdr.myTunnel.</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">setValid</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">();</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        hdr.myTunnel.dst_id </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> dst_id;</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        hdr.myTunnel.proto_id </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> hdr.ethernet.etherType;</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        hdr.ethernet.etherType </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> TYPE_MYTUNNEL;</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        ingressTunnelCounter.</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">count</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">((bit</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">&lt;</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">32</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">&gt;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">) hdr.myTunnel.dst_id);</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    }</span></span>
-<span class="line"></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    action </span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">myTunnel_forward</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">(</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">egressSpec_t</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> port) {</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        standard_metadata.egress_spec </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> port;</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    }</span></span>
-<span class="line"></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    action </span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">myTunnel_egress</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">(</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">macAddr_t</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> dstAddr, </span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">egressSpec_t</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> port) {</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        standard_metadata.egress_spec </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> port;</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        hdr.ethernet.dstAddr </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> dstAddr;</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        hdr.ethernet.etherType </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> hdr.myTunnel.proto_id;</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        hdr.myTunnel.</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">setInvalid</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">();</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        egressTunnelCounter.</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">count</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">((bit</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">&lt;</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;">32</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">&gt;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">) hdr.myTunnel.dst_id);</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    }</span></span>
-<span class="line"></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    table ipv4_lpm {</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        key </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> {</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">            hdr.ipv4.dstAddr: lpm;</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        }</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        actions </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> {</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">            ipv4_forward;</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">            myTunnel_ingress;</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">            drop;</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">            NoAction;</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        }</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        size </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;"> 1024</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">;</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        default_action </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;"> NoAction</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">();</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    }</span></span>
-<span class="line"></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    table myTunnel_exact {</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        key </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> {</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">            hdr.myTunnel.dst_id: exact;</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        }</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        actions </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> {</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">            myTunnel_forward;</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">            myTunnel_egress;</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">            drop;</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        }</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        size </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#005CC5;--shiki-dark:#79B8FF;"> 1024</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">;</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        default_action </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">=</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;"> drop</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">();</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    }</span></span>
 <span class="line"></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    apply {</span></span>
-<span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">        if</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> (hdr.ipv4.</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">isValid</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">() </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">&amp;&amp;</span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;"> !</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">hdr.myTunnel.</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">isValid</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">()) {</span></span>
-<span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">            // Process only non-tunneled IPv4 packets.</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">            ipv4_lpm.</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">apply</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">();</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        }</span></span>
+<span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">    // TODO: declare a new action: myTunnel_forward(egressSpec_t port)</span></span>
 <span class="line"></span>
-<span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">        if</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> (hdr.myTunnel.</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">isValid</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">()) {</span></span>
-<span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">            // Process all tunneled packets.</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">            myTunnel_exact.</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">apply</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">();</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">    // TODO: declare a new table: myTunnel_exact</span></span>
+<span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">    // TODO: also remember to add table entries!</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    apply {</span></span>
+<span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">        // TODO: Update control flow</span></span>
+<span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">        if</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> (hdr.ipv4.</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">isValid</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">()) {</span></span>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">            ipv4_lpm.</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">apply</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">();</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        }</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    }</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">}</span></span>
@@ -240,7 +178,7 @@
 <span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">control</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;"> MyDeparser</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">(</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">packet_out</span><span style="--shiki-light:#E36209;--shiki-dark:#FFAB70;"> packet</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">, </span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">in</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;"> headers</span><span style="--shiki-light:#E36209;--shiki-dark:#FFAB70;"> hdr</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">) {</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    apply {</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        packet.</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">emit</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">(hdr.ethernet);</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        packet.</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">emit</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">(hdr.myTunnel);</span></span>
+<span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">        // TODO: emit myTunnel header as well</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        packet.</span><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">emit</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">(hdr.ipv4);</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">    }</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">}</span></span>
@@ -256,8 +194,4 @@
 <span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">MyEgress</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">(),</span></span>
 <span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">MyComputeChecksum</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">(),</span></span>
 <span class="line"><span style="--shiki-light:#6F42C1;--shiki-dark:#B392F0;">MyDeparser</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">()</span></span>
-<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">) main;</span></span></code></pre></div></div></div></main><!----><!--[--><!--]--></div></div></div><!--[--><!--]--></div></div><!----><!--[--><!--]--></div></div>
-    <script>window.__VP_HASH_MAP__=JSON.parse("{\"ccf.md\":\"4mBJ0GGv\",\"go_golang.md\":\"WRizoKWP\",\"index.md\":\"0UniNhgp\",\"license.md\":\"BUpGAPNR\",\"resume.md\":\"Dy_lFFrN\",\"sdn_codes_advanced_tunnel_p4.md\":\"DUVgoyx_\",\"sdn_codes_basic_p4.md\":\"BVuK9uGu\",\"sdn_codes_basic_tunnel_p4.md\":\"D3dVWjsh\",\"sdn_codes_mycontroller_py.md\":\"2K-w3Div\",\"sdn_codes_mytunnel_header_py.md\":\"BImCxQug\",\"sdn_codes_v1model_p4.md\":\"5NkBsWnb\",\"sdn_index.md\":\"6TVEAksB\",\"sdn_mininet.md\":\"yHb8pkJ1\",\"sdn_p4.md\":\"BL939M64\",\"sdn_p4_exercise.md\":\"DfGilh5z\",\"sdn_p4_utils.md\":\"Dmay9zba\"}");window.__VP_SITE_DATA__=JSON.parse("{\"lang\":\"zh-Hans\",\"dir\":\"ltr\",\"title\":\"张恒华\",\"description\":\"张恒华的个人网站，存放学习笔记与个人简历。研究领域为软件定义网络（SDN，Software Defined Network）。\",\"base\":\"/\",\"head\":[],\"router\":{\"prefetchLinks\":true},\"appearance\":true,\"themeConfig\":{\"darkModeSwitchLabel\":\"主题\",\"lightModeSwitchTitle\":\"切换到浅色模式\",\"darkModeSwitchTitle\":\"切换到深色模式\",\"sidebarMenuLabel\":\"菜单\",\"returnToTopLabel\":\"回到顶部\",\"docFooter\":{\"prev\":\"上一页\",\"next\":\"下一页\"},\"footer\":{\"message\":\"基于 <a href=\\\"/license\\\">MIT 许可</a> 发布\",\"copyright\":\"版权所有 © 2024至今 <a href=\\\"/resume\\\">张恒华</a>\"},\"nav\":[{\"text\":\"首页\",\"link\":\"/\"},{\"text\":\"学习笔记\",\"items\":[{\"text\":\"SDN\",\"items\":[{\"text\":\"P4 Language\",\"link\":\"/sdn/p4\"},{\"text\":\"P4 Exercise\",\"link\":\"/sdn/p4_exercise\"},{\"text\":\"P4 Utils\",\"link\":\"/sdn/p4_utils\"},{\"text\":\"Mininet\",\"link\":\"/sdn/mininet\"}]},{\"text\":\"Go\",\"items\":[{\"text\":\"GoLang\",\"link\":\"/go/golang\"}]}]},{\"text\":\"关于我\",\"link\":\"/resume\"}],\"outlineTitle\":\"页面导航\",\"search\":{\"provider\":\"local\",\"options\":{\"translations\":{\"button\":{\"buttonText\":\"搜索文档\"},\"modal\":{\"displayDetails\":\"显示详细内容\",\"resetButtonTitle\":\"清除查询条件\",\"noResultsText\":\"无法找到相关结果\",\"footer\":{\"selectText\":\"选择\",\"navigateText\":\"切换\",\"closeText\":\"关闭\"}}}}},\"sidebar\":[{\"text\":\"SDN\",\"link\":\"/sdn/\",\"items\":[{\"text\":\"P4 Language\",\"link\":\"/sdn/p4\"},{\"text\":\"P4 Exercise\",\"link\":\"/sdn/p4_exercise\"},{\"text\":\"P4 Utils\",\"link\":\"/sdn/p4_utils\"},{\"text\":\"Mininet\",\"link\":\"/sdn/mininet\"}]},{\"text\":\"Go\",\"items\":[{\"text\":\"GoLang\",\"link\":\"/go/golang\"}]}],\"siteTitle\":\"张恒华\"},\"locales\":{},\"scrollOffset\":134,\"cleanUrls\":true}");</script>
-    
-  </body>
-</html>
+<span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">) main;</span></span></code></pre></div>`,1)]))}const y=i(l,[["render",h]]);export{g as __pageData,y as default};
