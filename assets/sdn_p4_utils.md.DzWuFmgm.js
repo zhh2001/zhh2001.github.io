@@ -86,7 +86,7 @@ import{_ as a,c as t,o as n,ag as h}from"./chunks/framework.BZemHgQ6.js";const i
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">)</span></span>
 <span class="line"></span>
 <span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;"># 遍历 s1 的所有邻居节点</span></span>
-<span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">for</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> neigh topo.get_neighbors(</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;">&#39;s1&#39;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">):</span></span>
+<span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">for</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> neigh </span><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">in</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> topo.get_neighbors(</span><span style="--shiki-light:#032F62;--shiki-dark:#9ECBFF;">&#39;s1&#39;</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">):</span></span>
 <span class="line"><span style="--shiki-light:#D73A49;--shiki-dark:#F97583;">    if</span><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;"> topo.isHost(neigh):</span></span>
 <span class="line"><span style="--shiki-light:#6A737D;--shiki-dark:#6A737D;">        # 添加转发表项</span></span>
 <span class="line"><span style="--shiki-light:#24292E;--shiki-dark:#E1E4E8;">        controller.table_add(</span></span>
