@@ -27,7 +27,7 @@
 3. ​**反馈与建议**：如果您发现任何问题或有改进建议，请通过 [GitHub Issues](https://github.com/zhh2001/zhh2001.github.io/issues) 或邮件（<a href="mailto:1652709417@qq.com">1652709417@qq.com</a>）联系我。
 
 ## 许可证
-本网站的所有学习笔记均基于 [MIT 许可证]('https://github.com/zhh2001/zhh2001.github.io?tab=MIT-1-ov-file#readme') 发布。您可以自由使用、修改和分发这些内容，但请保留原始的版权声明和许可证文本。
+本网站的所有学习笔记均基于 [MIT 许可证](https://github.com/zhh2001/zhh2001.github.io?tab=MIT-1-ov-file#readme) 发布。您可以自由使用、修改和分发这些内容，但请保留原始的版权声明和许可证文本。
 
 ## 贡献
 如果您有兴趣为我的学习笔记做出贡献，欢迎提交 Pull Request！请在提交前确保您的修改符合以下要求：
@@ -41,4 +41,4 @@
 
 ---
 
-© 2024 [张恒华]. 本网站基于 [MIT 许可证]('https://github.com/zhh2001/zhh2001.github.io?tab=MIT-1-ov-file#readme') 发布。
+© 2024 张恒华. 本网站基于 [MIT 许可证](https://github.com/zhh2001/zhh2001.github.io?tab=MIT-1-ov-file#readme) 发布。
