@@ -1,0 +1,1 @@
+import{_ as e,c as t,o as n}from"./chunks/framework.BZemHgQ6.js";const p=JSON.parse('{"title":"","description":"","frontmatter":{},"headers":[],"relativePath":"sdn/reading/monitoring/2.md","filePath":"sdn/reading/monitoring/2.md"}'),r={name:"sdn/reading/monitoring/2.md"};function a(o,i,s,d,c,m){return n(),t("div")}const f=e(r,[["render",a]]);export{p as __pageData,f as default};
