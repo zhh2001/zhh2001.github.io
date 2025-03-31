@@ -24,7 +24,7 @@
 ## 使用说明
 1. ​**浏览笔记**：点击导航栏中的分类，查看相关笔记。
 2. ​**搜索功能**：使用搜索框快速查找特定内容。
-3. ​**反馈与建议**：如果您发现任何问题或有改进建议，请通过 [GitHub Issues](https://github.com/zhh2001/zhh2001.github.io/issues) 或邮件（<a href="mailto:1652709417@qq.com">1652709417@qq.com</a>）联系我。
+3. ​**反馈与建议**：如果您发现任何问题或者要提出改进建议，可以通过 [GitHub Issues](https://github.com/zhh2001/zhh2001.github.io/issues) 或邮件（<a href="mailto:1652709417@qq.com">1652709417@qq.com</a>）联系我。
 
 ## 许可证
 本网站的所有学习笔记均基于 [MIT 许可证](https://github.com/zhh2001/zhh2001.github.io?tab=MIT-1-ov-file#readme) 发布。您可以自由使用、修改和分发这些内容，但请保留原始的版权声明和许可证文本。
