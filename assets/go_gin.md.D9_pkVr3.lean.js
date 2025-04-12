@@ -1,0 +1,1 @@
+import{_ as i,c as a,o as n,ag as h}from"./chunks/framework.BZemHgQ6.js";const g=JSON.parse('{"title":"Gin","description":"","frontmatter":{},"headers":[],"relativePath":"go/gin.md","filePath":"go/gin.md"}'),t={name:"go/gin.md"};function k(l,s,p,e,E,r){return n(),a("div",null,s[0]||(s[0]=[h("",64)]))}const y=i(t,[["render",k]]);export{g as __pageData,y as default};
