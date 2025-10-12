@@ -90,4 +90,4 @@ import{_ as e,c as s,o as n,ag as l}from"./chunks/framework.BZemHgQ6.js";const h
 <span class="line"><span>2) &quot;two&quot;</span></span>
 <span class="line"><span>3) &quot;three&quot;</span></span>
 <span class="line"><span>redis&gt; LRANGE mylist 5 10</span></span>
-<span class="line"><span>(empty array)</span></span></code></pre></div>`,95)]))}const q=e(t,[["render",i]]);export{h as __pageData,q as default};
+<span class="line"><span>(empty array)</span></span></code></pre></div><h3 id="_5-6" tabindex="-1">5.6 <a class="header-anchor" href="#_5-6" aria-label="Permalink to &quot;5.6&quot;">​</a></h3>`,96)]))}const q=e(t,[["render",i]]);export{h as __pageData,q as default};
