@@ -321,6 +321,18 @@ const members = [
 
 const friends = [
   {
+    avatar: 'https://seee.sues.edu.cn/_upload/article/images/a2/b1/5596c5f54495bd320eea8ba7dbd9/70e432c7-4d57-4535-9cbb-cdbd2e4741da.jpg',
+    name: '陈珏',
+    title: '讲师/硕士生导师',
+    org: 'SUES',
+    orgLink: 'https://www.sues.edu.cn/',
+    desc: '华东师范大学博士',
+    links: [
+      { icon: linkIcon, link: 'https://seee.sues.edu.cn/fb/d9/c20786a195545/page.htm' },
+      { icon: mailIcon, link: 'mailto:jadeschen@sues.edu.cn' },
+    ]
+  },
+  {
     avatar: 'https://vovyh.github.io/images/avatar.jpg',
     name: '邬雨航',
     title: '硕士生',
@@ -329,6 +341,7 @@ const friends = [
     desc: '大模型爱好者',
     links: [
       { icon: linkIcon, link: 'https://vovyh.github.io/' },
+      { icon: mailIcon, link: 'mailto:m325124620@sues.edu.cn' },
       { icon: 'gmail', link: 'mailto:vovyh0514@gmail.com' },
       { icon: 'github', link: 'https://github.com/VovyH' },
       { icon: 'leetcode', link: 'https://leetcode.cn/u/wuyuhangwinner/' },
