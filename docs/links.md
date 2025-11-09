@@ -318,24 +318,36 @@ const members = [
     ]
   },
 ]
-/*
+
+const friends = [
   {
-    avatar: '',
-    name: '',
-    desc: '',
+    avatar: 'https://avatars.githubusercontent.com/u/113747888',
+    name: '邬雨航',
+    title: '硕士生',
+    org: 'SUES',
+    orgLink: 'https://www.sues.edu.cn/',
+    desc: '大模型爱好者',
     links: [
-      { icon: linkIcon, link: '' },
-      { icon: mailIcon, link: 'mailto:' },
+      { icon: linkIcon, link: 'https://vovyh.github.io/' },
+      { icon: 'gmail', link: 'mailto:vovyh0514@gmail.com' },
+      { icon: 'github', link: 'https://github.com/VovyH' },
+      { icon: 'bilibili', link: 'https://space.bilibili.com/1054622831' },
+      { icon: 'rss', link: 'https://vovyh.github.io/feed.xml' },
     ]
   },
-
-佬，已添加您到我的友链，请过目：https://zhh2001.github.io/links
-麻烦您添加一下我的
-网站名称：张恒华
-网站地址：https://zhh2001.github.io
-头像图片：https://zhh2001.github.io/avatar.jpg
-描述：SDN研究者
-*/
+  {
+    avatar: 'https://xiongyujie.cn/img/xiongyujie.jpg',
+    name: '熊玉洁',
+    title: '副教授/硕士生导师',
+    org: 'SUES',
+    orgLink: 'https://www.sues.edu.cn/',
+    desc: '华东师范大学博士',
+    links: [
+      { icon: linkIcon, link: 'https://xiongyujie.cn/' },
+      { icon: mailIcon, link: 'mailto:xiong@sues.edu.cn' },
+    ]
+  },
+]
 
 const templates = [
   {
@@ -366,6 +378,13 @@ const templates = [
     <template #lead>各路大佬</template>
   </VPTeamPageTitle>
   <VPTeamMembers size="small" :members="members" />
+  <VPTeamPageSection>
+    <template #title>成长路上</template>
+    <template #lead>朋友、同学、老师</template>
+    <template #members>
+      <VPTeamMembers size="small" :members="friends" />
+    </template>
+  </VPTeamPageSection>
   <VPTeamPageSection>
     <template #title>申请友链</template>
     <template #lead>
