@@ -331,6 +331,7 @@ const friends = [
       { icon: linkIcon, link: 'https://vovyh.github.io/' },
       { icon: 'gmail', link: 'mailto:vovyh0514@gmail.com' },
       { icon: 'github', link: 'https://github.com/VovyH' },
+      { icon: 'leetcode', link: 'https://leetcode.cn/u/wuyuhangwinner/' },
       { icon: 'bilibili', link: 'https://space.bilibili.com/1054622831' },
       { icon: 'rss', link: 'https://vovyh.github.io/feed.xml' },
     ]
