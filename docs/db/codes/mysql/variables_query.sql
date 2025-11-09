@@ -1,0 +1,12 @@
+-- 查看所有系统变量：
+--   SHOW [SESSION | GLOBAL] VARIABLES;
+SHOW GLOBAL VARIABLES;
+
+-- 可以通过 LIKE 模糊匹配的方式查找变量：
+--   SHOW [SESSION | GLOBAL] VARIABLES LIKE '...';
+SHOW SESSION VARIABLES LIKE 'auto%';
+SHOW GLOBAL VARIABLES LIKE 'auto%';
+
+-- 查看指定变量的值：
+--   SELECT @@[SESSION. | GLOBAL.]系统变量名;
+SELECT @@GLOBAL.autocommit;

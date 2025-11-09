@@ -1,0 +1,1 @@
+mininet> task h1 0 10 "ping 10.0.0.2"

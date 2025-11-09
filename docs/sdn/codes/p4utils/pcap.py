@@ -1,0 +1,2 @@
+net.enablePcapDumpAll()
+net.enableLogAll()

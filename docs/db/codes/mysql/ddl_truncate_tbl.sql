@@ -1,0 +1,2 @@
+-- TRUNCATE TABLE 表名;
+TRUNCATE TABLE `tbl_user`;

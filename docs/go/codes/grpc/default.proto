@@ -1,0 +1,6 @@
+message SearchRequest {
+  string query            = 1;
+  int32  page_number      = 2;
+  int32  results_per_page = 3;
+  Corpus corpus           = 4 [default = CORPUS_UNIVERSAL];
+}

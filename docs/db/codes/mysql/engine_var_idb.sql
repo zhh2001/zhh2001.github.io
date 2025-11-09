@@ -1,0 +1,1 @@
+SHOW VARIABLES LIKE 'innodb_file_per_table';

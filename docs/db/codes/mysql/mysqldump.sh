@@ -1,0 +1,1 @@
+mysqldump -uroot -p123456 test_db > test_db.sql

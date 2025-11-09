@@ -1,0 +1,5 @@
+router := gin.Default()
+goodsGroup := router.Group("/goods")
+goodsGroup.GET("/list", goodsList)
+goodsGroup.POST("/add", addGoods)
+goodsGroup.POST("/del", delGoods)

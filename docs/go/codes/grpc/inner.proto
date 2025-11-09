@@ -1,0 +1,14 @@
+message Outer {       // Level 0
+  message MiddleAA {  // Level 1
+    message Inner {   // Level 2
+      int64 ival  = 1;
+      bool  booly = 2;
+    }
+  }
+  message MiddleBB {  // Level 1
+    message Inner {   // Level 2
+      int32 ival  = 1;
+      bool  booly = 2;
+    }
+  }
+}

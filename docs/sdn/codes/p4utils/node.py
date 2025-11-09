@@ -1,0 +1,5 @@
+net.addP4Switch('s1')
+net.addHost('h1')
+net.addHost('h2')
+net.addHost('h3')
+net.addHost('h4')

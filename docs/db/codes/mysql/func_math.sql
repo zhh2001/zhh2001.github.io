@@ -1,0 +1,5 @@
+SELECT CEIL(1.2); -- 2
+SELECT FLOOR(1.8); -- 1
+SELECT MOD(6, 4); -- 2
+SELECT RAND(); -- 随机数
+SELECT ROUND(2.345, 2); -- 2.35

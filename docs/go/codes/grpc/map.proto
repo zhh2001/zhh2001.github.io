@@ -1,0 +1,3 @@
+message Msg {
+  map<string, int32> mp = 1;
+}

@@ -1,0 +1,1 @@
+SELECT @@sort_buffer_size; -- 262144

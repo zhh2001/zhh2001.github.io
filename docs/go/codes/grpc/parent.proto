@@ -1,0 +1,3 @@
+message SomeOtherMessage {
+  SearchResponse.Result result = 1;
+}

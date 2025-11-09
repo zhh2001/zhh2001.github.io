@@ -1,0 +1,2 @@
+net.enableCli()
+net.startNetwork()

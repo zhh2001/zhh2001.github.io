@@ -1,0 +1,1 @@
+INSERT INTO `tb_user` VALUES (1, 'zhang1'), (2, 'zhang2'), (3, 'zhang3');

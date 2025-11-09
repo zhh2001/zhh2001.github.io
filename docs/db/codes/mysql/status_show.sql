@@ -1,0 +1,16 @@
+SHOW GLOBAL STATUS LIKE 'Com\_______';
+-- +---------------+-------+
+-- | Variable_name | Value |
+-- +---------------+-------+
+-- | Com_binlog    | 0     |
+-- | Com_commit    | 0     |
+-- | Com_delete    | 0     |  DELETE
+-- | Com_import    | 0     |
+-- | Com_insert    | 0     |  INSERT
+-- | Com_repair    | 0     |
+-- | Com_revoke    | 0     |
+-- | Com_select    | 5     |  SELECT
+-- | Com_signal    | 0     |
+-- | Com_update    | 0     |  UPDATE
+-- | Com_xa_end    | 0     |
+-- +---------------+-------+

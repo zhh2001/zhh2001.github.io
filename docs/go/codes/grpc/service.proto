@@ -1,0 +1,3 @@
+service Greeter{
+	rpc GetUser(UserRequest) returns (UserResponse);
+}

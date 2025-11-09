@@ -1,0 +1,8 @@
+{
+    "error": {
+        "SignUpInfo.Age": "Age必须小于或等于120",
+        "SignUpInfo.Email": "Email必须是一个有效的邮箱",
+        "SignUpInfo.RePassword": "RePassword必须等于Password",
+        "SignUpInfo.Username": "Username长度必须至少为3个字符"
+    }
+}

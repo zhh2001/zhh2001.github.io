@@ -1,0 +1,5 @@
+import "google/protobuf/timestamp.proto";
+
+message Msg {
+  google.protobuf.Timestamp timestamp = 1;
+}

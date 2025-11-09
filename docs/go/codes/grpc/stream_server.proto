@@ -1,0 +1,3 @@
+service Logger{
+	rpc StreamLogs(LogRequest) returns (stream LogResponse);
+}

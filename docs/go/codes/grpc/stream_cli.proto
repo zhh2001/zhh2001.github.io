@@ -1,0 +1,3 @@
+service Uploader{
+	rpc UploadFile(stream FileChunk) returns (FileSummary);
+}

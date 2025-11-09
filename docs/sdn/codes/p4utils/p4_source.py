@@ -1,0 +1,1 @@
+net.setP4Source('s1','l2_forwarding.p4')

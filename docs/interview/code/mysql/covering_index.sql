@@ -1,0 +1,1 @@
+SELECT `id`, `name`, `age` FROM `tb_user` WHERE `name` = "zhang";
