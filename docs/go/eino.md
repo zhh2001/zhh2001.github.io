@@ -312,9 +312,9 @@ ToolsNode 组件是一个用于扩展模型能力的组件，它允许模型调�
 
 <<< @/go/codes/eino/eGraphWithModel.go
 
-## Graph 高级特性
+### GraphWithState
 
-### 定义
+#### State 定义
 
 Graph 可以有自身的全局状态，在创建 Graph 时传入 `compose.WithGenLocalState` Option 开启此功能。这个请求维度的全局状态在一次请求的各环节可读写使用。
 
@@ -327,5 +327,7 @@ Eino 推荐用 `StatePreHandler` 和 `StatePostHandler`，功能定位是：
 这些 state handlers 位于节点外部，通过对 Input 或 Output 的修改影响节点，从而保证了节点的“状态无关”特性。
 
 如果需要在节点内部读写 State，Eino 提供了对应函数：
+
+<<< @/go/codes/eino/fProcessState.go
 
 Eino 框架会在所有读写 State 的位置加锁。

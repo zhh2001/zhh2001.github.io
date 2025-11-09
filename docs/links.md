@@ -321,7 +321,7 @@ const members = [
 
 const friends = [
   {
-    avatar: 'https://avatars.githubusercontent.com/u/113747888',
+    avatar: 'https://vovyh.github.io/images/avatar.jpg',
     name: '邬雨航',
     title: '硕士生',
     org: 'SUES',
