@@ -367,7 +367,7 @@ Eino 框架会在所有读写 State 的位置加锁。
 
 <<< @/go/codes/eino/eGraphWithGraph.go
 
-### CozeLoop
+## CozeLoop
 
 字节官方为 CozeLoop 实现了 Trace 回调，可以与 Eino 的应用无缝集成增强可观测能力。
 
