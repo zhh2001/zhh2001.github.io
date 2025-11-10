@@ -324,7 +324,7 @@ Eino 推荐用 `StatePreHandler` 和 `StatePostHandler`，功能定位是：
 
 针对流式场景，使用对应的 `StreamStatePreHandler` 和 `StreamStatePostHandler`，输入需分别对齐节点的流式输入和流式输出类型。
 
-这些 state handlers 位于节点外部，通过对 Input 或 Output 的修改影响节点，从而保证了节点的“状态无关”特性。
+这些 state handlers 位于节点外部，通过对 Input 或 Output 的修改影响节点，从而保证了节点的**状态无关**特性。
 
 如果需要在节点内部读写 State，Eino 提供了对应函数：
 

@@ -187,15 +187,11 @@ export default defineConfig({
       title: '页面未找到'
     },
     socialLinks: [
-      { icon: 'csdn', link: 'https://blog.csdn.net/qq_43133192' },
       { icon: 'github', link: 'https://github.com/zhh2001' },
       { icon: 'orcid', link: 'https://orcid.org/0009-0005-9456-8936' },
       { icon: 'qq', link: 'mailto:1652709417@qq.com' },
-      { icon: 'rss', link: 'https://github.com/zhh2001.atom' },
-      {
-        icon: { svg: '<svg t="1760360619836" class="icon" viewBox="0 0 1280 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3431" width="64" height="64"><path d="M256 704H64c-35.34 0-64 28.66-64 64v192c0 35.34 28.66 64 64 64h192c35.34 0 64-28.66 64-64v-192c0-35.34-28.66-64-64-64z m-48-160h384v96h96v-96h384v96h96v-115.18c0-42.34-34.46-76.82-76.82-76.82H688v-128h80c35.34 0 64-28.66 64-64V64c0-35.34-28.66-64-64-64H512c-35.34 0-64 28.66-64 64v192c0 35.34 28.66 64 64 64h80v128H188.82C146.46 448 112 482.46 112 524.82V640h96v-96z m528 160h-192c-35.34 0-64 28.66-64 64v192c0 35.34 28.66 64 64 64h192c35.34 0 64-28.66 64-64v-192c0-35.34-28.66-64-64-64z m480 0h-192c-35.34 0-64 28.66-64 64v192c0 35.34 28.66 64 64 64h192c35.34 0 64-28.66 64-64v-192c0-35.34-28.66-64-64-64z" p-id="3432" fill="#7F7F85"></path></svg>' },
-        link: 'https://zhh2001.github.io/sitemap'
-      }
+      { icon: 'leetcode', link: 'https://leetcode.cn/u/zhanghenghua/' },
+      { icon: 'csdn', link: 'https://blog.csdn.net/qq_43133192' },
     ]
   },
   sitemap: { hostname: 'https://zhh2001.github.io' }
