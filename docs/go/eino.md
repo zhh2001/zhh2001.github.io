@@ -319,6 +319,7 @@ ToolsNode 组件是一个用于扩展模型能力的组件，它允许模型调�
 Graph 可以有自身的全局状态，在创建 Graph 时传入 `compose.WithGenLocalState` Option 开启此功能。这个请求维度的全局状态在一次请求的各环节可读写使用。
 
 Eino 推荐用 `StatePreHandler` 和 `StatePostHandler`，功能定位是：
+
 - `StatePreHandler`：在每个节点执行前读写 State，以及按需替换节点的 Input。输入需对齐节点的非流式输入类型。
 - `StatePostHandler`：在每个节点执行后读写 State，以及按需替换节点的 Output。输入需对齐节点的非流式输出类型。
 
@@ -331,3 +332,37 @@ Eino 推荐用 `StatePreHandler` 和 `StatePostHandler`，功能定位是：
 <<< @/go/codes/eino/fProcessState.go
 
 Eino 框架会在所有读写 State 的位置加锁。
+
+#### 示例代码
+
+<<< @/go/codes/eino/eGraphWithState.go{36,41-46,81-84,104}
+
+### GraphWithCallback
+
+核心概念串起来，就是：Eino 中的 Component 和 Graph 等**实体**，在固定的**时机** (Callback Timing)，回调用户提供的 **function** (Callback Handler)，并把**自己是谁** (`RunInfo`)，以及**当时发生了什么** (Callback Input & Output) 传出去。
+
+#### `RunInfo` 结构体
+
+<<< @/go/codes/eino/sRunInfo.go
+
+#### `CallbackInput` & `CallbackOutput` 类型
+
+本质是任意类型，因为不同的 Component 的输入输出、内部状态完全不同。
+
+<<< @/go/codes/eino/tCallbackInOut.go
+
+#### 示例代码
+
+<<< @/go/codes/eino/eGraphWithCallback.go
+
+### GraphWithGraph（图嵌套）
+
+图编排产物 `Runnable` 与 Lambda 的接口形式非常相似。因此编译好的图可以简单的封装为 Lambda，并以 Lambda 节点的形式嵌套进其他图中。
+
+其实就是将图当作一个特殊的 Lambda 节点嵌入。
+
+注意依旧要保持**上下游类型对齐**。
+
+#### 示例代码
+
+<<< @/go/codes/eino/eGraphWithGraph.go
