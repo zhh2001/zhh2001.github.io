@@ -1060,3 +1060,71 @@ Redis Sentinel 通过心跳机制监测集群实例状态：每隔 1 秒向集�
 1. Sentinel 向 slave1 发送 `slaveof no one` 命令，使其脱离从节点身份，成为新的 master。
 2. Sentinel 向集群中剩余的所有 slave 发送 `slaveof [新master的IP] [新master的端口]` 命令，让这些 slave 将新 master 作为主节点，开始从新 master 同步数据。
 3. Sentinel 将原故障的 master 标记为 slave，待其恢复后，会自动以 slave 身份连接新 master。
+
+## 18 Redis 分片
+
+### 18.1 分片集群结构
+
+主从与哨兵机制可实现集群的高可用及高并发读，但仍存在两个核心局限：
+
+- 无法承载海量数据存储
+- 无法支撑高并发写请求
+
+分片集群是针对上述问题的解决方案，其核心特征如下：
+
+- 集群包含多个 master 节点，每个 master 负责存储不同的数据分片
+- 每个 master 可关联多个 slave 节点
+- master 节点之间通过 ping 机制互检状态
+- 客户端可访问集群任意节点，请求会被自动转发至对应数据所在的 master 节点
+
+### 18.2 散列插槽
+
+Redis 分片集群中，所有 master 节点对应 0-16383 共 16384 个插槽，数据 Key 不与节点直接绑定，而是与插槽绑定，绑定逻辑由 Key 的有效部分计算得出。
+
+根据 Key 中是否包含 `{}`，分为两种情况：
+
+1. **包含 `{}` 且内部有字符**：以 `{}` 中的内容作为有效部分（例如 Key 为 `{seee}num`，有效部分是 `seee`）；
+2. **不包含 `{}`**：以整个 Key 作为有效部分。
+
+插槽值的计算方式：
+
+1. 基于 Key 的有效部分，通过 CRC16 算法生成哈希值；
+2. 将哈希值对 16384 取余，结果即为该 Key 对应的插槽（Slot）值。
+
+### 18.3 集群伸缩
+
+添加节点的命令：`add-node new_host:new_port existing_host:existing_port`
+
+默认为 master 节点，通过参数 `--cluster-slave --cluster-master-id <arg>` 可指定为 slave 节点。
+
+<<< @/db/codes/redis/add-node.sh
+
+此时 `7004` 节点上没有插槽。需要通过 `reshard <host:port> or <host> <port>` 命令分配。
+
+<<< @/db/codes/redis/reshard.sh
+
+### 18.4 故障转移
+
+当集群中有一个 master 宕机会发生什么：
+
+1. 首先是该实例与其它实例失去连接
+2. 然后是疑似宕机
+3. 最后是确认下线，自动提升一个 slave 为新的 master
+
+#### 18.4.1 数据迁移
+
+利用 `CLUSTER FAILOVER` 命令可以手动让集群中的某个 master 宕机，切换到执行 `CLUSTER FAILOVER` 命令的这个 slave 节点，实现无感知的数据迁移。
+
+- 语法：`CLUSTER FAILOVER [FORCE | TAKEOVER]`
+- 时间复杂度：`O(1)`
+- 可选项：
+  - `FORCE`：省略对 offset 的一致性校验
+  - `TAKEOVER`：忽略数据一致性、忽略 master 状态和其他 master 的意见
+
+### 18.5 Go Redis 访问分片集群
+
+Ring 分片客户端，是采用了一致性 HASH 算法在多个 redis 服务器之间分发 key，每个节点承担一部分 key 的存储。
+
+Ring 客户端会监控每个节点的健康状况，并从 Ring 中移除掉宕机的节点，当节点恢复时，会再加入到 Ring 中。
+
+<<< @/db/codes/redis/go-redis_shard.go
