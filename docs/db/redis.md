@@ -973,4 +973,58 @@ Redis 也会在触发阈值时自动去重写 AOF 文件。阈值也可以在 `r
 
 ## 16 Redis 主从
 
+单节点 Redis 的并发能力是有上限的，要进一步提高 Redis 的并发能力，就需要搭建主从集群，实现读写分离。
 
+### 16.1 搭建主从集群
+
+在一台机器上开三个 Redis 搭建主从集群。
+
+#### 16.1.1 配置
+
+开启 RDB，关闭 AOF。
+
+创建 3 个文件夹，把配置文件放进去，并且修改 `port` 为三个不同的端口，然后启动三个 Redis 服务：
+
+<<< @/db/codes/redis/master-slaver_conf.sh
+
+#### 16.1.2 开启
+
+现在三个实例还没有任何关系，要配置主从可以使用 `REPLICAOF` 或者 `SLAVEOF` 命令。
+
+有临时和永久两种模式：
+
+- 修改配置文件（永久生效）
+  - 在 `redis.conf` 添加一行配置：`replicaof <masterip> <masterport>`
+- 使用 redis-cli 客户端连接到 redis 服务，执行 `SLAVEOF` 命令（重启后失效）
+
+  <<< @/db/codes/redis/master-slaver_slaveof.sh
+
+### 16.2 数据同步原理
+
+#### 16.2.1 全量同步
+
+主从第一次同步是全量同步。
+
+master 判断 slave 是否首次同步数据，需依赖两个核心概念：
+
+- Replication id（简称 replid）：是数据集的唯一标记，id 一致代表属于同一数据集。每个 master 有专属 replid，slave 会继承 master 的 replid。
+- offset（偏移量）：随 repl_backlog 中记录的数据增加而递增。slave 完成同步时会记录当前 offset，若 slave 的 offset 小于 master 的 offset，说明 slave 数据落后，需要更新。
+
+因此 slave 进行数据同步时，必须向 master 声明自身的 replication id 和 offset，master 才能据此判断需要同步的内容。
+
+#### 16.2.2 增量同步
+
+主从第一次同步是全量同步，但如果 slave 重启后同步，则执行增量同步。
+
+::: warning
+repl_backlog 的大小存在上限，当写满后会覆盖最早的数据。
+
+若 slave 断开连接的时间过久，导致其未备份的数据被 repl_backlog 覆盖，此时无法基于日志进行增量同步，只能再次执行全量同步。
+:::
+
+可以从以下几个方面来优化 Redis 主从集群：
+
+- 在 master 节点配置 `repl-diskless-sync yes`，全量同步时无需将 RDB 文件写入磁盘，直接通过网络传输给 slave，避免磁盘 IO 开销。
+- 减少 Redis 单节点的内存使用量，降低生成 RDB 文件时的磁盘 IO 压力。
+- 适当增大 repl_backlog 的大小，同时及时恢复故障 slave 节点，尽可能避免全量同步。
+- 限制单个 master 的 slave 数量；若 slave 过多，采用 “主-从-从” 的链式结构，让部分 slave 从其他 slave 同步数据，减轻 master 的负载。
