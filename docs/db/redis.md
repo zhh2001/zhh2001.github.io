@@ -958,3 +958,19 @@ fork 采用的是 copy-on-write 技术：
 - 当主进程执行写操作时，则会拷贝一份数据，执行写操作。
 
 ### 15.2 AOF
+
+全称 Append Only File（追加文件）。Redis 处理的每一个写命令都会记录在 AOF 文件，可以看作是命令日志文件。
+
+AOF 默认时关闭的，需要修改 `redis.conf` 配置文件来开启 AOF：
+
+<<< @/db/codes/redis/aof.conf
+
+因为是记录命令，AOF 文件会比 RDB 文件大很多。而且 AOF 会记录对同一个 key 的多次写操作，但只有最后一次写操作才有意义。通过执行 `BGREWRITEAOF` 命令，可以让 AOF 文件执行重写功能，用最少的命令达到相同的效果。
+
+Redis 也会在触发阈值时自动去重写 AOF 文件。阈值也可以在 `redis.conf` 中配置：
+
+<<< @/db/codes/redis/auto-aof.conf
+
+## 16 Redis 主从
+
+
