@@ -1028,3 +1028,35 @@ repl_backlog 的大小存在上限，当写满后会覆盖最早的数据。
 - 减少 Redis 单节点的内存使用量，降低生成 RDB 文件时的磁盘 IO 压力。
 - 适当增大 repl_backlog 的大小，同时及时恢复故障 slave 节点，尽可能避免全量同步。
 - 限制单个 master 的 slave 数量；若 slave 过多，采用 “主-从-从” 的链式结构，让部分 slave 从其他 slave 同步数据，减轻 master 的负载。
+
+## 17 Redis 哨兵
+
+Redis 通过哨兵机制保障主从集群的自动故障恢复。哨兵的结构和作用如下：
+
+- **监控**：持续检查 master 和 slave 节点是否正常运行。
+- **自动故障恢复**：当 master 节点故障时，自动将一个 slave 节点提升为新的 master；待原故障 master 恢复后，会以新 master 的 slave 身份重新加入集群。
+- **通知**：作为客户端的服务发现组件，在集群发生故障转移（主从切换）时，将最新的集群节点信息推送至客户端。
+
+### 17.1 服务状态监控
+
+Redis Sentinel 通过心跳机制监测集群实例状态：每隔 1 秒向集群中每个实例发送 `ping` 命令：
+
+- 主观下线：单个 Sentinel 节点发现某实例未在规定时间内响应 `ping` 命令时，则认为该实例主观下线（仅当前 Sentinel 的独立判断）。
+- 客观下线：若超过指定数量（quorum）的 Sentinel 节点都判定该实例为主观下线，则该实例客观下线。quorum 值最好超过 Sentinel 实例数量的一半。
+
+### 17.2 选举新的 master
+
+当 Sentinel 检测到 master 故障后，会从 slave 节点中选举新的 master，其选择依据如下：
+
+- 若 slave 与原 master 的断开时间超过指定阈值（`down-after-milliseconds \* 10`），则直接排除该 slave。
+- 比较 slave 的 `replica-priority` 配置值，数值越小优先级越高；若该值为 0，该 slave 不参与选举。
+- 若 `replica-priority` 相同，比较 slave 的 offset，数值越大说明数据越新，优先级越高。
+- 最后比较 slave 的运行 ID，数值越小优先级越高。
+
+### 17.3 故障转移的实现流程
+
+在 Sentinel 选定新的 master（以 slave1 为例）后，通过以下步骤完成故障转移：
+
+1. Sentinel 向 slave1 发送 `slaveof no one` 命令，使其脱离从节点身份，成为新的 master。
+2. Sentinel 向集群中剩余的所有 slave 发送 `slaveof [新master的IP] [新master的端口]` 命令，让这些 slave 将新 master 作为主节点，开始从新 master 同步数据。
+3. Sentinel 将原故障的 master 标记为 slave，待其恢复后，会自动以 slave 身份连接新 master。
