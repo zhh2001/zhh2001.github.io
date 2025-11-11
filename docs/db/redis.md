@@ -77,6 +77,7 @@ EXISTS key1 key2 nosuchkey
 String 类型，也就是字符串类型，是 Redis 中最简单的存储类型。
 
 其 value 是字符串，不过根据字符串的格式不同，又可以分为 3 类：
+
 - string：普通字符串
 - int：整数类型，可以进行自增自减
 - float：浮点类型，可以进行自增自减
@@ -699,6 +700,7 @@ ZUNION 2 zset1 zset2 WITHSCORES
 缓存雪崩是指同一时段大量的缓存 key 同时失效或者 Redis 服务宕机，导致大量请求到达数据库，带来巨大压力。
 
 解决方案：
+
 - 给不同的 key 的 TTL 添加随机值
 - 利用 Redis 集群提高服务的可用性
 - 给缓存业务添加降级限流策略
@@ -706,9 +708,10 @@ ZUNION 2 zset1 zset2 WITHSCORES
 
 ## 10 缓存击穿
 
-缓存击穿问题也叫热点Key问题，就是一个被高并发访问并且缓存重建业务比较复杂的 key 突然失效了，无数的请求访问会在瞬间给数据库带来巨大的冲击。
+缓存击穿问题也叫热点 Key 问题，就是一个被高并发访问并且缓存重建业务比较复杂的 key 突然失效了，无数的请求访问会在瞬间给数据库带来巨大的冲击。
 
 解决方案：
+
 - 互斥锁
 - 逻辑过期
 
@@ -777,7 +780,7 @@ Stream 是 Redis 5.0 引入的一种新数据类型，可以实现一个功能�
 - 参数：
   - `NOMKSTREAM`：如果队列不存在是否创建队列，默认创建。使用该参数表示不创建
   - `<MAXLEN | MINID> [= | ~] threshold [LIMIT count]`：设置消息队列的最大消息数量
-  - `<* | id>`：消息的 ID，* 代表由 Redis 自动生成。格式是 `时间戳-递增数字`
+  - `<* | id>`：消息的 ID，\* 代表由 Redis 自动生成。格式是 `时间戳-递增数字`
   - `field value`：发送到队列中的消息，称为 Entry。格式就是多个 key-value 键值对
 
 ```bash
@@ -930,3 +933,28 @@ Redis 中是利用 string 类型数据结构实现 Bitmap，因此最大上限�
 - 功能：查询 bit 数组中指定范围内第一个 0 或 1 出现的位置
 
 <<< @/db/codes/redis/bitpos.sh
+
+## 15 Redis 持久化
+
+### 15.1 RDB
+
+全称 Redis Database Backup file（Redis 数据备份文件），也被叫做 Redis 数据快照。简单来说就是把内存中的所有数据都记录到磁盘中。当 Redis 实例故障重启后，从磁盘读取快照文件，恢复数据。
+
+快照文件称为 RDB 文件。
+
+<<< @/db/codes/redis/rdb.sh
+
+Redis 停机时会执行一次 RDB。
+
+Redis 内部有触发 RDB 的机制，可以在 `redis.conf` 文件中找到，格式如下：
+
+<<< @/db/codes/redis/rdb.conf
+
+`BGSAVE` 开始时会 fork 主进程得到子进程，子进程<span style="color:red;">共享</span>主进程的内存数据。完成 fork 后读取内存数据并写入 RDB 文件。
+
+fork 采用的是 copy-on-write 技术：
+
+- 当主进程执行读操作时，访问共享内存；
+- 当主进程执行写操作时，则会拷贝一份数据，执行写操作。
+
+### 15.2 AOF

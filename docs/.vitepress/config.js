@@ -123,7 +123,8 @@ export default defineConfig({
     languageAlias: {
       'p4': 'c++',
       'pseudo': 'c++',
-      'cnf': 'ini'
+      'conf': 'sh',
+      'cnf': 'ini',
     }
   },
   themeConfig: {
