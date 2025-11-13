@@ -1413,3 +1413,39 @@ Redis 种会根据存储的数据类型不同，选择不同的编码方式，�
 | `OBJ_SET`    | `OBJ_ENCODING_INTSET`、`OBJ_ENCODING_HT`                                    |
 | `OBJ_ZSET`   | `OBJ_ENCODING_ZIPLIST`、`OBJ_ENCODING_HT`、`OBJ_ENCODING_SKIPLIST`          |
 | `OBJ_HASH`   | `OBJ_ENCODING_ZIPLIST`、`OBJ_ENCODING_HT`                                   |
+
+### 20.8 五种数据类型
+
+#### 20.8.1 String
+
+String 是 Redis 中最常见的数据存储类型：
+
+- 其基本编码方式是 **RAW**，基于简单动态字符串（SDS）实现，存储上限为 512mb。
+- 如果存储的 SDS 长度小于 44 字节，则会采用 **EMBSTR** 编码，此时 object head 与 SDS 是一段连续空间。申请内存时只需要调用一次内存分配函数，效率更高。
+- 如果存储的字符串是整数值，并且大小在 `LONG_MAX` 范围内，则会采用 **INT** 编码：直接将数据保存在 RedisObject 的 `ptr` 指针位置（刚好 8 字节），不再需要 SDS 了。
+
+<<< @/db/codes/redis/obj_encoding_string.sh
+
+#### 20.8.2 List
+
+Redis 的 List 类型可以从首、尾操作列表中的元素。
+
+哪一个数据结构能满足上述特征？
+
+- LinkedList：普通链表，可以从双端访问，内存占用较高，内存碎片较多
+- ZipList：压缩列表，可以从双端访问，内存占用低，存储上限低
+- QuickList：LinkedList + ZipList，可以从双端访问，内存占用较低，包含多个 ZipList，存储上限高
+
+在 3.2 版本之后，Redis 统一采用 QuickList 来实现 List。
+
+#### 20.8.3 Set
+
+Set 是 Redis 中的单列集合，满足以下特点：
+
+- 不保证有序性
+- 保证元素唯一（可以判断元素是否存在）
+- 求交集、差集、并集
+
+为了查询效率和唯一性，set 采用了 HT 编码（Dict）。Dict 中的 key 用来存储元素，value 统一为 null。
+
+当存储的所有数据都是整数，并且元素数量不超过 `set-max-intset-entries` 时，Set 会采用 IntSet 编码，以节省内存。
