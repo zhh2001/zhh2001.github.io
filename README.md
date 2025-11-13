@@ -16,6 +16,7 @@
 - gRPC
 - MySQL
 - Redis
+- Eino
 
 ### 2. 科研笔记
 
