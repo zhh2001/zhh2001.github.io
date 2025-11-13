@@ -1321,4 +1321,19 @@ Dict 在每次新增键值对时都会检查**负载因子**（`LoadFactor = use
 
 Dict 的 rehash 并不是一次性完成的。试想一下，如果 Dict 中包含数百万的 entry，要在一次 rehash 完成，极有可能导致主线程阻塞。因此 Dict 的 rehash 是分多次、渐进式的完成，因此称为**渐进式 rehash**。上面的流程第 4 点应为：
 
-4. 每次执行新增、查询、修改、删除操作时，都检查一下 `dict.rehashidx` 是否大于 `-1`，如果是则将 `dict.ht_table[0].table[rehashidx]` 的 entry 链表 rehash 到 `dict.ht_table[1]`，并且将 `rehashidx++`。直至 `dict.ht_table[0]` 的所有数据都 rehash 到 `dict.ht_table[1]`
+4. 每次执行增删改查操作时，都检查一下 `dict.rehashidx` 是否大于 `-1`，如果是则将 `dict.ht_table[0].table[rehashidx]` 的 entry 链表 rehash 到 `dict.ht_table[1]`，并且将 `rehashidx++`。直至 `dict.ht_table[0]` 的所有数据都 rehash 到 `dict.ht_table[1]`
+
+### 20.4 ZipList
+
+ZipList 是一种特殊的“双端列表”，由一系列特殊编码的连续内存块组成。可以在任意一端进行压入/弹出操作，并且该操作的时间复杂度为 `O(1)`。
+
+ZipList 中的 Entry 并不像普通链表那样记录前后节点的指针，因为记录两个指针要占用 16 个字节，浪费内存。而是采用了下面的结构：
+
+| prevrawlen | encoding | content |
+| ---------- | -------- | ------- |
+
+- `prevrawlen`：前一节点的长度，占 1 或 5 个字节
+  - 如果前一字节的长度小于 254 字节，则采用 1 个字节保存这个长度值
+  - 如果前一字节的长度大于等于 254 字节，则采用 5 个字节保存这个长度值，第一个字节为 `0xfe`，后四个字节才是真实长度数据
+- `encoding`：编码属性，记录 `content` 的数据类型（字符串还是整数）以及长度，占用 1、2、5 个字节
+- `content`：负责保存节点的数据，可以是字符串或整数
