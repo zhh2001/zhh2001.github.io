@@ -1384,3 +1384,12 @@ ZipList 中的 Entry 并不像普通链表那样记录前后节点的指针，�
 <<< @/db/codes/redis/sQuickListNode.c
 
 ### 20.6 SkipList
+
+SkipList（跳表）首先是链表，但是与传统链表相比有几点差异：
+
+- 元素按照升序排序存储
+- 节点可能包含多个指针，指针跨度不同
+
+<<< @/db/codes/redis/sZSkipList.c
+
+<<< @/db/codes/redis/sZSkipListNode.c
