@@ -1449,3 +1449,42 @@ Set 是 Redis 中的单列集合，满足以下特点：
 为了查询效率和唯一性，set 采用了 HT 编码（Dict）。Dict 中的 key 用来存储元素，value 统一为 null。
 
 当存储的所有数据都是整数，并且元素数量不超过 `set-max-intset-entries` 时，Set 会采用 IntSet 编码，以节省内存。
+
+#### 20.8.4 ZSet
+
+ZSet 也就是 SortedSet，其中每一个元素都需要指定一个 score 值和 member 值：
+
+- 可以根据 score 值排序
+- member 必须唯一
+- 可以根据 member 查询分数
+
+因此，zset 底层数据结构必须满足**键值存储、键必须唯一、可排序**这几个需求。哪种编码结构可以满足？
+
+- SkipList：可以排序，并且可以同时存储 score 和 member
+- HT（Dict）：可以键值存储，并且可以根据 key 找 value
+
+<<< @/db/codes/redis/sZset.c
+
+<<< @/db/codes/redis/fCreateZsetObject.c
+
+#### 20.8.5 Hash
+
+Hash 结构与 Redis 中的 Zset 非常类似：
+
+- 都是键值存储
+- 都需根据键获得值
+- 键必须唯一
+
+区别如下：
+
+- zset 的键是 member，值是 score；hash 的键和值都是任意值
+- zset 要根据 score 排序；hash 则无需排序
+
+因此，hash 底层采用的编码与 Zset 也基本一致，只需要把排序 SkipList 去掉即可：
+
+- Hash 结构默认采用 ZipList 编码，用以节省内存。ZipList 中相邻的两个 entry 分别保存 field 和 value
+- 当数据量较大时，Hash 结构会转为 HT 编码，也就是 Dict，触发条件有两个：
+  1. ZipList 中的元素数量超过了 `hash-max-ziplist-entries`（默认 512）
+  2. ZipList 中的任意 entry 大小超过了 `hash-max-ziplist-value`（默认 64 字节）
+
+<<< @/db/codes/redis/hash-max-ziplist.sh
