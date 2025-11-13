@@ -1276,3 +1276,16 @@ IntSet 是 Redis 中 set 集合的一种实现方式，基于整数数组来实�
 <<< @/db/codes/redis/dIntSet.c
 
 为了方便查找， Redis 会将 intset 中所有整数按照升序依次保存在 `contents` 数组中。
+
+IntSet 升级流程（例如从 `INTSET_ENC_INT16` 升到 `INTSET_ENC_INT32`）：
+
+1. 升级编码为 `INTSET_ENC_INT32`，每个整数占 4 字节，并按照新的编码方式及元素个数扩容数组
+2. 倒序依次将数组中的元素拷贝到扩容后的正确位置
+3. 将待添加的元素放入数组末尾
+4. 最后，将 intset 的 `encoding` 改为 `INTSET_ENC_INT32`。
+
+添加元素的函数源码：
+
+<<< @/db/codes/redis/fIntsetAdd.c
+
+### 20.3 Dict
