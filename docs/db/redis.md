@@ -1393,3 +1393,23 @@ SkipList（跳表）首先是链表，但是与传统链表相比有几点差异
 <<< @/db/codes/redis/sZSkipList.c
 
 <<< @/db/codes/redis/sZSkipListNode.c
+
+### 20.7 RedisObject
+
+Redis 中的任意数据类型的键和值都会被封装为一个 RedisObject，也叫做 Redis 对象，源码如下：
+
+<<< @/db/codes/redis/sRedisObject.c
+
+Redis 种会根据存储的数据类型不同，选择不同的编码方式，共包含 11 种不同类型：
+
+<<< @/db/codes/redis/sRedisObjEncoding.c
+
+每种数据类型的使用的编码方式如下：
+
+| 数据类型     | 编码方式                                                                    |
+| ------------ | --------------------------------------------------------------------------- |
+| `OBJ_STRING` | `OBJ_ENCODING_INT`、`OBJ_ENCODING_EMBSTR`、`OBJ_ENCODING_RAW`               |
+| `OBJ_LIST`   | `OBJ_ENCODING_LINKEDLIST`、`OBJ_ENCODING_ZIPLIST`、`OBJ_ENCODING_QUICKLIST` |
+| `OBJ_SET`    | `OBJ_ENCODING_INTSET`、`OBJ_ENCODING_HT`                                    |
+| `OBJ_ZSET`   | `OBJ_ENCODING_ZIPLIST`、`OBJ_ENCODING_HT`、`OBJ_ENCODING_SKIPLIST`          |
+| `OBJ_HASH`   | `OBJ_ENCODING_ZIPLIST`、`OBJ_ENCODING_HT`                                   |
