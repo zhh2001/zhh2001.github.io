@@ -1289,3 +1289,36 @@ IntSet 升级流程（例如从 `INTSET_ENC_INT16` 升到 `INTSET_ENC_INT32`）�
 <<< @/db/codes/redis/fIntsetAdd.c
 
 ### 20.3 Dict
+
+Redis 是一个键值型（Key-Value Pair）的数据库，可以根据键实现快速的增删改查。而键与值的映射关系正是通过 Dict 来实现的。
+
+Dict 由三个部分组成，分别是：哈希表（DictHashTable）、哈希节点（DictEntry）、字典（Dict）
+
+<<< @/db/codes/redis/sDictht.c
+
+<<< @/db/codes/redis/sDictEntry.c
+
+当我们向 Dict 添加键值对时，Redis 首先根据 key 计算出 hash 值 `h`，然后利用 `h & sizemask` 来计算元素应该存储到数组中的哪个索引位置。
+
+Dict 中的 HashTable 就是数组结合单向链表的实现，当集合中元素较多时，必然导致哈希冲突增多，链表过长，则查询效率会大大降低。
+
+Dict 在每次新增键值对时都会检查**负载因子**（`LoadFactor = used / size`），满足以下两种情况时就会触发**哈希表扩容**：
+
+- 哈希表的 `LoadFactor >= 1`，并且服务器没有执行 `BGSAVE` 或者 `BGREWRITEAOF` 等后台进程；
+- 哈希表的 `LoadFactor > 5`
+
+<<< @/db/codes/redis/fDictExpandIfNeeded.c
+
+不管是扩容还是收缩，必定会创建新的哈希表，导致哈希表的 `size` 和 `sizemask` 变化，而 `key` 的查询与 `sizemask` 有关。因此必须对哈希表中的每一个 `key` 重新计算索引，插入新的哈希表，这个过程称为 **rehash**。过程是这样的：
+
+1. 计算新 hash 表的 `realSize`，值取决于当前要做的是扩容还是收缩：
+   - 如果是扩容，则新 `size` 为第一个大于等于 `used + 1` 的 $2^n$
+   - 如果是收缩，则新 `size` 为第一个大于等于 `used` 的 $2^n$（不得小于 4）
+2. 按照新的 `realSize` 申请空间，创建 `dictht`，并复制给 `dict.ht_table[1]`
+3. 设置 `dict.rehashidx = 0`，表示开始 rehash
+4. ~~将 `dict.ht_table[0]` 中的每一个 `dictEntry` 都 rehash 到 `dict.ht_table[1]`~~
+5. 将 `dict.ht_table[1]` 赋值给 `dict.ht_table[0]`，给 `dict.ht_table[1]`初始化为空哈希表，释放原来 `dict.ht_table[0]` 的内存
+
+Dict 的 rehash 并不是一次性完成的。试想一下，如果 Dict 中包含数百万的 entry，要在一次 rehash 完成，极有可能导致主线程阻塞。因此 Dict 的 rehash 是分多次、渐进式的完成，因此称为**渐进式 rehash**。上面的流程第 4 点应为：
+
+4. 每次执行新增、查询、修改、删除操作时，都检查一下 `dict.rehashidx` 是否大于 `-1`，如果是则将 `dict.ht_table[0].table[rehashidx]` 的 entry 链表 rehash 到 `dict.ht_table[1]`，并且将 `rehashidx++`。直至 `dict.ht_table[0]` 的所有数据都 rehash 到 `dict.ht_table[1]`
