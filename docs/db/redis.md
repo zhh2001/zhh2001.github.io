@@ -1337,3 +1337,50 @@ ZipList 中的 Entry 并不像普通链表那样记录前后节点的指针，�
   - 如果前一字节的长度大于等于 254 字节，则采用 5 个字节保存这个长度值，第一个字节为 `0xfe`，后四个字节才是真实长度数据
 - `encoding`：编码属性，记录 `content` 的数据类型（字符串还是整数）以及长度，占用 1、2、5 个字节
 - `content`：负责保存节点的数据，可以是字符串或整数
+
+### 20.5 QuickList
+
+问题 1：ZipList 虽然节省内存，但申请内存必须是连续空间，如果内存占用过多，申请内存效率很低。怎么办？
+
+- 为了缓解这个问题，我们必须限制 ZipList 的长度和 entry 大小。
+
+问题 2：但是我们要存储大量数据，超过了 ZipList 最佳的上限该怎么办？
+
+- 我们可以创建多个 ZipList 来分片存储数据。
+
+问题 3：数据拆分后比较分散，不方便管理和查找，这多个 ZipList 怎么建立联系？
+
+- Redis 在 3.2 版本引入了新的数据结构 QuickList，它是一个双端链表，只不过链表中的每个节点都是一个 ZipList。
+
+为了避免 QuickList 中的每个 ZipList 中 entry 过多，Redis 提供了一个配置项：`list-max-ziplist-size` 来限制。
+
+- 如果值为正，则代表 ZipList 的允许的 entry 个数的最大值
+- 如果值为负，则代表 ZipList 的最大内存大小，分 5 种情况：
+  1. `-1`：每个 ZipList 的内存占用不能超过 4kb
+  2. `-2`：每个 ZipList 的内存占用不能超过 8kb
+  3. `-3`：每个 ZipList 的内存占用不能超过 16kb
+  4. `-4`：每个 ZipList 的内存占用不能超过 32kb
+  5. `-5`：每个 ZipList 的内存占用不能超过 64kb
+
+其默认值为 `-2`：
+
+<<< @/db/codes/redis/list-max-ziplist-size.sh
+
+除了控制 ZipList 的大小，QuickList 还可以对节点的 ZipList 做压缩。通过配置项 `list-compress-depth` 来控制。因为链表一般都是从首尾访问较多，所以首尾是不压缩的。这个参数是控制首尾不压缩的节点个数：
+
+- `0`：特殊值，代表不压缩
+- `1`：标示 QuickList 的首尾各有 1 个节点不压缩，中间节点压缩
+- `2`：标示 QuickList 的首尾各有 2 个节点不压缩，中间节点压缩
+- 以此内推
+
+默认值：
+
+<<< @/db/codes/redis/list-compress-depth.sh
+
+以下是 QuickList 和 QuickListNode 的结构源码：
+
+<<< @/db/codes/redis/sQuickList.c
+
+<<< @/db/codes/redis/sQuickListNode.c
+
+### 20.6 SkipList
