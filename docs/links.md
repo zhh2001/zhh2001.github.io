@@ -150,14 +150,6 @@ const members = [
     ]
   },
   {
-    avatar: 'https://www.lishoujie.cn/static/images/logo.png',
-    name: '大壮博客',
-    desc: '末日未来临，上帝不审人',
-    links: [
-      { icon: linkIcon, link: 'https://www.lishoujie.cn' },
-    ]
-  },
-  {
     avatar: 'https://mccsjs.eu.org/img/head.jpg',
     name: 'mccsjs',
     desc: '点一盏灯，等一个迷路的夜',
@@ -307,7 +299,7 @@ const members = [
     name: 'Strike Freedom',
     org: 'GNET',
     orgLink: 'https://gnet.host',
-    desc: '潘少的博客、个人主页、技术分享：编程、动漫、读书、历史、随笔',
+    desc: '潘少的博客、主页、技术分享',
     links: [
       { icon: linkIcon, link: 'https://strikefreedom.top' },
       { icon: 'github', link: 'https://github.com/panjf2000' },
@@ -330,6 +322,7 @@ const friends = [
     links: [
       { icon: linkIcon, link: 'https://xiongyujie.cn/' },
       { icon: mailIcon, link: 'mailto:xiong@sues.edu.cn' },
+      { icon: 'github', link: 'https://github.com/X-Lab-CN' },
     ]
   },
   {
@@ -366,7 +359,7 @@ const friends = [
     title: '硕士生',
     org: 'SUES',
     orgLink: 'https://www.sues.edu.cn/',
-    desc: '大模型爱好者',
+    desc: '入侵检测领域大佬',
     links: [
       { icon: linkIcon, link: 'https://brandpeng.github.io/' },
       { icon: mailIcon, link: 'mailto:m325124607@sues.edu.cn' },
