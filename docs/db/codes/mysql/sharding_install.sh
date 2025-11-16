@@ -1,0 +1,1 @@
+go get -u gorm.io/sharding
