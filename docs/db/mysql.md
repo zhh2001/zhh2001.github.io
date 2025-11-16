@@ -1235,8 +1235,8 @@ ReadView（读视图）是快照读 SQL 执行时 MVCC 提取数据的依据，�
 
 ReadView 中包含了四个核心字段:
 
-| 字段           | 含义                                                     |
-| -------------- | -------------------------------------------------------- |
+| 字段             | 含义                                                     |
+| ---------------- | -------------------------------------------------------- |
 | `m_ids`          | 当前活跃的事务 ID 集合                                   |
 | `min_trx_id`     | 最小活跃事务 ID                                          |
 | `max_trx_id`     | 预分配事务 ID，当前最大事务 ID+1（因为事务 ID 是自增的） |
@@ -1251,3 +1251,95 @@ ReadView 中包含了四个核心字段:
 
 - READ COMMITTED：在事务中每一次执行快照读时生成 ReadView。
 - REPEATABLE READ：仅在事务中第一次执行快照读时生成 ReadView，后续复用该 ReadView。
+
+## 12 MySQL 管理
+
+### 12.1 系统数据库
+
+MySQL 数据库安装完成后，自带了以下四个数据库，具体作用如下：
+
+| 数据库               | 含义                                                                                        |
+| -------------------- | ------------------------------------------------------------------------------------------- |
+| `mysql`              | 存储 MySQL 服务器正常运行所需要的各种信息（时区、主从、用户、权限等）                       |
+| `information_schema` | 提供了访问数据库元数据的各种表和视图，包含数据库、表、字段类型及访问权限等                  |
+| `performance_schema` | 为 MySQL 服务器运行时状态提供了一个底层监控功能，主要用于收集数据库服务器性能参数           |
+| `sys`                | 包含了一系列方便 DBA 和开发人员利用 `performance_schema` 性能数据库进行性能调优和诊断的视图 |
+
+### 12.2 常用工具
+
+#### 12.2.1 `mysql`
+
+该 `mysql` 不是指 MySQL 服务，而是指 MySQL 的客户端工具。
+
+- 语法：`mysql [options] [database]`
+- 选项：
+  - `-u, --user=name`：指定用户名
+  - `-p, --password [=name]`：指定密码
+  - `-h, --host=name`：指定服务器 IP 或域名
+  - `-P, --port=port`：指定连接端口
+  - `-e, --execute=name`：执行 SQL 语句并退出
+
+`-e` 选项可以在 MySQL 客户端连接数据库后执行 SQL 语句，执行完成后自动退出，对于一些批处理脚本，这种方式尤其方便。
+
+示例：
+
+<<< @/db/codes/mysql/mysqle.sh
+
+#### 12.2.2 `mysqladmin`
+
+`mysqladmin` 是一个执行管理操作的客户端程序。可以用它来检查服务器的配置和当前状态、创建并删除数据库等。
+
+通过帮助文档查看选项：
+
+<<< @/db/codes/mysql/mysqladmin_help.sh
+
+示例：
+
+<<< @/db/codes/mysql/mysqladmin_drop.sh
+
+<<< @/db/codes/mysql/mysqladmin_v.sh
+
+#### 12.2.3 `mysqlbinlog`
+
+由于服务器生成的二进制日志文件以二进制格式保存，所以如果想要检查这些日志的文本格式，就会使用到 `mysqlbinlog` 日志管理工具。
+
+- 语法：`mysqlbinlog [options] log-files1 log-files2 ...`
+- 选项：
+  - `-d, --database=name`：指定数据库名称，只列出指定的数据库相关操作。
+  - `-o, --offset=#`：忽略掉日志中的前 `n` 行命令。
+  - `-r, --result-file=name`：将输出的文本格式日志输出到指定文件。
+  - `-s, --short-form`：显示简单格式，省略掉一些信息。
+  - `--start-datetime=date1 --stop-datetime=date2`：指定日期间隔内的所有日志。
+  - `--start-position=pos1 --stop-position=pos2`：指定位置间隔内的所有日志。
+
+<<< @/db/codes/mysql/mysqlbinlog.sh
+
+#### 12.2.4 `mysqlshow`
+
+`mysqlshow` 客户端对象查找工具，用来快速查找存在哪些数据库、数据库中的表、表中的列或者索引。
+
+- 语法：`mysqlshow [options] [db_name [table_name [col_name]]]`
+- 选项：
+  - `--count`：显示数据库及表的统计信息（数据库，表均可以不指定）
+  - `-i`：显示指定数据库或者指定表的状态信息
+
+示例：
+
+<<< @/db/codes/mysql/mysqlshow.sh
+
+<<< @/db/codes/mysql/mysqlshow_db.sh
+
+<<< @/db/codes/mysql/mysqlshow_db_tb.sh
+
+#### 12.2.5 `mysqldump`
+
+`mysqldump` 是 MySQL 的客户端备份工具，主要用于：
+
+- **数据库备份**：生成包含建表语句、数据插入语句的 SQL 文件；
+- **数据迁移**：在不同 MySQL 实例（或数据库）间转移数据。
+
+#### 12.2.6 `mysqlimport`/`source`
+
+`mysqlimport` 是客户端数据导入工具，用于导入 `mysqldump` 加 `-T` 参数后导出的文本文件（`-T` 会生成表结构 SQL 和对应的数据文本文件）。
+
+`source` 用于导入 SQL 文件（如 `mysqldump` 导出的完整备份 SQL）。

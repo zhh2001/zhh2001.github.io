@@ -1,0 +1,1 @@
+mysql -h10.120.100.27 -P3306 -uroot -p123456 db01 -e "SELECT * FROM stu"

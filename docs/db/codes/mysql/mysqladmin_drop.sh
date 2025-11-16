@@ -1,0 +1,1 @@
+mysqladmin -uroot -p123456 drop db02
