@@ -11,4 +11,3 @@ mysqlshow -uroot -p123456 test --count
 # | tb_user     |        5 |          4 |
 # | user_v_1    |        2 |          2 |
 # +-------------+----------+------------+
-# 6 rows in set.
