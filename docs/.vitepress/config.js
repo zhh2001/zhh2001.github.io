@@ -32,7 +32,8 @@ const TechNotes = [
       { text: 'Goroutine', link: '/go/goroutine' },
       { text: 'Gin', link: '/go/gin' },
       { text: 'gRPC', link: '/go/grpc' },
-      { text: 'Eino', link: '/go/eino' }
+      { text: 'Eino', link: '/go/eino' },
+      { text: 'Docker', link: '/go/docker' }
     ]
   },
   {
@@ -75,6 +76,7 @@ const keywords = [
   'RPC', 'Remote Procedure Call', 'gRPC',
   'Goroutine', 'GMP',
   'Gin',
+  'Docker',
   'Eino',
   'Database',
   'Redis', 'Remote Dictionary Server',
