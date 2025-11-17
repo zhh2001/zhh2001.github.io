@@ -1,3 +1,7 @@
+---
+outline: [2,3]
+---
+
 # Docker
 
 ## 1 安装
@@ -63,3 +67,22 @@
 示例：
 
 <<< @/go/codes/docker/example.sh
+
+## 4 数据卷挂载
+
+**数据卷（volume）**是一个虚拟目录，是**容器内目录**与**宿主机目录**之间映射的桥梁。
+
+1. `docker volume create`：创建数据卷
+2. `docker volume ls`：查看全部数据卷
+3. `docker volume rm`：删除指定数据卷
+4. `docker volume inspect`：查看数据卷详情
+5. `docker volume prune`：清除数据卷
+
+::: tip
+- 在执行 `docker run` 命令时，使用 `-v 数据卷:容器内目录` 可以完成数据卷挂载
+- 当创建容器时，如果挂载了数据卷且数据卷不存在，会自动创建数据卷
+:::
+
+示例：
+
+<<< @/go/codes/docker/example_v.sh
