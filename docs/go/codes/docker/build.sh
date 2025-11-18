@@ -1,0 +1,1 @@
+docker build -t myImage:1.0 .

@@ -103,3 +103,55 @@ outline: [2, 3]
 ## 5 自定义镜像
 
 镜像就是包含了应用程序、程序运行的系统函数库、运行配置等文件的文件包。构建镜像的过程其实就是把上述文件打包的过程。
+
+### 5.1 镜像结构
+
+**层（Layer）**：添加安装包、依赖、配置等，每次操作都形成新的一层。
+
+**基础镜像（BaseImage）**：应用依赖的系统函数库、环境、配置、文件等
+
+**入口（Entrypoint）**：镜像运行入口，一般是程序启动的脚本和参数
+
+### 5.2 Dockerfile
+
+Dockerfile 就是一个文本文件，其中包含一个个的**指令（Instruction）**，用指令来说明要执行什么操作来构建镜像。将来 Docker 可以根据 Dockerfile 帮我们构建镜像。常见指令如下：
+
+|     指令     | 说明                                           | 示例                                                               |
+| :----------: | ---------------------------------------------- | ------------------------------------------------------------------ |
+|    `FROM`    | 指定基础镜像                                   | `FROM centos:6`                                                    |
+|    `ENV`     | 设置环境变量，可在后面指令使用                 | `ENV key value`                                                    |
+|    `COPY`    | 拷贝本地文件到镜像的指定目录                   | `COPY ./jre11.tar.gz /tmp`                                         |
+|    `RUN`     | 执行 Linux 的 shell 命令，一般是安装过程的命令 | `RUN tar -zxvf /tmp/jre11.tar.gz && EXPORTS path=/tmp/jre11:$path` |
+|   `EXPOSE`   | 指定容器运行时监听的端口，是给镜像使用者看的   | `EXPOSE 8080`                                                      |
+| `ENTRYPOINT` | 镜像中应用的启动命令，容器运行时调用           | `ENTRYPOINT java -jar xx.jar`                                      |
+
+示例：
+
+<<< @/go/codes/docker/e.dockerfile
+
+当编写好了 Dockerfile，可以利用下面命令来构建镜像：
+
+<<< @/go/codes/docker/build.sh
+
+- `-t`：给镜像起名，格式为 `repo:tag`，不指定 `tag` 时，默认为 `latest`
+- `.`：指定 Dockerfile 所在目录，如果在当前目录，就为 `.`
+
+## 6 网络
+
+默认情况下，所有容器都是以 bridge 方式连接到 Docker 的一个虚拟网桥上。
+
+加入自定义网络的容器才可以通过容器名互相访问，Docker 的网络操作命令如下：
+
+| 命令                        | 说明                     |
+| --------------------------- | ------------------------ |
+| `docker network create`     | 创建一个网络             |
+| `docker network ls`         | 查看所有网络             |
+| `docker network rm`         | 删除指定网络             |
+| `docker network prune`      | 清除未使用的网络         |
+| `docker network connect`    | 使指定容器连接加入某网络 |
+| `docker network disconnect` | 使指定容器连接离开某网络 |
+| `docker network inspect`    | 查看网络详细信息         |
+
+示例：
+
+<<< @/go/codes/docker/net.sh
