@@ -47,7 +47,8 @@ const TechNotes = [
     text: 'Interview',
     items: [
       { text: 'GoLang', link: '/interview/go' },
-      { text: 'MySQL', link: '/interview/mysql' }
+      { text: 'MySQL', link: '/interview/mysql' },
+      { text: 'Redis', link: '/interview/redis' },
     ]
   }
 ]
