@@ -192,9 +192,9 @@ export default defineConfig({
     },
     socialLinks: [
       { icon: 'github', link: 'https://github.com/zhh2001' },
-      { icon: 'orcid', link: 'https://orcid.org/0009-0005-9456-8936' },
+      // { icon: 'orcid', link: 'https://orcid.org/0009-0005-9456-8936' },
       { icon: 'qq', link: 'mailto:1652709417@qq.com' },
-      { icon: 'leetcode', link: 'https://leetcode.cn/u/zhanghenghua/' },
+      // { icon: 'leetcode', link: 'https://leetcode.cn/u/zhanghenghua/' },
       { icon: 'csdn', link: 'https://blog.csdn.net/qq_43133192' },
     ]
   },
