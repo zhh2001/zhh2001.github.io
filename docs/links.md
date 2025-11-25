@@ -150,19 +150,6 @@ const members = [
     ]
   },
   {
-    avatar: 'https://pic.imgdb.cn/item/65bc52b0871b83018a06699d.png',
-    name: '無名小栈',
-    desc: '分享技术与科技生活',
-    links: [
-      { icon: linkIcon, link: 'https://blog.imsyy.top/' },
-      { icon: 'github', link: 'https://github.com/imsyy/' },
-      { icon: 'telegram', link: 'https://t.me/bottom_user' },
-      { icon: 'bilibili', link: 'https://space.bilibili.com/98544142' },
-      { icon: 'qq', link: 'https://res.abeim.cn/api/qq/?qq=1539250352' },
-      { icon: 'afdian', link: 'https://afdian.com/a/imsyy' },
-    ]
-  },
-  {
     avatar: 'https://mccsjs.eu.org/img/head.jpg',
     name: 'mccsjs',
     desc: '点一盏灯，等一个迷路的夜',
