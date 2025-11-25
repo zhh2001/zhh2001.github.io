@@ -10,13 +10,13 @@ editLink: false
 
 :student:姓名：张恒华
 
-:phone:电话：+86 166 **** 6316
+:phone:电话：+86 166 \*\*\*\* 6316
 
 :email:邮箱：<a href="mailto:1652709417@qq.com">1652709417@qq.com</a>、<a href="mailto:zhang@sues.edu.cn">zhang@sues.edu.cn</a>
 
 :brain:研究方向：软件定义网络、可编程数据平面、带内网络遥测
 
-:computer:GitHub主页：[https://github.com/zhh2001](https://github.com/zhh2001)
+:computer:GitHub 主页：[https://github.com/zhh2001](https://github.com/zhh2001)
 
 ## 教育背景
 
@@ -33,13 +33,13 @@ editLink: false
 ## 工作经历
 
 2024.01-2024.08 润和软件 <Badge type="tip" text="全职" />  
-华为事业部 | Python工程师
+华为事业部 | Python 工程师
 
 2022.07-2023.03 多益网络 <Badge type="tip" text="全职" />  
 技术平台 | 软件后端
 
 2021.07-2021.08 湖南广播电视台 <Badge type="tip" text="实习" />  
-数据互动事业部 | Web前端实习生  
+数据互动事业部 | Web 前端实习生  
 [实习鉴定表](/resume/hnradio.jpg)
 
 ## 项目经历
@@ -51,7 +51,7 @@ editLink: false
 
 2024.01-2024.08 凤凰山项目 <Badge type="tip" text="全职" />  
 项目主体：华为上研  
-岗位：Python工程师  
+岗位：Python 工程师  
 技术栈：`Python`、`Pandas`、`PyQt5`、`SQLite`、`SQLAlchemy`、`Linux`、`Shell`、`Git`
 
 2022.12-2023.03 内容审核平台 <Badge type="tip" text="全职" />  
@@ -62,7 +62,7 @@ editLink: false
 2022.09-2023.03 随手扫描 <Badge type="tip" text="全职" />  
 项目主体：多益网络  
 岗位：后端开发工程师  
-技术栈：`Python`、`MySQL`、`Linux`、`Shell`、`APScheduler`、`SVN`
+技术栈：`Python`、`Tornado`、`MySQL`、`Linux`、`Shell`、`APScheduler`、`SVN`
 
 2022.07-2023.09 员工客服中心 <Badge type="tip" text="全职" />  
 项目主体：多益网络  
@@ -73,3 +73,14 @@ editLink: false
 项目主体：湖南广电  
 岗位：前端开发工程师  
 技术栈：`HTML`、`CSS`、`JavaScript`、`Vue2`、`ElementUI`、`Git`
+
+## 获奖情况
+
+- 第六届上海市研究生智慧城市创意设计大赛 三等奖
+- 2025 年上海工程技术大学产教融合优秀学生
+
+## 证书
+
+- 计算机技术与软件专业技术资格证书（初级 | 程序员）
+- 全国计算机等级考试（二级 | Python 语言程序设计）
+- 全国计算机等级考试（二级 | Web 程序设计）
