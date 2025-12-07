@@ -79,8 +79,11 @@
 
 #comments::part(iframe) {
     max-width: 960px;
-    margin: 0 auto 1.5rem;
+    margin: 2.5rem auto 1.5rem;
     display: flex;
+}
+
+.VPPage #comments::part(iframe) {
     box-sizing: border-box;
     padding: 0 16px;
 }

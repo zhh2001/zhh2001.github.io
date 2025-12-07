@@ -210,7 +210,7 @@ iPerf 1.6 版本开始支持。
 服务端命令：
 
 ```shell
-iperf -s -V 
+iperf -s -V
 ```
 
 客户端命令：
@@ -309,7 +309,7 @@ mininet> h1 iperf -c h2
 
 ### `-d, --dualtest`
 
-用于启用双向测试模式​（dual test mode），即同时测试上行和下行带宽。这意味着客户端和服务器会同时发送和接收数据，从而模拟双向网络流量。
+用于启用双向测试模式 ​（dual test mode），即同时测试上行和下行带宽。这意味着客户端和服务器会同时发送和接收数据，从而模拟双向网络流量。
 
 #### 示例
 
@@ -339,7 +339,7 @@ TCP window size: 85.3 KByte (default)
 
 ### `-r, --tradeoff`
 
-用于启用双向交替测试模式​（bidirectional alternating test mode）。与 `-d` 参数（同时双向测试）不同，`-r` 参数会先测试一个方向，然后再测试另一个方向，而不是同时进行。
+用于启用双向交替测试模式 ​（bidirectional alternating test mode）。与 `-d` 参数（同时双向测试）不同，`-r` 参数会先测试一个方向，然后再测试另一个方向，而不是同时进行。
 
 #### 示例
 

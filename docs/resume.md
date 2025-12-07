@@ -77,3 +77,25 @@ editLink: false
 项目主体：湖南广电  
 岗位：前端开发工程师  
 技术栈：`HTML`、`CSS`、`JavaScript`、`Vue2`、`ElementUI`、`Git`
+
+<script setup>
+import Giscus from '@giscus/vue'
+import { useData } from 'vitepress'
+
+const { isDark } = useData()
+</script>
+
+<Giscus
+  id="comments"
+  repo="zhh2001/zhh2001.github.io"
+  repoId="R_kgDOK7hmeA"
+  category="Announcements"
+  categoryId="DIC_kwDOK7hmeM4CobaL"
+  mapping="pathname"
+  strict="1"
+  reactionsEnabled="1"
+  emitMetadata="0"
+  inputPosition="top"
+  :theme="isDark ? 'dark' : 'light'"
+  lang="en"
+/>
