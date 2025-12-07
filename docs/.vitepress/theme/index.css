@@ -73,25 +73,14 @@
     max-width: none !important;
 }
 
-.ccf-page .content {
-    max-width: none !important;
-}
-
-.ccf-page .container {
-    max-width: none !important;
-}
-
 .MathJax {
     position: static !important;
 }
 
 #comments::part(iframe) {
-  max-width: 640px;
-  margin: auto;
-  display: flex;
-}
-
-.comments-container {
-  max-height: 640px;
-  overflow-y: scroll;
+    max-width: 960px;
+    margin: 0 auto 1.5rem;
+    display: flex;
+    box-sizing: border-box;
+    padding: 0 16px;
 }

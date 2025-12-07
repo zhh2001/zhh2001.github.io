@@ -18,8 +18,7 @@ const SDNNoteItems = [
       { text: 'Table', link: '/sdn/writing/table' },
       { text: 'Bibliography', link: '/sdn/writing/bibliography' }
     ]
-  },
-  { text: 'CCF', link: '/sdn/ccf' }
+  }
 ]
 
 const ResearchNotes = [
