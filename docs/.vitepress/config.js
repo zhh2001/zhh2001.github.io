@@ -115,13 +115,6 @@ export default defineConfig({
     ]
   ],
   markdown: {
-    container: {
-      dangerLabel: '危险',
-      detailsLabel: '详细信息',
-      infoLabel: '信息',
-      tipLabel: '提示',
-      warningLabel: '警告'
-    },
     math: true,
     languageAlias: {
       'p4': 'c++',
@@ -132,20 +125,12 @@ export default defineConfig({
   },
   themeConfig: {
     siteTitle: '张恒华',
-    outlineTitle: '页面导航',
-    darkModeSwitchLabel: '主题',
-    lightModeSwitchTitle: '切换到浅色模式',
-    darkModeSwitchTitle: '切换到深色模式',
-    sidebarMenuLabel: '菜单',
-    returnToTopLabel: '回到顶部',
-    docFooter: { prev: '上一页', next: '下一页' },
     editLink: {
-      pattern: ({ filePath }) => `https://github.com/zhh2001/notes/tree/main/docs/${filePath}`,
-      text: '在 GitHub 上编辑此页面'
+      pattern: ({ filePath }) => `https://github.com/zhh2001/notes/tree/main/docs/${filePath}`
     },
     footer: {
-      message: '基于 <a href="/mit">MIT 许可</a> 发布',
-      copyright: '版权所有 © 2024至今 <a href="/resume">张恒华</a>'
+      message: 'Released under the <a href="/mit">MIT License</a>.',
+      copyright: 'Copyright © 2024-present <a href="/resume">Henghua Zhang</a>'
     },
     nav: [
       { text: '首页', link: '/' },
@@ -160,22 +145,7 @@ export default defineConfig({
       { text: '关于我', link: '/resume' }
     ],
     search: {
-      provider: 'local',
-      options: {
-        translations: {
-          button: { buttonText: '搜索文档' },
-          modal: {
-            displayDetails: '显示详细内容',
-            resetButtonTitle: '清除查询条件',
-            noResultsText: '无法找到相关结果',
-            footer: {
-              selectText: '选择',
-              navigateText: '切换',
-              closeText: '关闭'
-            }
-          }
-        }
-      }
+      provider: 'local'
     },
     sidebar: {
       '/sdn/': ResearchNotes,
@@ -183,12 +153,6 @@ export default defineConfig({
       '/db/': TechNotes,
       '/interview/': TechNotes,
       '/other/': TechNotes
-    },
-    notFound: {
-      code: '404',
-      linkText: '返回首页',
-      quote: '请检查页面路径是否正确',
-      title: '页面未找到'
     },
     socialLinks: [
       { icon: 'github', link: 'https://github.com/zhh2001' },
