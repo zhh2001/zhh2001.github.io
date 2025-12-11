@@ -74,7 +74,7 @@ description: 个人简历
 岗位：后端开发工程师  
 技术栈：`Python`、`Tornado`、`ElasticSearch`、`MySQL`、`SQLAlchemy`、`Redis`、`Linux`、`SVN`
 
-2021.07-2021.08 铁粉电台后台管理系统 <Badge type="tip" text="实习" />  
+2021.07-2021.09 铁粉电台后台管理系统 <Badge type="tip" text="实习" />  
 项目主体：湖南广电  
 岗位：前端开发工程师  
 技术栈：`HTML`、`CSS`、`JavaScript`、`Vue2`、`ElementUI`、`Git`
