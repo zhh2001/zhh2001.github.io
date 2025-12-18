@@ -360,7 +360,7 @@ const friends = [
     ]
   },
   {
-    avatar: 'https://brandpeng.github.io/static/assets/img/photo.png',
+    avatar: 'https://brandpeng.github.io/avatar.jpg',
     name: '彭海东',
     title: '硕士生',
     org: 'SUES',

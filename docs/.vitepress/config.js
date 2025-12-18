@@ -73,13 +73,13 @@ const keywords = [
   'Scapy',
   'Ryu',
   'Go', 'GoLang',
-  'RPC', 'Remote Procedure Call', 'gRPC',
+  'RPC', 'gRPC',
   'Goroutine', 'GMP',
   'Gin',
   'Docker',
   'Eino',
   'Database',
-  'Redis', 'Remote Dictionary Server',
+  'Redis',
   'MySQL',
   'Protocol Buffer', 'protobuf'
 ]
@@ -93,7 +93,6 @@ export default defineConfig({
   description: description_cn + description_en,
   appearance: true,
   cleanUrls: true,
-  ignoreDeadLinks: true,
   head: [
     ['meta', { name: 'keywords', content: keywords.join(', ') }],
     ['meta', { name: 'google-site-verification', content: 'wMOTcBwCiCMV7ESftQRY3Glvq8UL4xzUKrZ-1wjOpqM' }],
