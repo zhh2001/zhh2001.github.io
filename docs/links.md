@@ -211,16 +211,16 @@ const members = [
       { icon: 'rss', link: 'https://blog.feizhuqwq.com/feed/' },
     ]
   },
-  {
-    avatar: 'https://blog.tovoao.cn/favicon.ico',
-    name: '鹤归博客',
-    desc: '总有人间一两风<br>填我十万八千梦',
-    links: [
-      { icon: linkIcon, link: 'https://blog.tovoao.cn' },
-      { icon: mailIcon, link: 'mailto:981739185@qq.com' },
-      { icon: 'qq', link: 'https://wpa.qq.com/msgrd?v=3&uin=981739185&site=qq&menu=yes' },
-    ]
-  },
+  // {
+  //   avatar: 'https://blog.tovoao.cn/favicon.ico',
+  //   name: '鹤归博客',
+  //   desc: '总有人间一两风<br>填我十万八千梦',
+  //   links: [
+  //     { icon: linkIcon, link: 'https://blog.tovoao.cn' },
+  //     { icon: mailIcon, link: 'mailto:981739185@qq.com' },
+  //     { icon: 'qq', link: 'https://wpa.qq.com/msgrd?v=3&uin=981739185&site=qq&menu=yes' },
+  //   ]
+  // },
   {
     avatar: 'https://typonotes.com/logo/avatar.png',
     name: '老麦的书房',
