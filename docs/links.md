@@ -211,16 +211,6 @@ const members = [
       { icon: 'rss', link: 'https://blog.feizhuqwq.com/feed/' },
     ]
   },
-  // {
-  //   avatar: 'https://blog.tovoao.cn/favicon.ico',
-  //   name: '鹤归博客',
-  //   desc: '总有人间一两风<br>填我十万八千梦',
-  //   links: [
-  //     { icon: linkIcon, link: 'https://blog.tovoao.cn' },
-  //     { icon: mailIcon, link: 'mailto:981739185@qq.com' },
-  //     { icon: 'qq', link: 'https://wpa.qq.com/msgrd?v=3&uin=981739185&site=qq&menu=yes' },
-  //   ]
-  // },
   {
     avatar: 'https://typonotes.com/logo/avatar.png',
     name: '老麦的书房',
@@ -232,19 +222,6 @@ const members = [
       { icon: 'rss', link: 'https://typonotes.com/index.xml' },
     ]
   },
-  // {
-  //   avatar: 'https://chenmingyong.cn/static/4aa6f9aeeee31495a9fb2cc6d2f7a1ca.jpg',
-  //   name: '陈明勇的博客',
-  //   desc: '一名热爱技术、乐于分享的开发者，同时也是开源爱好者',
-  //   links: [
-  //     { icon: linkIcon, link: 'https://chenmingyong.cn' },
-  //     { icon: 'gmail', link: 'mailto:chenmingyong1999@gmail.com' },
-  //     { icon: 'github', link: 'https://github.com/chenmingyong0423' },
-  //     { icon: 'wechat', link: 'https://chenmingyong.cn/static/wx-qrcode.jpg' },
-  //     { icon: 'zhihu', link: 'https://www.zhihu.com/people/chenmingyong-code' },
-  //     { icon: 'juejin', link: 'https://juejin.cn/user/4174180683088269' },
-  //   ]
-  // },
   {
     avatar: 'https://pic1.imgdb.cn/item/68b512ef58cb8da5c8689e8c.webp',
     name: '一世繁华',
