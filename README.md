@@ -2,7 +2,8 @@
 
 [![GitHub License](https://img.shields.io/github/license/zhh2001/zhh2001.github.io?style=for-the-badge)](https://opensource.org/licenses/MIT)
 [![Website](https://img.shields.io/website?url=https://zhh2001.github.io&up_message=online&style=for-the-badge&logo=vue.js)](https://zhh2001.github.io)
-[![GitHub deployments](https://img.shields.io/github/deployments/zhh2001/zhh2001.github.io/github-pages?style=for-the-badge&logo=github-actions)](https://github.com/zhh2001/zhh2001.github.io/actions/workflows/deploy.yml)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/zhh2001/zhh2001.github.io/deploy.yml?style=for-the-badge&logo=github-actions)
+[![GitHub deployments](https://img.shields.io/github/deployments/zhh2001/zhh2001.github.io/github-pages?style=for-the-badge&logo=githubpages)](https://github.com/zhh2001/zhh2001.github.io/actions/workflows/deploy.yml)
 [![GitHub Discussions](https://img.shields.io/github/discussions/zhh2001/zhh2001.github.io?style=for-the-badge&logo=github)](https://github.com/zhh2001/zhh2001.github.io/discussions)
 ![GitHub Repo stars](https://img.shields.io/github/stars/zhh2001/zhh2001.github.io?style=for-the-badge&logo=refinedgithub)
 ![GitHub package.json dev/peer/optional dependency version](https://img.shields.io/github/package-json/dependency-version/zhh2001/zhh2001.github.io/dev/markdown-it-mathjax3?style=for-the-badge&logo=markdown)
