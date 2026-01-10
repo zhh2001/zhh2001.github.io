@@ -63,7 +63,7 @@ description: 个人简历
 2025.12-2026.06 EventUP  
 项目主体：简文投资  
 岗位：Golang 开发工程师  
-技术栈：`Golang`、`Gin`、`MySQL`、`Redis`、`DolphinDB`、`Linux`、`Shell`、`Docker`、`pprof`、`k6`、`Grafana`、`Git`
+技术栈：`Golang`、`Gin`、`MySQL`、`Redis`、`DolphinDB`、`Vue`、`Element Plus`、`Linux`、`Shell`、`Docker`、`pprof`、`k6`、`Grafana`、`Git`
 
 2024.11-2025.02 懂经营  
 项目主体：红砥智能  
