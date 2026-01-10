@@ -7,7 +7,7 @@
 [![GitHub Discussions](https://img.shields.io/github/discussions/zhh2001/zhh2001.github.io?style=for-the-badge&logo=github)](https://github.com/zhh2001/zhh2001.github.io/discussions)
 ![GitHub Repo stars](https://img.shields.io/github/stars/zhh2001/zhh2001.github.io?style=for-the-badge&logo=refinedgithub)
 ![GitHub package.json dev/peer/optional dependency version](https://img.shields.io/github/package-json/dependency-version/zhh2001/zhh2001.github.io/dev/markdown-it-mathjax3?style=for-the-badge&logo=markdown)
-![GitHub package.json prod dependency version](https://img.shields.io/github/package-json/dependency-version/zhh2001/zhh2001.github.io/vitepress?style=for-the-badge&logo=vitepress)
+![GitHub package.json dev/peer/optional dependency version](https://img.shields.io/github/package-json/dependency-version/zhh2001/zhh2001.github.io/dev/vitepress?style=for-the-badge&logo=vitepress)
 
 欢迎访问我的个人学习笔记网站！这里是我整理和分享学习笔记的地方，涵盖了我感兴趣的多个领域，包括编程、科研和其他技术相关内容。
 
