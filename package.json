@@ -1,15 +1,15 @@
 {
   "type": "module",
   "scripts": {
-    "docs:dev": "vitepress dev docs --host",
+    "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"
   },
-  "dependencies": {
-    "@giscus/vue": "^3.1.1",
-    "vitepress": "^1.6.3"
-  },
   "devDependencies": {
-    "markdown-it-mathjax3": "^4.3.2"
+    "markdown-it-mathjax3": "^4.3.2",
+    "vitepress": "^1.6.4"
+  },
+  "dependencies": {
+    "@giscus/vue": "^3.1.1"
   }
 }

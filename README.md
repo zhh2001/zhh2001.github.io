@@ -1,5 +1,13 @@
 # 我的个人学习笔记网站
 
+[![GitHub License](https://img.shields.io/github/license/zhh2001/zhh2001.github.io?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![Website](https://img.shields.io/website?url=https://zhh2001.github.io&up_message=online&style=for-the-badge&logo=vue.js)](https://zhh2001.github.io)
+[![GitHub deployments](https://img.shields.io/github/deployments/zhh2001/zhh2001.github.io/github-pages?style=for-the-badge&logo=github-actions)](https://github.com/zhh2001/zhh2001.github.io/actions/workflows/deploy.yml)
+[![GitHub Discussions](https://img.shields.io/github/discussions/zhh2001/zhh2001.github.io?style=for-the-badge&logo=github)](https://github.com/zhh2001/zhh2001.github.io/discussions)
+![GitHub Repo stars](https://img.shields.io/github/stars/zhh2001/zhh2001.github.io?style=for-the-badge&logo=refinedgithub)
+![GitHub package.json dev/peer/optional dependency version](https://img.shields.io/github/package-json/dependency-version/zhh2001/zhh2001.github.io/dev/markdown-it-mathjax3?style=for-the-badge&logo=markdown)
+![GitHub package.json prod dependency version](https://img.shields.io/github/package-json/dependency-version/zhh2001/zhh2001.github.io/vitepress?style=for-the-badge&logo=vitepress)
+
 欢迎访问我的个人学习笔记网站！这里是我整理和分享学习笔记的地方，涵盖了我感兴趣的多个领域，包括编程、科研和其他技术相关内容。
 
 ## 网站简介
@@ -7,8 +15,6 @@
 本网站主要用于存放和展示我的学习笔记，旨在帮助我更好地整理知识，同时也希望能够为他人提供一些参考和帮助。所有内容均为个人学习过程中的总结和记录，可能会有不完善之处，欢迎指正和建议！
 
 ## 内容分类
-
-以下是当前网站的主要分类和内容概述：
 
 ### 1. 编程笔记
 
