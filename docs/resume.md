@@ -46,35 +46,51 @@ description: 个人简历
 
 ## 工作经历
 
-2022.07-2023.03 多益网络 <Badge type="tip" text="全职" />  
+2025.12-2026.06 简文投资  
+投研部 | Golang 实习生
+
+2024.01-2024.08 华为上研  
+海思半导体与器件业务部 | 软件开发工程师
+
+2022.07-2023.03 多益网络  
 技术平台 | 软件后端
 
-2021.07-2021.09 湖南广播电视台 <Badge type="tip" text="实习" />  
+2021.07-2021.09 湖南广播电视台  
 数据互动事业部 | Web 前端实习生
 
 ## 项目经历
 
-2024.11-2025.02 懂经营 <Badge type="tip" text="兼职" />  
+2025.12-2026.06 EventUP  
+项目主体：简文投资  
+岗位：Golang 开发工程师  
+技术栈：`Golang`、`Gin`、`MySQL`、`Redis`、`DolphinDB`、`Linux`、`Shell`、`Docker`、`pprof`、`k6`、`Grafana`、`Git`
+
+2024.11-2025.02 懂经营  
 项目主体：红砥智能  
 岗位：微信小程序开发工程师  
 技术栈：`WXML`、`WXS`、`SASS`、`ECharts`、`VantUI`、`Git`
 
-2022.12-2023.03 内容审核平台 <Badge type="tip" text="全职" />  
+2024.01-2024.08 凤凰山  
+项目主体：华为上研  
+岗位：Python 工程师  
+技术栈：`Python`、`Pandas`、`NumPy`、`Seaborn`、`PyAutoGUI`、`PyQt`、`Linux`、`Shell`、`Git`
+
+2022.12-2023.03 内容审核平台  
 项目主体：多益网络  
 岗位：后端开发工程师  
 技术栈：`Python`、`Tornado`、`MySQL`、`SQLAlchemy`、`Linux`、`Shell`、`SVN`
 
-2022.09-2023.03 随手扫描 <Badge type="tip" text="全职" />  
+2022.09-2023.03 随手扫描  
 项目主体：多益网络  
 岗位：后端开发工程师  
 技术栈：`Python`、`Tornado`、`MySQL`、`Linux`、`Shell`、`APScheduler`、`SVN`
 
-2022.07-2023.09 员工客服中心 <Badge type="tip" text="全职" />  
+2022.07-2023.09 员工客服中心  
 项目主体：多益网络  
 岗位：后端开发工程师  
 技术栈：`Python`、`Tornado`、`ElasticSearch`、`MySQL`、`SQLAlchemy`、`Redis`、`Linux`、`SVN`
 
-2021.07-2021.09 铁粉电台后台管理系统 <Badge type="tip" text="实习" />  
+2021.07-2021.09 铁粉电台后台管理系统  
 项目主体：湖南广电  
 岗位：前端开发工程师  
 技术栈：`HTML`、`CSS`、`JavaScript`、`Vue2`、`ElementUI`、`Git`
