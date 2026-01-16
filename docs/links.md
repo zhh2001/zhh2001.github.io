@@ -196,7 +196,7 @@ const members = [
     desc: '一个充满青春活力的技术博客',
     links: [
       { icon: linkIcon, link: 'https://yu-blog.top' },
-      { icon: 'gmail', link: 'mailto:https://github.com/rossiniortensia-ops' },
+      { icon: 'gmail', link: 'mailto:rossiniortensia@gmail.com' },
       { icon: 'sinaweibo', link: 'https://weibo.com/u/7995211964' },
       { icon: 'github', link: 'https://github.com/rossiniortensia-ops' },
     ]
