@@ -191,7 +191,7 @@ const members = [
     ]
   },
   {
-    avatar: 'https://free.picui.cn/free/2025/09/30/68dbd5869ed39.jpg',
+    avatar: 'https://yu-blog.top/img/avatar.jpg',
     name: '裕裕裕的小破宅',
     desc: '一个充满青春活力的技术博客',
     links: [
