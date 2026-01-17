@@ -394,7 +394,7 @@ const templates = [
         <strong>申请条件</strong>
         <p>1.请确定贵站可以稳定运营；</p>
         <p>2.博客更新有一定的活跃度；</p>
-        <p>3.申请前先添加本站至您的友链</p>
+        <p>3.申请前添加本站至您的友链</p>
       </div>
       <div style="margin-bottom: 8px;">
         <strong>申请须知</strong>
@@ -405,7 +405,7 @@ const templates = [
         <p>在本页面底部留言，请包含如下信息：</p>
         <p>1.网站名称和地址（必须）</p>
         <p>2.网站描述和Logo（可选）</p>
-        <p>3.各个社交平台及链接（可选）</p>
+        <p>3.各社交平台链接（可选）</p>
         <p>4.所在组织及角色（可选）</p>
       </div>
       <div style="margin-bottom: 8px;">
