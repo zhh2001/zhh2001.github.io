@@ -402,7 +402,7 @@ const templates = [
       </div>
       <div style="margin-bottom: 6px;">
         <strong>申请方式</strong>
-        <p>可通过 <a href="https://github.com/zhh2001/zhh2001.github.io/issues" target="_blank">Issue</a> 或者邮件联系我，请包含如下信息：</p>
+        <p>在本页面底部留言，请包含如下信息：</p>
         <p>1.网站名称和地址（必须）</p>
         <p>2.网站描述和Logo（可选）</p>
         <p>3.各个社交平台及链接（可选）</p>
