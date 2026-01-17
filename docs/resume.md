@@ -31,7 +31,7 @@ description: 个人简历
 
 4 篇一作在投
 
-## 证书
+## 技能证书
 
 - 计算机技术与软件专业技术资格证书（中级 | 软件设计师）
 - 计算机技术与软件专业技术资格证书（初级 | 程序员）
@@ -87,17 +87,17 @@ description: 个人简历
 
 2022.12-2023.03 内容审核平台  
 项目主体：多益网络  
-岗位：后端开发工程师  
+岗位：Python 后端工程师  
 技术栈：`Python`、`Tornado`、`MySQL`、`SQLAlchemy`、`Linux`、`Shell`、`SVN`
 
 2022.09-2023.03 随手扫描  
 项目主体：多益网络  
-岗位：后端开发工程师  
+岗位：Python 后端工程师  
 技术栈：`Python`、`Tornado`、`MySQL`、`Linux`、`Shell`、`APScheduler`、`SVN`
 
 2022.07-2023.09 员工客服中心  
 项目主体：多益网络  
-岗位：后端开发工程师  
+岗位：Python 后端工程师  
 技术栈：`Python`、`Tornado`、`ElasticSearch`、`MySQL`、`SQLAlchemy`、`Redis`、`Linux`、`SVN`
 
 2021.07-2021.09 铁粉电台后台管理系统  
