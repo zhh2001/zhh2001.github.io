@@ -5,6 +5,7 @@ const SDNNoteItems = [
   { text: 'P4 Exercise', link: '/sdn/p4_exercise' },
   { text: 'P4 INT', link: '/sdn/int' },
   { text: 'P4 Utils', link: '/sdn/p4_utils' },
+  { text: 'WSL', link: '/sdn/wsl' },
   { text: 'Mininet', link: '/sdn/mininet' },
   { text: 'iPerf', link: '/sdn/iperf' },
   {
