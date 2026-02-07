@@ -212,18 +212,6 @@ const members = [
     ]
   },
   {
-    avatar: 'https://blog.qianyios.top/img/fluid.png',
-    name: '严千屹',
-    title: 'HCIP 证书获得者',
-    desc: '一个简简单单的云计算运维博客',
-    links: [
-      { icon: linkIcon, link: 'https://blog.qianyios.top' },
-      { icon: 'qq', link: 'https://blog.qianyios.top/img/qq.png' },
-      { icon: 'wechat', link: 'https://blog.qianyios.top/img/weixin.png' },
-      { icon: 'alipay', link: 'https://blog.qianyios.top/img/zfb.png' },
-    ]
-  },
-  {
     avatar: 'https://typonotes.com/logo/avatar.png',
     name: '老麦的书房',
     desc: 'Golang、 云原生、 DevOps、 可视化追踪',
@@ -302,6 +290,18 @@ const members = [
       { icon: 'discord', link: 'https://discord.gg/UyKD7NZcfH' },
       { icon: 'instagram', link: 'https://instagram.com/panjf2000' },
       { icon: 'mastodon', link: 'https://mastodon.social/@andypan' },
+    ]
+  },
+  {
+    avatar: 'https://blog.qianyios.top/img/fluid.png',
+    name: '严千屹',
+    title: 'HCIP 证书获得者',
+    desc: '一个简简单单的云计算运维博客',
+    links: [
+      { icon: linkIcon, link: 'https://blog.qianyios.top' },
+      { icon: 'qq', link: 'https://blog.qianyios.top/img/qq.png' },
+      { icon: 'wechat', link: 'https://blog.qianyios.top/img/weixin.png' },
+      { icon: 'alipay', link: 'https://blog.qianyios.top/img/zfb.png' },
     ]
   },
 ]
