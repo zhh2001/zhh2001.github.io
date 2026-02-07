@@ -116,7 +116,7 @@ const members = [
     ]
   },
   {
-    avatar: 'https://img520.com/iNvl5J.png',
+    avatar: 'https://yyg.js.cool/img/icon.png',
     name: '云野阁',
     desc: '闲云野鹤，八方逍遥',
     links: [
@@ -209,6 +209,16 @@ const members = [
       { icon: linkIcon, link: 'https://blog.feizhuqwq.com' },
       { icon: mailIcon, link: 'mailto:me@feizhuqwq.com' },
       { icon: 'rss', link: 'https://blog.feizhuqwq.com/feed/' },
+    ]
+  },
+  {
+    avatar: 'https://blog.qianyios.top/img/fluid.png',
+    name: '严千屹',
+    desc: '一个简简单单的云计算运维博客',
+    links: [
+      { icon: linkIcon, link: 'https://blog.qianyios.top' },
+      { icon: 'qq', link: 'https://blog.qianyios.top/img/qq.png' },
+      { icon: 'wechat', link: 'https://blog.qianyios.top/img/weixin.png' },
     ]
   },
   {
