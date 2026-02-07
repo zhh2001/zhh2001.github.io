@@ -60,20 +60,20 @@ description: 个人简历
 
 ## 项目经历
 
-2026.01-2026.06 海外借券平台  
+2026.01-2026.06 LC-SBL 海外借券  
 项目主体：简文投资  
-岗位：Golang 全栈工程师  
-技术栈：`Golang`、`Linux`、`Git`
+岗位：Python 后端工程师  
+技术栈：`Python`、`Flask`、`Pandas`、`MySQL`、`Linux`、`SHELL`、`Git`
 
-2025.12-2026.06 Event交易平台  
+2025.12-2026.06 LC-Event 交易平台  
 项目主体：简文投资  
 岗位：Golang 全栈工程师  
 技术栈：`Golang`、`Gin`、`MySQL`、`Redis`、`DolphinDB`、`Vue`、`Element Plus`、`Linux`、`Shell`、`Nginx`、`Docker`、`pprof`、`k6`、`Grafana`、`Git`
 
 2025.12-2026.01 涨停原因分析工具  
 项目主体：简文投资  
-岗位：Python 工程师  
-技术栈：`Python`、`Cron`、`Linux`、`Git`  
+岗位：Python 全栈工程师  
+技术栈：`Python`、`Selenium`、`Cron`、`Linux`、`SHELL`、`Git`
 
 2024.11-2025.02 懂经营  
 项目主体：红砥智能  
