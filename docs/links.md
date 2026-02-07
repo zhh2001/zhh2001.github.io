@@ -219,6 +219,7 @@ const members = [
       { icon: linkIcon, link: 'https://blog.qianyios.top' },
       { icon: 'qq', link: 'https://blog.qianyios.top/img/qq.png' },
       { icon: 'wechat', link: 'https://blog.qianyios.top/img/weixin.png' },
+      { icon: 'alipay', link: 'https://blog.qianyios.top/img/zfb.png' },
     ]
   },
   {
