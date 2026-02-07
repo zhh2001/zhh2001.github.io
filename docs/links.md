@@ -214,6 +214,7 @@ const members = [
   {
     avatar: 'https://blog.qianyios.top/img/fluid.png',
     name: '严千屹',
+    title: 'HCIP 证书获得者',
     desc: '一个简简单单的云计算运维博客',
     links: [
       { icon: linkIcon, link: 'https://blog.qianyios.top' },
