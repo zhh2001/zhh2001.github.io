@@ -85,6 +85,7 @@ export default defineConfig({
   description: description_cn + description_en,
   appearance: true,
   cleanUrls: true,
+  lastUpdated: true,
   head: [
     ['meta', { name: 'keywords', content: keywords.join(', ') }],
     ['meta', { name: 'google-site-verification', content: 'wMOTcBwCiCMV7ESftQRY3Glvq8UL4xzUKrZ-1wjOpqM' }],
@@ -117,6 +118,15 @@ export default defineConfig({
     siteTitle: '张恒华',
     editLink: {
       pattern: ({ filePath }) => `https://github.com/zhh2001/zhh2001.github.io/tree/main/docs/${filePath}`
+    },
+    lastUpdated: {
+      formatOptions: {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }
     },
     footer: {
       message: 'Released under the <a href="/mit">MIT License</a>.',
