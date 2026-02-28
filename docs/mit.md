@@ -5,6 +5,7 @@ prev: false
 next: false
 footer: false
 editLink: false
+lastUpdated: false
 ---
 
 **MIT License**
