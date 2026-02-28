@@ -46,63 +46,66 @@ description: 个人简历
 
 ## 实习经历
 
-2025.12-2026.06 上海简文私募基金管理有限公司  
-上海 | 投研部 | Golang 实习生
+2026.03-至今 上海莉莉丝科技股份有限公司  
+上海 | 发⾏中⼼ | Golang 后端工程师
+
+2025.09-2026.03 上海简文私募基金管理有限公司  
+上海 | 投研部 | Golang 全栈工程师
 
 2024.01-2024.08 华为上海研究所  
 上海 | 海思半导体与器件业务部 | 软件开发工程师
 
 2022.07-2023.03 多益网络有限公司  
-广州 | 技术平台 | 软件后端
+广州 | 技术平台 | Python 后端工程师
 
 2021.07-2021.09 湖南广播电视台广播传媒中心  
-长沙 | 数据互动事业部 | Web 前端实习生
+长沙 | 数据互动事业部 | Web 前端工程师
 
 ## 项目经历
 
-2026.01-2026.06 LC-SBL 海外借券  
+2025.09-2026.03 LC-Event 交易平台  
 项目主体：简文投资  
-岗位：Python 后端工程师  
+角色：Golang 全栈工程师  
+技术栈：`Golang`、`Gin`、`GORM`、`MySQL`、`Redis`、`DolphinDB`、`Vue`、`Element Plus`、`Linux`、`SHELL`、`Nginx`、`Docker`、`pprof`、`k6`、`Grafana`、`Git`
+
+2025.09-2026.03 LC-SBL 海外借券  
+项目主体：简文投资  
+角色：Python 后端工程师  
 技术栈：`Python`、`Flask`、`Pandas`、`MySQL`、`Linux`、`SHELL`、`Git`
 
-2025.12-2026.06 LC-Event 交易平台  
+2025.09-2025.10 涨停原因分析工具  
 项目主体：简文投资  
-岗位：Golang 全栈工程师  
-技术栈：`Golang`、`Gin`、`MySQL`、`Redis`、`DolphinDB`、`Vue`、`Element Plus`、`Linux`、`Shell`、`Nginx`、`Docker`、`pprof`、`k6`、`Grafana`、`Git`
-
-2025.12-2026.01 涨停原因分析工具  
-项目主体：简文投资  
-岗位：Python 全栈工程师  
+角色：Python 全栈工程师  
 技术栈：`Python`、`Selenium`、`Cron`、`Linux`、`SHELL`、`Git`
 
 2024.11-2025.02 懂经营  
 项目主体：红砥智能  
-岗位：微信小程序开发工程师  
+角色：微信小程序开发工程师  
 技术栈：`WXML`、`WXS`、`SASS`、`ECharts`、`VantUI`、`Git`
 
 2024.01-2024.08 凤凰山  
 项目主体：华为上研  
-岗位：Python 工程师  
-技术栈：`Python`、`Pandas`、`NumPy`、`Seaborn`、`PyAutoGUI`、`PyQt`、`Linux`、`Shell`、`Git`
+角色：Python 工程师  
+技术栈：`Python`、`Pandas`、`NumPy`、`Seaborn`、`PyAutoGUI`、`PyQt`、`Linux`、`SHELL`、`Git`
 
 2022.12-2023.03 内容审核平台  
 项目主体：多益网络  
-岗位：Python 后端工程师  
-技术栈：`Python`、`Tornado`、`MySQL`、`SQLAlchemy`、`Linux`、`Shell`、`SVN`
+角色：Python 后端工程师  
+技术栈：`Python`、`Tornado`、`MySQL`、`SQLAlchemy`、`Linux`、`SHELL`、`SVN`
 
 2022.09-2023.03 随手扫描  
 项目主体：多益网络  
-岗位：Python 后端工程师  
-技术栈：`Python`、`Tornado`、`MySQL`、`Linux`、`Shell`、`APScheduler`、`SVN`
+角色：Python 后端工程师  
+技术栈：`Python`、`Tornado`、`MySQL`、`Linux`、`SHELL`、`APScheduler`、`SVN`
 
 2022.07-2023.09 员工客服中心  
 项目主体：多益网络  
-岗位：Python 后端工程师  
+角色：Python 后端工程师  
 技术栈：`Python`、`Tornado`、`ElasticSearch`、`MySQL`、`SQLAlchemy`、`Redis`、`Linux`、`SVN`
 
 2021.07-2021.09 铁粉电台后台管理系统  
 项目主体：湖南广电  
-岗位：前端开发工程师  
+角色：Web 前端工程师  
 技术栈：`HTML`、`CSS`、`JavaScript`、`Vue2`、`ElementUI`、`Git`
 
 <script setup>
