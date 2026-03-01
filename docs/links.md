@@ -3,7 +3,6 @@ layout: page
 sidebar: false
 aside: false
 titleTemplate: 友情链接
-description: 友情链接
 ---
 
 <script setup>

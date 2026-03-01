@@ -3,8 +3,6 @@ sidebar: false
 prev: false
 next: false
 footer: false
-editLink: false
-description: 个人简历
 ---
 
 # 个人简历
