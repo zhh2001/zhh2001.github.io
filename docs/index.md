@@ -9,10 +9,10 @@ hero:
     alt: Typewriter
   actions:
     - theme: brand
-      text: 学习笔记
+      text: Study Notes
       link: /sdn/
     - theme: alt
-      text: 关于我
+      text: About Me
       link: /resume
 features:
   - icon:
@@ -21,21 +21,21 @@ features:
     title: P4
     details: Programming Protocol-independent Packet Processors
     link: /sdn/p4
-    linkText: 查看笔记
+    linkText: View Notes
   - icon:
       src: /mininet/favicon.png
       width: 26
     title: Mininet
     details: An Instant Virtual Network
     link: /sdn/mininet
-    linkText: 查看笔记
+    linkText: View Notes
   - icon:
       src: /go/grpc.png
       width: 28
     title: gRPC
     details: A High-Performance, Open-Source Universal RPC Framework
     link: /go/grpc
-    linkText: 查看笔记
+    linkText: View Notes
 ---
 
 ---
@@ -60,12 +60,6 @@ const members = [
       { icon: 'orcid', link: 'https://orcid.org/0009-0005-9456-8936' },
       { icon: 'qq', link: 'mailto:1652709417@qq.com' },
       { icon: 'rss', link: 'https://github.com/zhh2001.atom' },
-      {
-        icon: {
-          svg: '<svg t="1760360619836" class="icon" viewBox="0 0 1280 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3431" width="64" height="64"><path d="M256 704H64c-35.34 0-64 28.66-64 64v192c0 35.34 28.66 64 64 64h192c35.34 0 64-28.66 64-64v-192c0-35.34-28.66-64-64-64z m-48-160h384v96h96v-96h384v96h96v-115.18c0-42.34-34.46-76.82-76.82-76.82H688v-128h80c35.34 0 64-28.66 64-64V64c0-35.34-28.66-64-64-64H512c-35.34 0-64 28.66-64 64v192c0 35.34 28.66 64 64 64h80v128H188.82C146.46 448 112 482.46 112 524.82V640h96v-96z m528 160h-192c-35.34 0-64 28.66-64 64v192c0 35.34 28.66 64 64 64h192c35.34 0 64-28.66 64-64v-192c0-35.34-28.66-64-64-64z m480 0h-192c-35.34 0-64 28.66-64 64v192c0 35.34 28.66 64 64 64h192c35.34 0 64-28.66 64-64v-192c0-35.34-28.66-64-64-64z" p-id="3432" fill="#7F7F85"></path></svg>'
-        },
-        link: 'https://zhh2001.github.io/sitemap'
-      }
     ],
   },
 ]
