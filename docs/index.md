@@ -14,6 +14,9 @@ hero:
     - theme: alt
       text: About Me
       link: /resume
+    - theme: alt
+      text: GitHub
+      link: https://github.com/zhh2001
 features:
   - icon:
       src: /p4/p4-logo.svg
