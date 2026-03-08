@@ -211,17 +211,6 @@ const members = [
     ]
   },
   {
-    avatar: 'https://typonotes.com/logo/avatar.png',
-    name: '老麦的书房',
-    desc: 'Golang、 云原生、 DevOps、 可视化追踪',
-    links: [
-      { icon: linkIcon, link: 'https://typonotes.com' },
-      { icon: 'github', link: 'https://github.com/tangx' },
-      { icon: 'x', link: 'https://twitter.com/tangx' },
-      { icon: 'rss', link: 'https://typonotes.com/index.xml' },
-    ]
-  },
-  {
     avatar: 'https://pic1.imgdb.cn/item/68b512ef58cb8da5c8689e8c.webp',
     name: '一世繁华',
     title: '水下机器人领域从业者',
