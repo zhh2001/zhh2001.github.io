@@ -64,7 +64,7 @@ footer: false
 2026.03-至今 LiLAC 本地化平台  
 项目主体：莉莉丝游戏  
 角色：Golang 后端工程师  
-技术栈：`Golang`、`go-zore`、`Jenkins`、`Git`
+技术栈：`Golang`、`go-zore`、`MangoDB`、`Redis`、`K8s`、`Jenkins`、`Git`
 
 2025.09-2026.03 LC-Event 交易平台  
 项目主体：简文投资  
