@@ -45,7 +45,13 @@ const TechNotes = [
       { text: 'MySQL', link: '/interview/mysql' },
       { text: 'Redis', link: '/interview/redis' },
     ]
-  }
+  },
+  {
+    text: 'Other',
+    items: [
+      { text: 'Architect', link: '/other/architect' },
+    ]
+  },
 ]
 
 const keywords = [
