@@ -46,12 +46,6 @@ const TechNotes = [
       { text: 'Redis', link: '/interview/redis' },
     ]
   },
-  {
-    text: 'Other',
-    items: [
-      { text: 'Architect', link: '/other/architect' },
-    ]
-  },
 ]
 
 const keywords = [
