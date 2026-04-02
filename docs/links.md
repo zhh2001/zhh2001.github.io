@@ -236,9 +236,8 @@ const members = [
     ]
   },
   {
-    avatar: 'https://blog.grtsinry43.com/favicon.ico',
+    avatar: 'https://dogeoss.grtsinry43.com/img/author.jpeg',
     name: 'Grtsinry43\'s Blog',
-    title: '',
     org: 'CSU',
     orgLink: 'https://www.csu.edu.cn',
     desc: '总之岁月漫长，然而值得等待',
@@ -247,6 +246,19 @@ const members = [
       { icon: mailIcon, link: 'mailto:grtsinry43@outlook.com' },
       { icon: 'github', link: 'https://github.com/grtsinry43' },
       { icon: 'rss', link: 'https://blog.grtsinry43.com/feed' },
+    ]
+  },
+  {
+    avatar: 'https://blog.hazenix.top/assets/avatar-C7oPo7sC.jpg',
+    name: 'Hazenix\'s Blog',
+    org: 'CSU',
+    orgLink: 'https://www.csu.edu.cn',
+    desc: '我会一直走，走到灯火通明',
+    links: [
+      { icon: linkIcon, link: 'https://blog.hazenix.top/home' },
+      { icon: mailIcon, link: 'mailto:L3542495583@outlook.com' },
+      { icon: 'github', link: 'https://github.com/HazeHacker' },
+      { icon: 'x', link: 'https://x.com/hazenix56591' },
     ]
   },
   {
