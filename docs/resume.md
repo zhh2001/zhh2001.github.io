@@ -27,7 +27,7 @@ footer: false
 
 ## 学术成果
 
-1. <span style="font-family: Times New Roman;">**Henghua Zhang**, Jue Chen, Haidong Peng, and Junru Chen. [MAT4PM: Machine Learning-Guided Adaptive Threshold Control for P4-based Monitoring in SDNs](https://ieeexplore.ieee.org/document/11456175). *IEEE Transactions on Network and Service Management*. 2026.</span> <Badge type="warning" text="中科院二区" /> <Badge type="danger" text="CCF推荐期刊" />
+1. <span style="font-family: Times New Roman;">**Henghua Zhang**, Jue Chen, Haidong Peng, and Junru Chen. [MAT4PM: Machine Learning-Guided Adaptive Threshold Control for P4-based Monitoring in SDNs](https://ieeexplore.ieee.org/document/11456175). *IEEE Transactions on Network and Service Management*, March 2026.</span> <Badge type="warning" text="中科院二区" /> <Badge type="danger" text="CCF推荐期刊" />
 
 另有3篇一作在投
 
