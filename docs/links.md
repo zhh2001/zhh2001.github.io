@@ -168,7 +168,7 @@ const members = [
     ]
   },
   {
-    avatar: 'https://cdn.tulan.cyou/noah/2025/07/26/b_5255bd8e31082e2a4332c4eb4172686e.jpg',
+    avatar: 'https://seccdn.libravatar.org/gravatarproxy/71534b2c2eb0525f490059d55b873152?s=64',
     name: 'NoahのBlog',
     desc: '努力去发光，而不是被照亮',
     links: [
