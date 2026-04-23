@@ -30,7 +30,7 @@ const members = [
       { icon: mailIcon, link: 'mailto:grtsinry43@outlook.com' },
       { icon: 'qq', link: 'http://wpa.qq.com/msgrd?v=3&uin=3096484572&site=qq&menu=yes' },
       { icon: 'bilibili', link: 'https://space.bilibili.com/476403407' },
-      { icon: 'neteasecloudmusic', link: 'https://space.bilibili.com/476403407' },
+      { icon: 'neteasecloudmusic', link: 'https://music.163.com/#/user/home?id=528787668' },
       { icon: 'github', link: 'https://github.com/xiaozhi-6' },
     ]
   },
@@ -53,11 +53,11 @@ const members = [
     desc: '你相信光吗~~',
     links: [
       { icon: linkIcon, link: 'https://blog.yesord.top' },
-      { icon: 'gmail', link: 'xuruolun666@gmail.com' },
+      { icon: 'gmail', link: 'mailto:xuruolun666@gmail.com' },
       { icon: 'github', link: 'https://github.com/Yesord' },
       { icon: 'csdn', link: 'https://blog.csdn.net/aoliba_believer' },
       { icon: 'bilibili', link: 'https://space.bilibili.com/1527890846' },
-      { icon: 'rss', link: 'hhttps://home.yesord.top/atom.xml' },
+      { icon: 'rss', link: 'https://home.yesord.top/atom.xml' },
     ]
   },
   {

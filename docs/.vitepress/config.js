@@ -82,7 +82,6 @@ export default defineConfig({
   title: '张恒华',
   lang: 'zh-Hans',
   description: description_cn + description_en,
-  appearance: true,
   cleanUrls: true,
   lastUpdated: true,
   head: [
@@ -116,7 +115,7 @@ export default defineConfig({
   themeConfig: {
     siteTitle: '张恒华',
     editLink: {
-      pattern: ({ filePath }) => `https://github.com/zhh2001/zhh2001.github.io/tree/main/docs/${filePath}`
+      pattern: ({ filePath }) => `https://github.com/zhh2001/zhh2001.github.io/edit/main/docs/${filePath}`
     },
     lastUpdated: {
       formatOptions: {
@@ -151,7 +150,6 @@ export default defineConfig({
       '/go/': TechNotes,
       '/db/': TechNotes,
       '/interview/': TechNotes,
-      '/other/': TechNotes
     },
     socialLinks: [
       { icon: 'github', link: 'https://github.com/zhh2001' },
