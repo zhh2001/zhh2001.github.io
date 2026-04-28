@@ -28,7 +28,7 @@ footer: false
 ## 学术成果
 
 1. <span style="font-family: Times New Roman;">**Henghua Zhang**, Jue Chen, Haidong Peng, and Junru Chen. [MAT4PM: Machine Learning-Guided Adaptive Threshold Control for P4-based Monitoring in SDNs](https://ieeexplore.ieee.org/document/11456175). *IEEE Transactions on Network and Service Management*, March 2026.</span> <Badge type="warning" text="中科院二区" /> <Badge type="danger" text="CCF推荐期刊" />
-2. <span style="font-family: Times New Roman;">**Henghua Zhang**, Jue Chen, Yuhang Wu, and Yujie Xiong. [TT-INT: A Time-Threshold-based Lightweight In-Band Network Telemetry Scheme for P4-Enabled Programmable Networks](http://doi.org/10.1109/TNSM.2026.3688086). *IEEE Transactions on Network and Service Management*, 2026.</span> (<span style="color: red;">已接收，即将见刊</span>) <Badge type="warning" text="中科院二区" /> <Badge type="danger" text="CCF推荐期刊" />
+2. <span style="font-family: Times New Roman;">**Henghua Zhang**, Jue Chen, Yuhang Wu, and Yujie Xiong. [TT-INT: A Time-Threshold-based Lightweight In-Band Network Telemetry Scheme for P4-Enabled Programmable Networks](https://ieeexplore.ieee.org/document/11495244). *IEEE Transactions on Network and Service Management*, 2026.</span> <Badge type="warning" text="中科院二区" /> <Badge type="danger" text="CCF推荐期刊" />
 
 另有3篇一作在投
 
