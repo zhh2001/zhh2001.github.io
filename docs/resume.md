@@ -29,7 +29,7 @@ footer: false
 
 1. <span style="font-family: Times New Roman;">**Henghua Zhang**, Jue Chen, Yuhang Wu, and Yujie Xiong. [TT-INT: A Time-Threshold-based Lightweight In-Band Network Telemetry Scheme for P4-Enabled Programmable Networks](https://doi.org/10.1109/tnsm.2026.3688086). *IEEE Transactions on Network and Service Management*, April 2026.</span> <Badge type="warning" text="中科院二区" /> <Badge type="danger" text="CCF推荐期刊" />
 2. <span style="font-family: Times New Roman;">**Henghua Zhang**, Jue Chen, Haidong Peng, and Junru Chen. [MAT4PM: Machine Learning-Guided Adaptive Threshold Control for P4-based Monitoring in SDNs](https://doi.org/10.1109/tnsm.2026.3677416). *IEEE Transactions on Network and Service Management*, March 2026.</span> <Badge type="warning" text="中科院二区" /> <Badge type="danger" text="CCF推荐期刊" />
-3. <span style="font-family: Times New Roman;">Jue Chen, Haidong Peng, **Henghua Zhang**, Junru Chen, and Xihe Qiu. [SCV-IDS: CNN-ViT Cross-Attention on Serialized Traffic Images for Spatiotemporal Intrusion Detection](https://doi.org/10.1109/jiot.2026.3695912). *IEEE Internet of Things Journal*, May 2026.</span> <Badge type="warning" text="中科院一区 Top" />
+3. <span style="font-family: Times New Roman;">Jue Chen, Haidong Peng, **Henghua Zhang**, Junru Chen, and Xihe Qiu. [SCV-IDS: CNN-ViT Cross-Attention on Serialized Traffic Images for Spatiotemporal Intrusion Detection](https://doi.org/10.1109/jiot.2026.3695912). *IEEE Internet of Things Journal*, May 2026.</span> <Badge type="warning" text="中科院一区 Top" /> <Badge type="danger" text="CCF推荐期刊" />
 
 另有3篇一作在投
 
