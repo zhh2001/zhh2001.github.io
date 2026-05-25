@@ -22,6 +22,16 @@ const mailIcon = {
 
 const members = [
   {
+    avatar: 'https://avatars.githubusercontent.com/u/71125875?v=4',
+    name: 'CatMaommmmm',
+    desc: '',
+    links: [
+      { icon: linkIcon, link: 'https://maozm.xyz' },
+      { icon: 'gmail', link: 'mailto:maozheming04@gmail.com' },
+      { icon: 'github', link: 'https://github.com/ToBeMaster-Mao' },
+    ]
+  },
+  {
     avatar: 'https://blog.ctdxz.com/avatar.webp',
     name: '吃土的小智',
     desc: '我家还蛮大的.jpg',
