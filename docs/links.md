@@ -23,8 +23,8 @@ const mailIcon = {
 const members = [
   {
     avatar: 'https://avatars.githubusercontent.com/u/71125875?v=4',
-    name: 'CatMaommmmm',
-    desc: '',
+    name: '哲铭',
+    desc: '凡是发生皆有利于',
     links: [
       { icon: linkIcon, link: 'https://maozm.xyz' },
       { icon: 'gmail', link: 'mailto:maozheming04@gmail.com' },
