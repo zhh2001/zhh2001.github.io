@@ -206,16 +206,6 @@ const members = [
     ]
   },
   {
-    avatar: 'https://i1-cdn.feizhuqwq.com/img-assets/logo/faviconHD.jpg',
-    name: 'feizhuqwq',
-    desc: '因为不可能，所以才值得相信',
-    links: [
-      { icon: linkIcon, link: 'https://blog.feizhuqwq.com' },
-      { icon: mailIcon, link: 'mailto:me@feizhuqwq.com' },
-      { icon: 'rss', link: 'https://blog.feizhuqwq.com/feed/' },
-    ]
-  },
-  {
     avatar: 'https://pic1.imgdb.cn/item/68b512ef58cb8da5c8689e8c.webp',
     name: '一世繁华',
     title: '水下机器人领域从业者',
