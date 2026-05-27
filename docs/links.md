@@ -94,11 +94,11 @@ const members = [
     ]
   },
   {
-    avatar: 'https://hzz.cool/favicon.ico',
+    avatar: 'https://hzzio.top/favicon.ico',
     name: '何智政个人博客',
-    desc: '择善固执 守正出奇',
+    desc: 'Better Late Than Never',
     links: [
-      { icon: linkIcon, link: 'https://hzz.cool' },
+      { icon: linkIcon, link: 'https://hzzio.top' },
       { icon: 'gmail', link: 'mailto:dexter.ho.cn@gmail.com' },
       { icon: 'github', link: 'https://github.com/hezhizheng' },
       { icon: 'instagram', link: 'https://www.instagram.com/dexter_ho_cn' },
