@@ -4,7 +4,25 @@ outline: [2, 3]
 
 # iPerf
 
-在 Mininet 中，经常会需要用到 iPerf 来模拟网络流量。iPerf 是一款网络性能测试工具，用于测量网络带宽、延迟、抖动和丢包率等指标。
+跑 Mininet 拓扑时，经常需要一个轻量的打流工具来看看链路能跑多少带宽、丢多少包。iPerf 就是干这件事的，两端一开，几秒钟就能拿到吞吐、抖动、丢包数据。
+
+下面的笔记基于 iPerf2（`iperf` 命令，版本 2.1.9）。所有示例都跑在同一套环境里：Mininet 起两台主机 `h1` 和 `h2`，IP 分别是 `10.0.1.1`、`10.0.1.2`。
+
+::: warning iPerf2 ≠ iPerf3
+两者是两套互不兼容的二进制（`iperf` 与 `iperf3`），同一个选项字母经常含义完全不同，混用会踩坑。要点对照：
+
+| 项目         | iPerf2 (`iperf`)        | iPerf3 (`iperf3`)                       |
+| ------------ | ----------------------- | --------------------------------------- |
+| 默认端口     | `5001`                  | `5201`                                  |
+| `-R`         | 移除 Windows 服务       | **反向测试**（server → client 发数据）  |
+| 双向         | `-d` 同时 / `-r` 顺序   | 都不支持，改用 `--bidir`                |
+| `-P` 并行流  | 客户端、服务端语义略不同| 仅客户端有效，复用单条控制连接          |
+| JSON 输出    | 无                      | `-J`（脚本化首选）                      |
+| 拥塞算法切换 | 无                      | `-C cubic / bbr / reno…`                |
+| 多线程模型   | pthreads                | 单线程 + 单 TCP 控制流                  |
+
+经验法则：自动化采集脚本走 iPerf3 + `-J`；手工跑 Mininet 拓扑、要看 dualtest 或 UDP 抖动报告走 iPerf2。
+:::
 
 ## 安装
 
@@ -12,109 +30,49 @@ outline: [2, 3]
 sudo apt install iperf
 ```
 
-## 启动
+## 起一个最小测试
 
-在服务端运行下面的命令启动 iPerf 服务器：
+服务端守着 5001 端口：
 
 ```shell
 iperf -s
 ```
 
-在客户端运行以下命令：
+客户端打过去：
 
 ```shell
 iperf -c [IP]
 ```
 
-后面的例子都在 Mininet 环境中，我开了两台主机 `h1` 和 `h2`，IP 分别是 `10.0.1.1` 和 `10.0.1.2`，并且在 `h2` 上启动了 iPerf 服务器：
+放到 Mininet 里就是：
 
 ```shell
-mininet> h2 iperf -s &
+mininet> h2 iperf -s &        # h2 当服务端，丢后台
+mininet> h1 iperf -c 10.0.1.2 # h1 打流过去
 ```
 
-## 常规选项
+默认会跑 10 秒 TCP，结束时给一行总带宽。
 
-### `-f, --format [bkmaBKMA]`
+## 通用选项
 
-指定打印出来的带宽的数字格式：
+### `-f` 切换单位
 
-| 字母 |                格式 | \|  | 字母 |                 格式 |
-| ---- | ------------------: | --- | ---- | -------------------: |
-| `b`  |          `bits/sec` | \|  | `B`  |          `Bytes/sec` |
-| `k`  |         `Kbits/sec` | \|  | `K`  |         `KBytes/sec` |
-| `m`  |         `Mbits/sec` | \|  | `M`  |         `MBytes/sec` |
-| `g`  |         `Gbits/sec` | \|  | `G`  |         `GBytes/sec` |
-| `a`  | `adaptive bits/sec` | \|  | `A`  | `adaptive Bytes/sec` |
+`-f [bkmgaBKMGA]`：小写是 bit/sec，大写是 Byte/sec；`k/m/g` 千兆万兆，`a/A` 让 iPerf 自己挑合适的量级。默认 `a`。
 
-自适应格式根据需要在千（kilo-）和兆（mega-）之间进行选择。
-
-默认值为 `a`。
-
-::: tip 注意
-`K = Kilo = 1024`  
-`M = Mega = 1024 * 1024`  
-`G = Giga = 1024 * 1024 * 1024`
-:::
-
-#### 示例：使用默认值的输出格式
-
-执行命令：
+约定：`K = 1024`，`M = 1024²`，`G = 1024³`。
 
 ```shell
-mininet> h1 iperf -c h2
+mininet> h1 iperf -c h2        # 默认自适应 → 37.8 Mbits/sec
+mininet> h1 iperf -c h2 -f K   # 强制 KByte/sec → 4254 KBytes/sec
 ```
 
-输出信息：
+### `-i` 周期性汇报
 
-```text{7}
------------------------------------------------------------------
-Client connecting to 10.0.1.2, TCP port 5001
-TCP window size: 85.3 KByte (default)
------------------------------------------------------------------
-[  1] local 10.0.1.1 port 55414 connected with 10.0.1.2 port 5001
-[ ID] Interval            Transfer     Bandwidth
-[  1] 0.0000-10.3188 sec  46.5 MBytes  37.8 Mbits/sec
-```
-
-可以看到带宽的单位是 `Mbits/sec`。
-
-#### 示例：指定参数为 `K` 的输出格式
-
-执行命令：
-
-```shell
-mininet> h1 iperf -c h2 -f K
-```
-
-输出信息：
-
-```text{7}
------------------------------------------------------------------
-Client connecting to 10.0.1.2, TCP port 5001
-TCP window size: 85.3 KByte (default)
------------------------------------------------------------------
-[  1] local 10.0.1.1 port 55414 connected with 10.0.1.2 port 5001
-[ ID] Interval            Transfer      Bandwidth
-[  1] 0.0000-10.2313 sec  43520 KBytes  4254 KBytes/sec
-```
-
-可以看到带宽的单位是 `KBytes/sec`。
-
-### `-i, --interval [n]`
-
-设置周期性带宽、抖动和丢失报告之间的间隔时间（秒）。如果非零，每隔 `n` 秒带宽就会生成一份报告。如果为 `0`，则不打印定期报告。
-
-默认值为 `0`。
-
-#### 示例：指定每两秒打印一次报告
-
-执行命令：
+`-i n` 让 iPerf 每隔 `n` 秒打印一次中间结果。`0` 表示只在结束时打一次总报告（默认）。
 
 ```shell
 mininet> h1 iperf -c h2 -i 2
 ```
-
-输出信息：
 
 ```text{7-12}
 -----------------------------------------------------------------
@@ -131,33 +89,17 @@ TCP window size: 85.3 KByte (default)
 [  1] 0.0000-10.4072 sec  48.5 MBytes  39.1 Mbits/sec
 ```
 
-### `-l, --len [n][KM]`
+### `-l` 读写缓冲区
 
-要读写的缓冲区长度。TCP 默认为 `8KB`，UDP 为 `1470B`。
+`-l [n][KM]`：TCP 默认 `8K`，UDP 默认 `1470B`。UDP 模式下这个值就是数据报大小；走 IPv6 的话要降到 `1450B` 以下，否则会被分片。
 
-::: tip 注意
-对于 UDP 来说，这是数据报大小，当使用 IPv6 寻址时，需要将其降低到 `1450B` 或更低，避免碎片化。
-:::
+### `-m` 打印 MSS
 
-### `-m, --print_mss`
-
-打印 TCP MSS（Maximum Segment Size，最大段大小）的大小，以及观察到的读取大小。
-
-MSS 通常等于 MTU（Maximum Transmission Unit，最大传输单元）减去 40 字节（用于 TCP/IP 头部）。由于 IP 选项的额外头部空间，一般会报告一个略小的 MSS。
-
-#### 示例
-
-执行命令：
-
-```shell
-mininet> h1 iperf -c h2 -m
-```
-
-输出信息：
+加上 `-m` 会多输出一行 `MSS size`。粗算：MSS ≈ MTU − 40B（TCP + IP 头），IP 选项还会再吃几个字节，因此实测往往比理论值小一点。
 
 ```text{3}
------------------------------------------------------------------
 Client connecting to 10.0.1.2, TCP port 5001
+...
 MSS size 536 bytes
 TCP window size: 85.3 KByte (default)
 -----------------------------------------------------------------
@@ -166,273 +108,159 @@ TCP window size: 85.3 KByte (default)
 [  1] 0.0000-10.3415 sec  52.9 MBytes  42.9 Mbits/sec
 ```
 
-### `-p, --port [n]`
+### `-p` 端口
 
-服务器监听的端口，以及客户端连接的服务器端口。
+`-p n`：服务端监听端口/客户端连接端口，默认 `5001`。两端要一致。
 
-默认值为 `5001`。
-
-### `-u, --udp`
-
-使用 UDP 协议进行传输。
-
-#### 示例
-
-执行命令：
+### `-u` 改走 UDP
 
 ```shell
-mininet> h1 iperf -c h2 -u
+mininet> h1 iperf -c h2 -u -b 10M
 ```
 
-输出信息：
+客户端发完会回收一段 **Server Report**，比 TCP 多了抖动和丢包：
 
 ```text
---------------------------------------------------------------------
-Client connecting to 10.0.1.2, UDP port 5001
-Sending 1470 byte datagrams, IPG target: 11215.21 us (kalman adjust)
-UDP buffer size:  208 KByte (default)
---------------------------------------------------------------------
-[  1] local 10.0.1.1 port 60142 connected with 10.0.1.2 port 5001
-[ ID] Interval            Transfer     Bandwidth
-[  1] 0.0000-10.0157 sec  1.25 MBytes  1.05 Mbits/sec
+[ ID] Interval        Transfer     Bandwidth
+[  1] 0.0-10.0 sec    11.9 MBytes  10.0 Mbits/sec
+[  1] Sent 8505 datagrams
+[  1] Server Report:
+[ ID] Interval        Transfer     Bandwidth        Jitter   Lost/Total Datagrams
+[  1] 0.0-10.0 sec    11.9 MBytes  10.0 Mbits/sec   0.045 ms 2/8505 (0.024%)
 ```
 
-### `-w, --window [n][KM]`
+四个 UDP 特有字段的读法：
 
-将套接字缓冲区大小设置为 `n`。对 TCP 来说，这会设置 TCP 窗口大小。但对于 UDP，它只是接收数据报的缓冲区，限制最大的可接收数据报大小。
+- **Jitter**：RFC 1889 定义的到达间隔抖动，单位 ms。值越小越稳；几十 ms 以上通常意味着排队或链路拥塞。
+- **Lost / Total Datagrams**：丢失数 / 总发送数，括号里是百分比。
+- 注意只有 **服务端** 才知道实际收到多少，所以这行总会以 `Server Report` 形式回传到客户端打印。
+- UDP 模式不给 `-b` 就只跑约 1 Mbps，不是带宽打不上去，而是 iPerf 默认就限到这个速率。
 
-### `-V`
+### `-n` 按字节数测
 
-iPerf 1.6 版本开始支持。
-
-绑定到一个 IPv6 地址。
-
-服务端命令：
+`-n [n][KM]`：固定传输总量后停止，和 `-t` 互斥。想跑"传 100 MB 要多久"这种场景就用它。
 
 ```shell
-iperf -s -V
+mininet> h1 iperf -c h2 -n 100M
 ```
 
-客户端命令：
+### `-w` 窗口/缓冲区
+
+`-w [n][KM]`：TCP 下是 socket 窗口大小，直接决定带宽时延积上限；UDP 下只是接收缓冲区。
+
+### `-N` 关闭 Nagle
+
+仅 TCP 生效。Nagle 算法会把小包攒起来一起发，做延迟敏感测试（比如交互式协议、小报文 RTT）时务必加 `-N` 关掉，否则吞吐曲线会被攒包人为压平。
+
+### `-B` 绑定本地地址/接口
+
+`-B host[%dev]`：
+
+- **服务端**：只在指定 IP 上 listen，多网卡机器避免误监听到外网。
+- **客户端**：强制从指定源地址发包，等价于挑一条出接口；Mininet 多链路拓扑里几乎必加，否则路由表会替你选，结果不一定走你想测的那条链路。
+- **UDP 组播**：服务端 `-B 239.x.x.x` 直接加入组播组监听。
 
 ```shell
-iperf -c [服务端的IPv6地址] -V
+mininet> h1 iperf -c 10.0.1.2 -B 10.0.1.1   # 强制走 h1-eth0
 ```
 
-### `-v, --version`
+### `-V` IPv6（v1.6+）
 
-打印版本信息。
+两端都加 `-V`，客户端 `-c` 后面跟 IPv6 地址即可。
 
-#### 示例
-
-执行命令：
+### `-v` 版本
 
 ```shell
-iperf -v
-```
-
-输出结果：
-
-```text
+$ iperf -v
 iperf version 2.1.9 (14 March 2023) pthreads
 ```
 
-末尾的 `pthreads` 意思是 `POSIX threads`。此外还可能是别的值，如 `win32 threads` 意思是 `Microsoft Win32 threads`，又或者 `single threaded`。
+末尾的 `pthreads` 表示线程模型用的是 POSIX 线程；其他可能值有 `win32 threads`、`single threaded`。
 
 ## 服务端选项
 
-### `-s, --server`
+### `-s` 起服务端
 
-启动 iPerf 服务器。
+老朋友了，不多说。
 
-### `-D`
+### `-D`（v1.2+）
 
-iPerf v1.2 版本开始支持。
+后台化运行。Unix 上变 daemon，Windows 上注册成服务。
 
-在 Unix 上，作为守护进程（daemon）运行。在支持服务的 Win32 上，作为服务运行。
+### `-R` / `-o`（Windows-only，v1.2+）
 
-### `-R`
+`-R` 移除已注册的服务；`-o` 把输出重定向到指定文件。
 
-iPerf v1.2 版本开始支持。仅在 Windows 上有效。
+### `-c host`（限制来源）
 
-移除 iPerf 服务。
+服务端加 `-c [host]` 后只接受该主机的连接，相当于一道简易白名单。
 
-### `-o`
+### `-P n`
 
-iPerf v1.2 版本开始支持。仅在 Windows 上有效。
-
-将输出的信息重定向到指定文件。
-
-### `-c, --client [host]`
-
-iPerf 服务器指定 `-c [host]` 将会限制服务器只就受指定主机的连接。
-
-### `-P, --parallel [n]`
-
-用于指定服务器的最大并行连接数。
-
-默认值为 `0`。表示不限制并行连接数。服务器会接受来自客户端的任意数量的连接（仅受系统资源限制）。
+服务端的最大并发连接数，默认 `0`（不限，吃满系统资源为止）。
 
 ## 客户端选项
 
-### `-b, --bandwidth [n][KM]`
+### `-b` 限速（UDP 必备）
 
-指定带宽，单位为 `bit/sec`。
-
-#### 示例
-
-执行命令：
+`-b [n][KM]`：单位 bit/sec。TCP 模式下控制发送速率，UDP 模式下基本是必填项，否则只跑 1 Mbps。
 
 ```shell
 mininet> h1 iperf -c h2 -b 2M
+# → 2.18 Mbits/sec
 ```
 
-输出结果：
-
-```text
------------------------------------------------------------------
-Client connecting to 10.0.1.2, TCP port 5001
-TCP window size: 85.3 KByte (default)
------------------------------------------------------------------
-[  1] local 10.0.1.1 port 57368 connected with 10.0.1.2 port 5001
-[ ID] Interval            Transfer     Bandwidth
-[  1] 0.0000-10.5852 sec  2.75 MBytes  2.18 Mbits/sec
-```
-
-### `-c, --client [host]`
-
-在客户端模式下运行 iPerf，连接到指定地址的 iPerf 服务器。
+### `-c host`（连接目标）
 
 ```shell
 mininet> h1 iperf -c h2
 ```
 
-### `-d, --dualtest`
+### `-d` 同时双向（dualtest）
 
-用于启用双向测试模式 ​（dual test mode），即同时测试上行和下行带宽。这意味着客户端和服务器会同时发送和接收数据，从而模拟双向网络流量。
-
-#### 示例
-
-执行命令：
-
-```shell
-mininet> h1 iperf -c h2 -d
-```
-
-输出结果：
+上下行同时打。结果里会看到两个流 ID，分别对应两个方向的吞吐：
 
 ```text
------------------------------------------------------------------
-Client connecting to 10.0.1.2, TCP port 5001
-TCP window size: 85.3 KByte (default)
------------------------------------------------------------------
------------------------------------------------------------------
-Server listening on TCP port 5001
-TCP window size: 85.3 KByte (default)
------------------------------------------------------------------
-[  1] local 10.0.1.1 port 43076 connected with 10.0.1.2 port 5001
-[  2] local 10.0.1.1 port 5001 connected with 10.0.1.2 port 43448
-[ ID] Interval            Transfer     Bandwidth
-[  2] 0.0000-10.6654 sec  24.0 MBytes  18.9 Mbits/sec
-[  1] 0.0000-10.8313 sec  31.0 MBytes  24.0 Mbits/sec
+[  1] 0.0000-10.83 sec  31.0 MBytes  24.0 Mbits/sec   # h1 → h2
+[  2] 0.0000-10.67 sec  24.0 MBytes  18.9 Mbits/sec   # h2 → h1
 ```
 
-### `-r, --tradeoff`
+### `-r` 先后双向（tradeoff）
 
-用于启用双向交替测试模式 ​（bidirectional alternating test mode）。与 `-d` 参数（同时双向测试）不同，`-r` 参数会先测试一个方向，然后再测试另一个方向，而不是同时进行。
+和 `-d` 的差别在于：`-r` 先跑完一个方向，再跑反向，互不抢带宽，结果更"干净"。带宽紧的环境用这个更能反映单向极限。
 
-#### 示例
+### `-t` 测多久
 
-执行命令：
+`-t n`：测试时长，默认 `10` 秒。想看长时段的稳定性就拉长，比如 `-t 60`。
 
-```shell
-mininet> h1 iperf -c h2 -r
-```
+### `-P n` 并行流
 
-输出结果：
+客户端侧的并行连接数。链路 BDP 大、单流吃不满带宽时，把它开到 4 或 8 通常能看见明显的总吞吐提升。报告末尾会多一行 `[SUM]` 汇总：
 
 ```text
------------------------------------------------------------------
-Server listening on TCP port 5001
-TCP window size: 85.3 KByte (default)
------------------------------------------------------------------
------------------------------------------------------------------
-Client connecting to 10.0.1.2, TCP port 5001
-TCP window size: 85.3 KByte (default)
------------------------------------------------------------------
-[  1] local 10.0.1.1 port 47896 connected with 10.0.1.2 port 5001
-[ ID] Interval            Transfer     Bandwidth
-[  1] 0.0000-10.5505 sec  47.5 MBytes  37.8 Mbits/sec
-[  2] local 10.0.1.1 port 5001 connected with 10.0.1.2 port 47030
-[ ID] Interval            Transfer     Bandwidth
-[  2] 0.0000-10.4139 sec  46.9 MBytes  37.8 Mbits/sec
+[  1] 0.0000-10.87 sec  11.5 MBytes  8.88 Mbits/sec
+[  2] 0.0000-10.96 sec  10.1 MBytes  7.75 Mbits/sec
+[  3] 0.0000-10.87 sec  14.6 MBytes  11.3 Mbits/sec
+[  4] 0.0000-10.96 sec  13.3 MBytes  10.1 Mbits/sec
+[SUM] 0.0000-10.36 sec  49.5 MBytes  40.1 Mbits/sec
 ```
 
-### `-t, --time [n]`
+### `-T n` TTL
 
-用于指定测试的持续时间（以秒为单位）。
+设置发送报文的 TTL，常用来配合 traceroute 排查多跳路径。
 
-默认值为 `10`。
+### `-F file`（v1.2+）
 
-#### 示例
+用一份真实文件当数据源，而不是随机字节。想模拟"传一个 1G 镜像"的场景就用它。
 
-在前面其他的示例中可以发现，每次测试时间都是 10 秒出头。接下来测试一个 60 秒的持续时间。
+## 速查
 
-执行命令：
-
-```shell
-mininet> h1 iperf -c h2 -t 60
-```
-
-输出结果：
-
-```text
------------------------------------------------------------------
-Client connecting to 10.0.1.2, TCP port 5001
-TCP window size: 85.3 KByte (default)
------------------------------------------------------------------
-[  1] local 10.0.1.1 port 55366 connected with 10.0.1.2 port 5001
-[ ID] Interval             Transfer     Bandwidth
-[  1] 0.0000-60.6649 sec   320 MBytes  44.2 Mbits/sec
-```
-
-### `-P, --parallel [n]`
-
-用于指定**并行连接数**​（parallel connections），即同时发起多个连接进行测试。通过增加并行连接数，可以更充分地利用网络带宽，尤其是在高带宽或高延迟的网络环境中。
-
-#### 示例：建立 4 个连接开始并行测试
-
-执行命令：
-
-```shell
-mininet> h1 iperf -c h2 -P 4
-```
-
-输出结果：
-
-```text
------------------------------------------------------------------
-Client connecting to 10.0.1.2, TCP port 5001
-TCP window size: 85.3 KByte (default)
------------------------------------------------------------------
-[  4] local 10.0.1.1 port 35008 connected with 10.0.1.2 port 5001
-[  3] local 10.0.1.1 port 34990 connected with 10.0.1.2 port 5001
-[  1] local 10.0.1.1 port 34996 connected with 10.0.1.2 port 5001
-[  2] local 10.0.1.1 port 34974 connected with 10.0.1.2 port 5001
-[ ID] Interval            Transfer     Bandwidth
-[  1] 0.0000-10.8666 sec  11.5 MBytes  8.88 Mbits/sec
-[  3] 0.0000-10.8663 sec  14.6 MBytes  11.3 Mbits/sec
-[  2] 0.0000-10.9576 sec  10.1 MBytes  7.75 Mbits/sec
-[  4] 0.0000-10.9563 sec  13.3 MBytes  10.1 Mbits/sec
-[SUM] 0.0000-10.3611 sec  49.5 MBytes  40.1 Mbits/sec
-```
-
-### `-T, --ttl [n]`
-
-用于为测试流量设置 ​TTL 值。该参数通常用于测试网络路径或排查路由问题。
-
-### `-F`
-
-iPerf v1.2 版本开始支持。
-
-用于指定一个文件作为测试数据源。iPerf 会将指定文件的内容作为测试数据发送到服务器端，而不是使用随机生成的数据。这种方式可以模拟真实文件传输的场景，测试网络的文件传输性能。
+| 场景            | 命令                                |
+| --------------- | ----------------------------------- |
+| 看单向 TCP 上限 | `iperf -c h2`                       |
+| 打 UDP 并指定速 | `iperf -c h2 -u -b 100M`            |
+| 中途看进度      | `iperf -c h2 -i 1 -t 30`            |
+| 多流压满带宽    | `iperf -c h2 -P 8`                  |
+| 同时双向        | `iperf -c h2 -d`                    |
+| 顺序双向        | `iperf -c h2 -r`                    |
+| 改端口避开占用  | `iperf -s -p 5555` / `-c h2 -p 5555`|
