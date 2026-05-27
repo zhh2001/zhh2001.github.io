@@ -4,94 +4,120 @@ outline: deep
 
 # Goroutine
 
-Go 协程是由 Go 运行时管理的轻量级线程。它们允许在单个进程中同时执行多个函数或方法，而无需显式地管理线程的生命周期。Go 协程比传统的操作系统线程更轻量，启动和切换的开销更小，因此可以轻松地创建成千上万个协程。
+goroutine 是 Go 运行时自己调度的协程，比 OS 线程轻得多：初始栈只有 2 KB（可按需扩缩），切换不走内核态，单进程拉起几十万个不是问题。`go` 关键字一加就能并发跑，剩下的调度和栈管理全部由 runtime 接管。
 
-## 1 创建协程
+下面这一篇覆盖从最小例子到调度器（GMP）、同步原语（Mutex / RWMutex / atomic / WaitGroup）、Channel 及 context 的常用法和坑。
+
+## 起一个协程
 
 <<< @/go/codes/goroutine/hello.go
 
-输出结果可能是：
+主协程跑完 `main` 会直接退出，不会等其他协程。所以上面这段大概率只会输出一行 `Hello from main!`，子协程根本来不及打印。要让两边都跑，要么 `time.Sleep` 等一等（不推荐），要么用下面会讲的 `sync.WaitGroup` / `channel` 显式同步。
+
+并发的输出顺序也不固定，下面两种结果都合法：
 
 ```text
 Hello from main!
 Hello from goroutine!
 ```
 
-也可能是：
-
 ```text
 Hello from goroutine!
 Hello from main!
 ```
 
-因为两个打印操作是并发执行的，顺序不确定。
+## GMP 调度器
 
-## 2 GMP 调度器
+Go 的调度模型俗称 GMP，是用户态协程能跑得起来的关键。三个角色：
 
-GMP 调度器是 Go 语言实现高效并发的关键组件。它通过将 goroutine 与操作系统线程解耦，并使用工作窃取、局部性原理、抢占式调度和网络轮询器等技术，实现了高效的并发调度和执行。
+| 缩写 | 实体 | 角色 |
+| --- | --- | --- |
+| **G** | goroutine | 一段要被执行的协程代码，含自己的栈、PC、状态 |
+| **M** | machine | 操作系统线程，真正能被 OS 调度的执行单元 |
+| **P** | processor | 逻辑处理器，G 和 M 之间的中转，持有本地运行队列 |
 
-### 2.1 组成部分
+P 的个数等于 `GOMAXPROCS`（默认等于 CPU 核数），决定了同一时刻最多并行跑多少个 G。M 是按需创建的，没事干就睡掉。一个 M 想跑 G，必须先绑定一个 P。
 
-1. <strong>G（Goroutine）</strong>​：表示一个 goroutine，它是 Go 语言中的轻量级线程。每个 goroutine 都有自己的栈、程序计数器和局部变量等。
-2. <strong>​M（Machine）</strong>​：表示一个操作系统线程。M 负责执行 G，并与操作系统进行交互。一个 M 可以执行多个 G，但是在任意时刻，一个 M 只能执行一个 G。
-3. <strong>P（Processor）</strong>​：表示一个逻辑处理器，它是 G 和 M 之间的中间层。P 负责管理和调度分配给它的 G。每个 P 都有自己的本地队列，用于存储待执行的 G。P 的数量决定了可以同时运行的 G 的最大数量。
+### 调度的几条主线
 
-### 2.2 工作原理
+1. `go f()` 创建出来的 G 默认放到**当前 P 的本地队列**末尾（队列满了就部分迁到全局队列）；
+2. M 从绑定的 P 的本地队列头部取一个 G 来跑；
+3. 本地队列空了，M 会去**全局队列**捞，再不行就走**工作窃取**，从别的 P 的本地队列后半段偷一半过来；
+4. 如果系统里所有队列都空，M 解绑 P 进入休眠，等待被唤醒；
+5. G 跑完不会回到运行队列，而是进 **gFree 池**等待下次 `go` 时复用栈结构。
 
-1. 当创建一个新的 goroutine 时，它会被添加到当前 P 的本地队列中。
-2. M 从与其关联的 P 的本地队列中获取一个 G 来执行。如果本地队列为空，M 会尝试从其他 P 的本地队列中窃取 G，或者从全局队列中获取 G。
-3. 如果所有队列都为空，M 会进入休眠状态，等待新的 G 被创建或者被唤醒。
-4. 当一个 G 阻塞时（例如等待 I/O 操作完成），M 会将其与当前的 P 解除关联，并尝试从其他 P 的本地队列中获取一个新的 G 来执行。
-5. 当一个 G 完成执行时，它会返回到其所属的 P 的本地队列中，等待下一次调度。
+### 阻塞场景：syscall 与 netpoller 走两条路
 
-### 2.3 优化
+这是 GMP 里最容易讲错的地方，分开讲清楚：
 
-1. <strong>工作窃取（Work Stealing）</strong>​：当一个 P 的本地队列为空时，它会尝试从其他 P 的本地队列中窃取 G。这种机制可以平衡各个 P 之间的负载，提高整体调度效率。
-2. <strong>局部性原理（Locality Principle）</strong>​：GMP 调度器会尽量将相关的 G 调度到同一个 P 上执行，以提高缓存命中率和减少内存访问延迟。
-3. <strong>抢占式调度（Preemptive Scheduling）</strong>​：Go 1.14 引入了基于信号的抢占式调度，可以在长时间运行的 G 上强制插入调度点，以避免某个 G 长时间占用 M，导致其他 G 无法得到执行。
-4. <strong>网络轮询器（Network Poller）</strong>​：Go 运行时内置了一个网络轮询器，用于高效地处理 I/O 多路复用。当 G 阻塞在 I/O 操作上时，M 可以与网络轮询器协作，继续执行其他 G，从而提高整体性能。
+- **G 进入 syscall**（文件读写、阻塞式系统调用）：当前 M 跟着内核陷入卡住，没法继续跑别的 G。runtime 会**把 P 解绑给另一个空闲 M（必要时新建）**，让 P 上其他 G 继续被调度。syscall 返回后，原 M 想拿回一个 P 继续跑；拿不到就把 G 塞进全局队列，自己去睡。
+- **G 阻塞在网络 IO / channel / select / mutex**：G 被 park 挂起，**但 M 不会跟着卡**，它接着在本 P 上调度别的 G。事件就绪时，netpoller 把对应 G 放回运行队列，下次被调度到就接着跑。
 
-## 3 WaitGroup
+理解这一区别之后再看那些"几万并发连接为什么 Go 不会爆"的问题，就豁然开朗。
 
-`WaitGroup` 是 Go 语言中用于等待一组 goroutine 完成的同步原语。它属于 `sync` 包，提供了一种简单而有效的方式来协调多个并发执行的 goroutine，确保主程序在所有子任务完成后再继续执行。
+### 抢占式调度
 
-1. **创建一个 `WaitGroup`**
+Go 1.14 起引入了**基于信号的异步抢占**：runtime 给 M 发 `SIGURG`，强制让 G 让出 CPU。在此之前是协作式抢占，靠编译器在函数序言里插入检查点，所以一段不调用任何函数的纯计算死循环会把调度器卡死（经典的"for {} 让其他 goroutine 跑不起来"）。Go 1.14 之后这种情况也能被抢占了。
+
+### 几个相关优化
+
+- **工作窃取**：保证负载在 P 之间动态均衡；
+- **局部性**：G 倾向于跟着原 P 跑，提升 L1/L2 命中；
+- **netpoller**：所有网络 IO 都过 epoll/kqueue/IOCP，挂起 G 不挂起 M。
+
+## WaitGroup
+
+`sync.WaitGroup` 是最常用的"等一组协程跑完"的同步原语。三步走：
+
+```go
+var wg sync.WaitGroup
+wg.Add(n)   // 在启动 n 个协程之前
+go func() {
+    defer wg.Done()  // 协程退出前一定要标记完成
+    // ...
+}()
+wg.Wait()   // 阻塞直到计数器归零
+```
+
+最小可运行示例：
+
+1. 声明一个 `WaitGroup`：
 
 <<< @/go/codes/goroutine/wg.go
 
-2. **添加等待的 goroutine 数量**
-
-使用 `Add` 方法来设置需要等待的 goroutine 数量。这通常在启动 goroutine 之前调用。
+1. 启动协程前 `Add`（必须先调用）：
 
 <<< @/go/codes/goroutine/add.go
 
-3. **在每个 goroutine 完成时调用 `Done`**
-
-在每个 goroutine 的逻辑结束时，调用 `Done` 方法来通知 `WaitGroup` 该 goroutine 已完成。通常使用 `defer` 语句确保 `Done` 被调用。
+1. 协程末尾 `Done`，搭配 `defer` 防遗漏：
 
 <<< @/go/codes/goroutine/done.go
 
-4. **等待所有 goroutine 完成**
-
-在主 goroutine 中调用 `Wait` 方法，它会阻塞直到所有的 goroutine 调用了 `Done`。
+1. 主协程 `Wait` 等齐：
 
 <<< @/go/codes/goroutine/wait.go
 
-## 4 互斥锁
+::: warning 三个真坑
 
-Go 语言中的互斥锁（Mutex）是一种同步原语，用于在多个 goroutine 之间保护共享资源的访问，防止数据竞争和不一致性。互斥锁确保在同一时间只有一个 goroutine 能够访问被保护的资源。
+- **先 `go` 后 `Add` 是错的**。`Add` 必须在 `go func()` 之前调用，否则 `Wait` 可能在 `Add` 之前就看到 0，提前返回。
+- **`Done` 多调一次会 panic**（计数器走负）。
+- **`Add` 的参数可以是负数**，但实际上几乎没人这么用，正确姿势是循环里 `wg.Add(1)`。
 
-Go 的 `sync` 包提供了 `Mutex` 类型，用于实现互斥锁。以下是互斥锁的基本使用方法：
+:::
 
-首先，需要导入 `sync` 包：
+## 互斥锁 Mutex
+
+`sync.Mutex` 守护任何不允许并发写入的共享状态。零值即可使用，不需要构造函数：
+
+```go
+var mu sync.Mutex
+```
+
+加锁、临界区、解锁三件套：
 
 <<< @/go/codes/goroutine/sync.go
 
-定义一个 `sync.Mutex` 变量：
-
 <<< @/go/codes/goroutine/mutex.go
-
-使用 `Lock()` 方法对互斥锁进行加锁，使用 `Unlock()` 方法进行解锁。通常，`Unlock()` 会在 `defer` 语句中调用，以确保在函数退出时释放锁。
 
 <<< @/go/codes/goroutine/lock.go{2,3}
 
@@ -99,148 +125,185 @@ Go 的 `sync` 包提供了 `Mutex` 类型，用于实现互斥锁。以下是互
 
 <<< @/go/codes/goroutine/mu.go
 
-## 5 原子操作包
+几个易踩的点：
 
-`sync/atomic` 包提供了一系列原子操作函数，这些函数可以对基本数据类型（如 `int32`、`int64`、`uint32`、`uint64`、`uintptr` 和 `unsafe.Pointer`）进行原子性的读取、写入、比较和交换等操作。
+- **不要拷贝带锁的结构体**。`Mutex` 拷一份会得到两个相互独立的锁，等于没锁。`go vet` 会报 `copylocks` 警告。
+- **不要在已锁的临界区里再次 `Lock` 同一把锁**。Go 的 Mutex 不可重入，会直接死锁。
+- **`Unlock` 必须由持锁的 goroutine 调用**。把 `Unlock` 用 `defer` 包好是最稳的写法。
 
-以下是一些常用的 `atomic` 操作函数：
+## 原子操作 sync/atomic
 
-1. `Add`：原子地将 `delta` 添加到 `*addr` 并返回新值。
+`sync/atomic` 提供针对 `int32 / int64 / uint32 / uint64 / uintptr / unsafe.Pointer` 的原子操作，避免锁的开销。Go 1.19 之后还多了 `atomic.Int32` / `atomic.Int64` / `atomic.Bool` / `atomic.Pointer[T]` 等类型化版本，写起来更清爽。
+
+常用函数：
+
+- `Add`：原子地把 `delta` 加到 `*addr`，返回新值。
 
 <<< @/go/codes/goroutine/atomic_add.go
 
-2. `CompareAndSwap`：原子地比较 `addr` 的旧值和 `old`。如果相等，则将 `addr` 的值设为新值并返回 `true`；否则返回 `false`。
+- `CompareAndSwap`：CAS。比较 `*addr` 是否等于 `old`，是就改成 `new` 并返回 `true`，否则不改返回 `false`。无锁数据结构的基石。
 
 <<< @/go/codes/goroutine/atomic_swap.go
 
-3. `Load`：原子地加载 `*addr`。
+- `Load`：原子读。
 
 <<< @/go/codes/goroutine/atomic_load.go
 
-4. `Store`：原子地存储 `val` 到 `*addr`。
+- `Store`：原子写。
 
 <<< @/go/codes/goroutine/atomic_store.go
 
-5. `Swap`：原子地将 `val` 存储到 `*addr` 并返回 `*addr` 的旧值。
+- `Swap`：原子地把 `val` 写入 `*addr` 并返回旧值。
 
 <<< @/go/codes/goroutine/atomic_swap_int.go
 
-原子操作在并发编程中非常有用，因为它们可以避免使用锁，从而减少性能开销和死锁的风险。然而，需要注意的是，并非所有操作都可以通过原子操作来实现。对于复杂的操作，仍然需要使用互斥锁（`sync.Mutex`）或其他同步机制来确保数据的一致性。
+适用范围有限：原子操作只能针对单个变量做一次"读 → 改 → 写"。一旦临界区里要改两个变量、或者要先判断再改，就得回到 `Mutex`。原子操作之间没有任何顺序保证，需要的话要配合 memory barrier，但 Go 已经在 `atomic` 包里保证了 sequentially consistent 语义，业务代码里通常不用考虑。
 
-## 6 读写互斥锁
+## 读写锁 RWMutex
 
-`RWMutex`（读写互斥锁）是 Go 语言中用于管理共享资源访问的一种同步机制，位于 `sync` 包下。与普通的互斥锁（`Mutex`）不同，`RWMutex` 允许多个读操作同时进行，但在写操作时会阻塞所有其他读写操作。
+`sync.RWMutex` 区分了**读锁**和**写锁**：
 
-### 6.1 主要特点
+- 多个 goroutine 可以同时持有读锁；
+- 写锁是独占的，写锁持有时其他任何读 / 写都拿不到锁；
+- 读锁优先级低于已经在等的写锁（避免写饥饿）。
 
-1. <b>读锁（RLock）</b>​：
-    - 多个 goroutine 可以同时持有读锁。
-    - 当有线程持有读锁时，其他 goroutine 仍然可以获取读锁，但不能获取写锁。
-2. <b>写锁（Lock）</b>​：
-    - 写锁是独占的，当一个 goroutine 持有写锁时，其他任何 goroutine 都不能获取读锁或写锁。
-    - 写锁会阻塞所有其他读锁和写锁的获取，直到写锁被释放。
+| 方法 | 说明 |
+| --- | --- |
+| `RLock()` | 拿读锁 |
+| `RUnlock()` | 释放读锁 |
+| `Lock()` | 拿写锁 |
+| `Unlock()` | 释放写锁 |
+| `TryLock()` / `TryRLock()` | Go 1.18+，拿不到立刻返回 false |
 
-### 6.2 常用方法
+适用场景：读远多于写的状态（缓存、配置、路由表）。读写比 1:1 上下的话 `RWMutex` 反而比 `Mutex` 慢，因为内部簿记开销更大。
 
-|        方法 | 说明         |
-| ----------: | ------------ |
-|   `RLock()` | 获取一个读锁 |
-| `RUnlock()` | 释放一个读锁 |
-|    `Lock()` | 获取一个写锁 |
-|  `Unlock()` | 释放一个写锁 |
+## Channel
 
-## 7 Channel
+channel 是 Go 最具特色的并发原语，等于一根类型化的管道，传值同时也传"happens-before"语义。Go 圈子里那句口号"Don't communicate by sharing memory; share memory by communicating"指的就是它。
 
-- <b>Channel</b>：一种类型化的管道，可以通过它发送和接收特定类型的值。
-- <b>发送（Send）</b>：将一个值发送到 Channel 中。
-- <b>接收（Receive）</b>：从 Channel 中接收一个值。
-- <b>阻塞（Blocking）</b>：如果发送方尝试向满的 Channel 发送数据，或者接收方尝试从空的 Channel 接收数据，操作将会阻塞，直到另一端准备好。
-
-### 7.1 创建
+### 创建
 
 <<< @/go/codes/goroutine/chan.go
 
-### 7.2 无缓冲
+`make(chan T)` 不带容量是**无缓冲**的，`make(chan T, n)` 带容量是**有缓冲**的，两者语义差别巨大。
 
-无缓冲 Channel 在发送和接收操作完成之前会阻塞。
+### 无缓冲
+
+发送和接收必须同时配对才能继续，否则任一方阻塞。常用来做严格的同步点。
 
 <<< @/go/codes/goroutine/chan2.go
 
-### 7.3 有缓冲
+### 有缓冲
 
-有缓冲 Channel 允许在阻塞之前存储一定数量的元素。
+容量没满时发送不阻塞，容量没空时接收不阻塞。容量满了写、容量空了读，才会阻塞。
 
 <<< @/go/codes/goroutine/chan3.go
 
-### 7.4 关闭
+### 关闭
 
-关闭 Channel 表示不会再有更多的值发送到该 Channel。接收方可以通过检测 Channel 是否关闭来决定如何处理接收到的数据。
+`close(ch)` 表示生产者宣告再也不会写新值。关闭后的行为要记牢：
+
+| 操作 | 行为 |
+| --- | --- |
+| 再次发送 | panic：`send on closed channel` |
+| 再次 close | panic：`close of closed channel` |
+| 接收 | 先把缓冲里剩的值取干净，之后返回零值；`v, ok := <-ch` 中 `ok == false` 表示已关闭且空 |
+| `range ch` | 取干净后自动结束循环 |
 
 <<< @/go/codes/goroutine/chan4.go
 
-### 7.5 多路复用（Select）
+经验法则：**只让发送方关闭，不要让接收方关闭**，并且只在能确定不再有发送时关闭。多生产者场景下，需要额外用 `sync.Once` 或者一个独立的"关闭信号 channel"。
 
-`select` 语句允许同时等待多个 Channel 操作，类似于 `switch` 语句，但用于 Channel。
+`for range` 是消费 channel 直到关闭的最常见写法：
+
+```go
+for v := range ch {
+    fmt.Println(v)
+}
+// 退出循环 = ch 已被 close 且取空
+```
+
+### select 多路复用
+
+`select` 同时盯多个 channel，谁先就绪就跑哪个 case：
 
 <<< @/go/codes/goroutine/select.go
 
-当多个 `case` 同时就绪时，`select` 会随机选择一个执行。这有助于避免某些 Goroutine 被饿死（即一直得不到执行机会）。
+要点：
 
-通常还会设置一个超时时间，避免阻塞等待的时间过长：
+- 多个 case 同时就绪时，`select` **随机**挑一个，避免某些 case 长期被饿死；
+- 加 `default` 分支可以让 select 立刻返回，做**非阻塞**的尝试发送/接收；
+- 加 `time.After` 做**超时**：
 
 <<< @/go/codes/goroutine/timer.go
 
-### 7.6 单向 Channel
+注意 `time.After` 每次都会 `make` 一个新的定时器，长循环里频繁用会泄漏定时器，循环内推荐改用 `time.NewTimer` + `Reset`，或者让 `ctx.Done()` 当超时入口。
 
-单向Channel分为两种类型：
+### 单向 channel
 
-1. <b>只发送通道（Send-only Channel）</b>​：只能用于发送数据，不能用于接收数据。
-2. <b>只接收通道（Receive-only Channel）</b>​：只能用于接收数据，不能用于发送数据。
-
-首先，需要创建一个双向 Channel，然后可以将其转换为单向 Channel：
+只发送（`chan<- T`）或只接收（`<-chan T`）。常作为函数参数类型，约束函数对 channel 的使用方向：
 
 <<< @/go/codes/goroutine/chan_only.go
 
-单向 Channel 常用于函数参数，以确保函数只能以特定的方式使用通道：
-
 <<< @/go/codes/goroutine/chan_only_example.go
 
-## 8 context
+双向 channel 可以隐式赋值给单向版本，反向不行。
 
-`context` 包提供了一种机制，用于在不同的 Goroutine 之间传递请求范围内的数据、取消信号以及截止时间（deadline）。
+## 循环变量与协程的经典坑
 
-主要用途：
+```go
+for i := 0; i < 3; i++ {
+    go func() { fmt.Println(i) }()
+}
+```
 
-1. <b>​传递请求范围内的数据</b>：如请求 ID、用户认证信息等。
-2. <b>​取消信号</b>：通知相关的 Goroutine 停止当前操作。
-3. <b>​设置截止时间（Deadline）</b>​：为操作设置一个超时时间，防止操作无限期地阻塞。
+**Go 1.21 及之前**：三个协程很可能都打印 `3`，因为闭包捕获的是同一个 `i`，循环结束时它的值是 3。修法是在循环里 `i := i` 创建新变量。
 
-### 8.1 核心接口
+**Go 1.22 起**：循环变量改为每轮迭代独立作用域，上面这段会按预期打印 `0`、`1`、`2`（顺序仍然不固定）。所以维护老项目升到 1.22+ 后还要顺便复查一遍，行为是真的会变。
+
+## context
+
+`context.Context` 用来在调用链里传**取消信号**、**截止时间**和**请求级数据**。Go 里凡是涉及"可能要中途取消"的 IO、RPC、SQL，第一个参数基本都是 `ctx`。
+
+### 核心接口
 
 <<< @/go/codes/goroutine/context.go
 
-### 8.2 创建根上下文
+四个方法：`Deadline()` 看有没有截止时间、`Done()` 拿到一个会在取消时被 close 的 channel、`Err()` 看取消原因（`Canceled` 或 `DeadlineExceeded`）、`Value(key)` 取关联值。
 
-根上下文是一个没有任何值、不会被取消且没有截止时间的上下文，通常作为其他上下文的父级使用。
+### 根 context
+
+整个调用链的源头通常是 `context.Background()`：
 
 <<< @/go/codes/goroutine/bg.go
 
-### 8.3 派生上下文
+`context.TODO()` 与 `Background()` 等价，专门用在"暂时不知道用什么，先占位"的地方。两者在静态分析工具里会被区别对待，所以语义上有差别。
 
-可以从根上下文或其他派生上下文中创建新的上下文，添加取消功能、截止时间或键值对。
+### 派生 context
 
-带取消功能的上下文：
+所有 `WithXxx` 都基于父 context 派一个子 context，子 context 自动继承父的截止时间和取消事件。
+
+- 主动取消：
 
 <<< @/go/codes/goroutine/with_cancel.go
 
-带截止时间的上下文：
+- 绝对截止时间：
 
 <<< @/go/codes/goroutine/with_deadline.go
 
-或者使用 `WithTimeout` 简化：
+- 相对超时（语法糖）：
 
 <<< @/go/codes/goroutine/with_timeout.go
 
-带值的上下文：
+- 带值：
 
 <<< @/go/codes/goroutine/with_val.go
+
+::: warning context 的几条规矩
+
+- `context.WithCancel` / `WithTimeout` / `WithDeadline` 返回的 `cancel()` **必须调用**，哪怕 ctx 是因超时被取消的也要 `defer cancel()`，否则会泄漏内部 timer 和 goroutine。
+- 不要把 `Context` 塞进结构体字段，永远当函数参数显式传递，并放在第一个位置；
+- `Value` 只用来传请求级元数据（trace id、用户身份），别拿它传业务参数；
+- 自定义 key 要用**自定义类型**而不是 `string`，防止跨包冲突：`type ctxKey int; const userKey ctxKey = 1`。
+
+:::
