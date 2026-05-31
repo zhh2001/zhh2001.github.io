@@ -38,14 +38,6 @@ const TechNotes = [
       { text: 'Redis', link: '/db/redis' },
     ]
   },
-  {
-    text: 'Interview',
-    items: [
-      { text: 'GoLang', link: '/interview/go' },
-      { text: 'MySQL', link: '/interview/mysql' },
-      { text: 'Redis', link: '/interview/redis' },
-    ]
-  },
 ]
 
 const keywords = [
@@ -159,7 +151,6 @@ export default defineConfig({
       '/sdn/': ResearchNotes,
       '/go/': TechNotes,
       '/db/': TechNotes,
-      '/interview/': TechNotes,
     },
     socialLinks: [
       { icon: 'github', link: 'https://github.com/zhh2001' },
