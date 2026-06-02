@@ -32,7 +32,7 @@ footer: false
 3. <span style="font-family: Times New Roman;">Jue Chen, Haidong Peng, **Henghua Zhang**, Junru Chen, and Xihe Qiu. [SCV-IDS: CNN-ViT Cross-Attention on Serialized Traffic Images for Spatiotemporal Intrusion Detection](https://doi.org/10.1109/jiot.2026.3695912). *IEEE Internet of Things Journal*, May 2026.</span> <Badge type="warning" text="中科院一区 Top" /> <Badge type="danger" text="CCF推荐期刊" />
 4. <span style="font-family: Times New Roman;">Junru Chen, Jue Chen, **Henghua Zhang**, and Haidong Peng. [ATHGID: Two-stage graph intrusion detection via attention-fused network-host feature and producer-consumer parallelization](https://doi.org/10.1016/j.comnet.2026.112418). *Computer Networks*, July 2026.</span> <Badge type="warning" text="中科院三区" /> <Badge type="danger" text="CCF-B类期刊" />
 
-另有3篇一作在投
+另有 5 篇一作在投
 
 ## 技能证书
 
@@ -51,7 +51,7 @@ footer: false
 
 ## 实习经历
 
-2026.03-至今 莉莉丝游戏  
+2026.03-2026.06 莉莉丝游戏  
 上海 | 发行中心 | Golang后端工程师
 
 2025.09-2026.03 上海简文私募基金管理有限公司  
@@ -68,7 +68,7 @@ footer: false
 
 ## 项目经历
 
-2026.03-至今 LiLAC本地化平台  
+2026.03-2026.06 LiLAC本地化平台  
 项目主体：莉莉丝游戏  
 角色：Golang后端工程师  
 技术栈：`Golang`、`go-zero`、`MongoDB`、`Redis`、`Phrase TMS`、`Docker`、`K8S`、`Jenkins`、`Git`
