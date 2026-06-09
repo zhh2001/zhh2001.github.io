@@ -1,1 +1,0 @@
-sudo python3 network.py

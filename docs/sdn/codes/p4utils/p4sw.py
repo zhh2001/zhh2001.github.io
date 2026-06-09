@@ -1,1 +1,0 @@
-net.addP4RuntimeSwitch('s1')

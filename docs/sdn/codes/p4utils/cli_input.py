@@ -1,1 +1,0 @@
-net.setP4CliInput('s1', 's1-commands.txt')

@@ -1,1 +1,0 @@
-simple_switch_CLI --thrift-port 9090 --thrift-ip 127.0.0.1

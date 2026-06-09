@@ -1,1 +1,0 @@
-RuntimeCmd: help <command>

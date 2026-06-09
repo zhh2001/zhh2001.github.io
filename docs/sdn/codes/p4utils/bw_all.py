@@ -1,1 +1,0 @@
-net.setBwAll(5)

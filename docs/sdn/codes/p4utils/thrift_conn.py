@@ -1,1 +1,0 @@
-controller = SimpleSwitchThriftAPI(9090)

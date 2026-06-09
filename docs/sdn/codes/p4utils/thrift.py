@@ -1,1 +1,0 @@
-from p4utils.utils.sswitch_thrift_API import SimpleSwitchThriftAPI
