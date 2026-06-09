@@ -128,7 +128,7 @@ export default defineConfig({
       }
     },
     footer: {
-      message: 'Released under the <a href="/mit">MIT License</a>.',
+      message: 'Released under the MIT License.',
       copyright: 'Copyright © 2024-present <a href="/resume">Henghua Zhang</a>'
     },
     nav: [
