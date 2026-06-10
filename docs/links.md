@@ -22,12 +22,13 @@ const mailIcon = {
 
 const members = [
   {
-    avatar: 'https://avatars.githubusercontent.com/u/71125875?v=4',
-    name: '哲铭',
-    desc: '凡是发生皆有利于',
+    avatar: 'https://maozm.art/assets/profile-avatar.jpg',
+    name: '浮生笺',
+    desc: '凡是发生皆有利我',
     links: [
-      { icon: linkIcon, link: 'https://maozm.xyz' },
+      { icon: linkIcon, link: 'https://maozm.art/' },
       { icon: 'gmail', link: 'mailto:maozheming04@gmail.com' },
+      { icon: 'csdn', link: 'https://blog.csdn.net/qq_44888152' },
       { icon: 'github', link: 'https://github.com/ToBeMaster-Mao' },
     ]
   },
