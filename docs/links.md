@@ -153,14 +153,6 @@ const members = [
     ]
   },
   {
-    avatar: 'https://image.kong.college/i/2025/09/09/spq9n6.png',
-    name: '28.7',
-    desc: '空山不见人，但闻人语响',
-    links: [
-      { icon: linkIcon, link: 'https://blog.kong.college' },
-    ]
-  },
-  {
     avatar: 'https://mccsjs.eu.org/img/head.jpg',
     name: 'mccsjs',
     desc: '点一盏灯，等一个迷路的夜',
