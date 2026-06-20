@@ -34,6 +34,12 @@ footer: false
 
 另有 5 篇一作在投
 
+## 学术服务
+
+期刊审稿人：
+
+- *Future Generation Computer Systems*（FGCS）
+
 ## 实习经历
 
 2026.03-2026.06 莉莉丝游戏  
