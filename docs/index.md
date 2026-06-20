@@ -54,8 +54,6 @@ const members = [
     org: 'SUES',
     orgLink: 'https://www.sues.edu.cn/',
     desc: 'Focused on programmable networks, in-band network telemetry',
-    sponsor: '/sponsor',
-    actionText: 'Sponsor',
     links: [
       { icon: 'csdn', link: 'https://blog.csdn.net/qq_43133192' },
       { icon: 'github', link: 'https://github.com/zhh2001' },
