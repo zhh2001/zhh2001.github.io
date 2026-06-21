@@ -66,8 +66,4 @@ const members = [
 ]
 </script>
 
-<div align="center">
-  <a href="/resume" class="ToResume">
-    <VPTeamMembers size="small" :members />
-  </a>
-</div>
+<VPTeamMembers :members />

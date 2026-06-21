@@ -12,13 +12,8 @@
     margin-bottom: 32px !important;
 }
 
-.VPHome .VPTeamMembers.small.count-1 .container {
-    display: block;
+.VPHome .VPTeamMembers.medium.count-1 .container {
     max-width: 100% !important;
-}
-
-.VPHome .VPTeamMembers .container .item {
-    width: 100%;
 }
 
 .VPHome .VPTeamMembers .VPTeamMembersItem {
@@ -29,10 +24,6 @@
 
 .VPHome .VPTeamMembers .VPTeamMembersItem:hover {
     border-color: var(--vp-c-brand-1);
-}
-
-.VPHome .ToResume {
-    text-decoration: none;
 }
 
 .VPHome .VPHero .image-container {
