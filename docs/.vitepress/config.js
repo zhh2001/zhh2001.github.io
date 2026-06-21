@@ -152,6 +152,7 @@ export default defineConfig({
     },
     socialLinks: [
       { icon: 'github', link: 'https://github.com/zhh2001' },
+      { icon: 'googlescholar', link: 'https://scholar.google.com/citations?user=nCPBFuMAAAAJ' },
       { icon: 'orcid', link: 'https://orcid.org/0009-0005-9456-8936' },
       { icon: 'qq', link: 'mailto:1652709417@qq.com' },
       { icon: 'leetcode', link: 'https://leetcode.cn/u/zhanghenghua/' },
