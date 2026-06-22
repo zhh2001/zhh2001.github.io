@@ -318,7 +318,6 @@ const friends = [
     desc: '大模型爱好者',
     links: [
       { icon: linkIcon, link: 'https://vovyh.github.io/' },
-      { icon: mailIcon, link: 'mailto:m325124620@sues.edu.cn' },
       { icon: 'gmail', link: 'mailto:vovyh0514@gmail.com' },
       { icon: 'github', link: 'https://github.com/VovyH' },
       { icon: 'leetcode', link: 'https://leetcode.cn/u/wuyuhangwinner/' },
