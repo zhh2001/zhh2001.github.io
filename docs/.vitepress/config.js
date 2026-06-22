@@ -2,6 +2,7 @@ import { defineConfig } from 'vitepress'
 
 const SDNNoteItems = [
   { text: 'P4 Language', link: '/sdn/p4' },
+  { text: 'P4Runtime', link: '/sdn/p4runtime' },
   { text: 'P4 INT', link: '/sdn/int' },
   { text: 'WSL', link: '/sdn/wsl' },
   { text: 'Mininet', link: '/sdn/mininet' },
