@@ -52,10 +52,10 @@ const members = [
     links: [
       { icon: linkIcon, link: 'https://www.miaoer.net' },
       { icon: 'gmail', link: 'mailto:miaoermua@gmail.com' },
-      { icon: 'bilibili', link: 'https://space.bilibili.com/41605906' },
+      { icon: 'github', link: 'https://github.com/miaoermua' },
+      { icon: 'tiktok', link: 'https://v.douyin.com/i8wErq6N' },
       { icon: 'youtube', link: 'https://www.youtube.com/@miaoerchannel' },
-      { icon: 'telegram', link: 'https://t.me/miaoer' },
-      { icon: 'steam', link: 'https://steamcommunity.com/id/miaoermua' },
+      { icon: 'xiaohongshu', link: 'https://www.xiaohongshu.com/user/profile/64b41ff3000000001403fd5b' },
     ]
   },
   {
@@ -68,7 +68,6 @@ const members = [
       { icon: 'github', link: 'https://github.com/Yesord' },
       { icon: 'csdn', link: 'https://blog.csdn.net/aoliba_believer' },
       { icon: 'bilibili', link: 'https://space.bilibili.com/1527890846' },
-      { icon: 'rss', link: 'https://home.yesord.top/atom.xml' },
     ]
   },
   {
@@ -79,7 +78,6 @@ const members = [
       { icon: linkIcon, link: 'https://note.moxiify.cn' },
       { icon: 'qq', link: 'mailto:3188468169@qq.com' },
       { icon: 'github', link: 'https://github.com/MoXiaoXi233' },
-      { icon: 'rss', link: 'https://note.moxiify.cn/feed/' },
     ]
   },
   {
@@ -117,7 +115,6 @@ const members = [
       { icon: 'bilibili', link: 'https://space.bilibili.com/1358278810' },
       { icon: 'steam', link: 'https://steamcommunity.com/id/LYEy_isine/' },
       { icon: 'github', link: 'https://github.com/caiyifeng0705' },
-      { icon: 'rss', link: 'https://caiyifeng.top/rss.xml' },
     ]
   },
   {
@@ -127,7 +124,6 @@ const members = [
     links: [
       { icon: linkIcon, link: 'https://yyg.js.cool/' },
       { icon: 'github', link: 'https://github.com/MarsperL' },
-      { icon: 'rss', link: 'https://yyg.js.cool/rss2.xml' },
     ]
   },
   {
@@ -137,7 +133,6 @@ const members = [
     links: [
       { icon: linkIcon, link: 'https://www.plsshenyun.top/' },
       { icon: mailIcon, link: 'mailto:blog@plsshenyun.top' },
-      { icon: 'rss', link: 'https://www.plsshenyun.top/feed' },
     ]
   },
   {
@@ -149,7 +144,6 @@ const members = [
       { icon: mailIcon, link: 'mailto:i@timochan.cn' },
       { icon: 'github', link: 'https://github.com/ttimochan' },
       { icon: 'x', link: 'https://twitter.com/RefRebel' },
-      { icon: 'rss', link: 'https://www.timochan.cn/feed' },
     ]
   },
   {
@@ -162,7 +156,6 @@ const members = [
       { icon: 'wechat', link: 'https://mccsjs.eu.org/img/wx.jpg' },
       { icon: 'bilibili', link: 'https://space.bilibili.com/209190096' },
       { icon: 'github', link: 'https://github.com/mccsjs' },
-      { icon: 'rss', link: 'https://mccsjs.eu.org/rss2.xml' },
     ]
   },
   {
@@ -173,7 +166,6 @@ const members = [
       { icon: linkIcon, link: 'https://blog.noah0932.top' },
       { icon: mailIcon, link: 'mailto:noah@noah0932.top' },
       { icon: 'github', link: 'https://github.com/Noah0932' },
-      { icon: 'rss', link: 'https://blog.noah0932.top/rss.xml' },
     ]
   },
   {
@@ -184,7 +176,6 @@ const members = [
       { icon: linkIcon, link: 'https://importmengjie.github.io' },
       { icon: mailIcon, link: 'mailto:limengjie@hotmail.com' },
       { icon: 'github', link: 'https://github.com/ImportMengjie' },
-      { icon: 'rss', link: 'https://importmengjie.github.io/index.xml' },
     ]
   },
   {
@@ -233,7 +224,6 @@ const members = [
       { icon: linkIcon, link: 'https://blog.grtsinry43.com' },
       { icon: mailIcon, link: 'mailto:grtsinry43@outlook.com' },
       { icon: 'github', link: 'https://github.com/grtsinry43' },
-      { icon: 'rss', link: 'https://blog.grtsinry43.com/feed' },
     ]
   },
   {
@@ -262,7 +252,6 @@ const members = [
       { icon: 'github', link: 'https://github.com/Lincest' },
       { icon: 'bilibili', link: 'https://space.bilibili.com/15255409' },
       { icon: 'x', link: 'https://x.com/himoreality' },
-      { icon: 'rss', link: 'https://moreality.net/atom.xml' },
     ]
   },
   {
