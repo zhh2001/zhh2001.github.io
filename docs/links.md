@@ -237,7 +237,7 @@ const members = [
     ]
   },
   {
-    avatar: 'https://blog.hazenix.top/assets/avatar-C7oPo7sC.jpg',
+    avatar: 'https://blog.hazenix.top/avatar.webp',
     name: 'Hazenix\'s Blog',
     org: 'CSU',
     orgLink: 'https://www.csu.edu.cn',
