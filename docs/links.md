@@ -22,7 +22,7 @@ const mailIcon = {
 
 const members = [
   {
-    avatar: 'https://maozm.art/assets/profile-avatar.jpg',
+    avatar: 'https://maozm.art/assets/profile-avatar.webp',
     name: '浮生笺',
     desc: '凡是发生皆有利我',
     links: [
