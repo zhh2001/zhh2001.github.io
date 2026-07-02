@@ -1,4 +1,5 @@
-console.log(`
+if (!import.meta.env.SSR) {
+  console.log(`
     _______
     |___  / |
        / /| |__   __ _ _ __   __ _ 
@@ -17,3 +18,4 @@ console.log(`
     |_|  |_|\\__,_|\\__,_|
                            @ 张恒华
 `)
+}
