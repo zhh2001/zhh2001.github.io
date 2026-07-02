@@ -146,8 +146,8 @@ const members = [
     desc: '点一盏灯，等一个迷路的夜',
     links: [
       { icon: linkIcon, link: 'https://mccsjs.eu.org' },
-      { icon: 'qq', link: 'https://res.abeim.cn/api/qq/?qq=3505591664' },
-      { icon: 'wechat', link: 'https://mccsjs.eu.org/img/wx.jpg' },
+      { icon: 'qq', link: 'https://seln.cn/asset/image/QQ.png' },
+      { icon: 'wechat', link: 'https://seln.cn/asset/image/weixin.png' },
       { icon: 'bilibili', link: 'https://space.bilibili.com/209190096' },
       { icon: 'github', link: 'https://github.com/mccsjs' },
     ]
