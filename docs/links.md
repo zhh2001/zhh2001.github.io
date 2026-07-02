@@ -184,7 +184,6 @@ const members = [
   {
     avatar: 'https://pic1.imgdb.cn/item/68b512ef58cb8da5c8689e8c.webp',
     name: '一世繁华',
-    title: '水下机器人领域从业者',
     desc: '分享一二',
     links: [
       { icon: linkIcon, link: 'https://blog.hantaotao.top' },
