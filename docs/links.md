@@ -24,7 +24,7 @@ const members = [
   {
     avatar: 'https://maozm.art/assets/profile-avatar.webp',
     name: '浮生',
-    desc: '凡是发生皆有利我',
+    desc: '天行健，君子以自强不息',
     links: [
       { icon: linkIcon, link: 'https://maozm.art/' },
       { icon: 'github', link: 'https://github.com/ToBeMaster-Mao' },
