@@ -16,10 +16,6 @@ const linkIcon = {
   svg: '<svg t="1759998982284" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="22707" width="64" height="64"><path d="M512 1024a512 512 0 1 1 0-1024 512 512 0 0 1 0 1024z m79.6672-557.8752l-1.979733-1.706667a108.817067 108.817067 0 0 0-11.946667-9.284266l-38.638933 34.542933a62.122667 62.122667 0 0 1 12.629333 8.738133l2.048 1.706667a52.770133 52.770133 0 0 1 0 80.2816L448.238933 674.952533c-24.7808 22.1184-64.853333 22.1184-89.634133 0l-2.048-1.774933a52.701867 52.701867 0 0 1 0-80.2816l47.786667-42.734933a132.642133 132.642133 0 0 1-11.8784-57.344l-73.864534 66.082133a97.621333 97.621333 0 0 0 0 148.343467l1.979734 1.706666c45.533867 40.823467 120.0128 40.823467 165.546666 0l105.540267-94.481066a97.621333 97.621333 0 0 0 0-148.343467z m170.666667-149.2992l-2.048-1.774933c-45.4656-40.823467-120.0128-40.823467-165.546667 0L489.2672 409.6c-45.533867 40.7552-45.533867 107.451733 0 148.2752l1.979733 1.706667c3.822933 3.413333 7.850667 6.417067 11.946667 9.284266l38.638933-34.6112a62.6688 62.6688 0 0 1-12.629333-8.669866l-1.979733-1.706667a52.770133 52.770133 0 0 1 0-80.349867L632.832 349.047467c24.712533-22.186667 64.853333-22.186667 89.565867 0l2.048 1.706666a52.770133 52.770133 0 0 1 0 80.349867l-47.7184 42.734933c8.260267 18.363733 12.219733 37.819733 11.810133 57.344l73.796267-66.082133a97.553067 97.553067 0 0 0 0-148.2752z" fill="#7F7F85" p-id="22708"></path></svg>'
 }
 
-const mailIcon = {
-  svg: '<svg t="1760000487865" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="15429" width="64" height="64"><path d="M970.56 267.52a85.76 85.76 0 0 0 0-10.24v-2.88l-17.92 1.6 15.68-3.84v-3.52A141.44 141.44 0 0 0 960 227.2a128 128 0 0 0-11.2-20.48 123.84 123.84 0 0 0-103.04-54.72H176.96a123.84 123.84 0 0 0-102.72 55.36 128 128 0 0 0-11.84 22.72 124.8 124.8 0 0 0-6.72 22.72l16 3.2h-16.64a81.92 81.92 0 0 0-1.6 11.84v512a124.48 124.48 0 0 0 124.16 124.16h668.8a124.48 124.48 0 0 0 124.16-124.16v-512zM883.2 304v448a64 64 0 0 1-64 64H205.12a64 64 0 0 1-64-64v-448a64 64 0 0 1 1.92-16l334.4 267.84 2.56 3.2a48.96 48.96 0 0 0 26.88 11.84h6.08a42.24 42.24 0 0 0 31.04-11.84L880.96 288a62.08 62.08 0 0 1 2.24 16zM512 472.96l-290.88-233.6h581.76z" p-id="15430" fill="#7F7F85"></path></svg>'
-}
-
 const members = [
   {
     avatar: 'https://maozm.art/assets/profile-avatar.webp',
@@ -40,7 +36,6 @@ const members = [
     desc: '我家还蛮大的.jpg',
     links: [
       { icon: linkIcon, link: 'https://blog.ctdxz.com' },
-      { icon: mailIcon, link: 'mailto:grtsinry43@outlook.com' },
       { icon: 'qq', link: 'http://wpa.qq.com/msgrd?v=3&uin=3096484572&site=qq&menu=yes' },
       { icon: 'bilibili', link: 'https://space.bilibili.com/476403407' },
       { icon: 'neteasecloudmusic', link: 'https://music.163.com/#/user/home?id=528787668' },
@@ -88,7 +83,6 @@ const members = [
     desc: '和你的日常，就是奇迹',
     links: [
       { icon: linkIcon, link: 'https://blog.feng1026.top' },
-      { icon: mailIcon, link: 'mailto:qiufengluoye@feng1026.top' },
       { icon: 'bilibili', link: 'https://space.bilibili.com/1735270180' },
       { icon: 'steam', link: 'https://steamcommunity.com/id/qiufengluoye44/' },
       { icon: 'github', link: 'https://github.com/Qiufengluoyes' },
@@ -134,7 +128,6 @@ const members = [
     desc: 'change and challenge!',
     links: [
       { icon: linkIcon, link: 'https://www.plsshenyun.top/' },
-      { icon: mailIcon, link: 'mailto:blog@plsshenyun.top' },
     ]
   },
   {
@@ -143,7 +136,6 @@ const members = [
     desc: 'Let\'s start learning',
     links: [
       { icon: linkIcon, link: 'https://www.timochan.cn' },
-      { icon: mailIcon, link: 'mailto:i@timochan.cn' },
       { icon: 'github', link: 'https://github.com/ttimochan' },
       { icon: 'x', link: 'https://twitter.com/RefRebel' },
     ]
@@ -166,7 +158,6 @@ const members = [
     desc: '努力去发光，而不是被照亮',
     links: [
       { icon: linkIcon, link: 'https://blog.noah0932.top' },
-      { icon: mailIcon, link: 'mailto:noah@noah0932.top' },
       { icon: 'github', link: 'https://github.com/Noah0932' },
     ]
   },
@@ -176,7 +167,6 @@ const members = [
     desc: '一个车端C++软件开发程序猿',
     links: [
       { icon: linkIcon, link: 'https://importmengjie.github.io' },
-      { icon: mailIcon, link: 'mailto:limengjie@hotmail.com' },
       { icon: 'github', link: 'https://github.com/ImportMengjie' },
     ]
   },
@@ -198,7 +188,6 @@ const members = [
     desc: '分享一二',
     links: [
       { icon: linkIcon, link: 'https://blog.hantaotao.top' },
-      { icon: mailIcon, link: 'mailto:tohantao@outlook.com' },
     ]
   },
   {
@@ -224,7 +213,6 @@ const members = [
     desc: '总之岁月漫长，然而值得等待',
     links: [
       { icon: linkIcon, link: 'https://blog.grtsinry43.com' },
-      { icon: mailIcon, link: 'mailto:grtsinry43@outlook.com' },
       { icon: 'github', link: 'https://github.com/grtsinry43' },
     ]
   },
@@ -236,7 +224,6 @@ const members = [
     desc: '我会一直走，走到灯火通明',
     links: [
       { icon: linkIcon, link: 'https://blog.hazenix.top/home' },
-      { icon: mailIcon, link: 'mailto:L3542495583@outlook.com' },
       { icon: 'github', link: 'https://github.com/HazeHacker' },
       { icon: 'x', link: 'https://x.com/hazenix56591' },
     ]
@@ -295,7 +282,6 @@ const friends = [
     desc: '华东师范大学博士',
     links: [
       { icon: linkIcon, link: 'https://xiongyujie.cn/' },
-      { icon: mailIcon, link: 'mailto:xiong@sues.edu.cn' },
       { icon: 'github', link: 'https://github.com/X-Lab-CN' },
     ]
   },
@@ -308,7 +294,6 @@ const friends = [
     desc: '华东师范大学博士',
     links: [
       { icon: linkIcon, link: 'https://seee.sues.edu.cn/fb/d9/c20786a195545/page.htm' },
-      { icon: mailIcon, link: 'mailto:jadeschen@sues.edu.cn' },
     ]
   },
   {
@@ -335,7 +320,6 @@ const friends = [
     desc: '入侵检测领域大佬',
     links: [
       { icon: linkIcon, link: 'https://brandpeng.github.io/' },
-      { icon: mailIcon, link: 'mailto:m325124607@sues.edu.cn' },
       { icon: 'github', link: 'https://github.com/BrandPeng' },
     ]
   },
