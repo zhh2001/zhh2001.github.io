@@ -4,11 +4,13 @@ outline: deep
 
 # LaTeX 公式
 
+这页记录本站写公式时常用的 LaTeX 语法，示例由 MathJax 渲染。完整的 `.tex` 文档还有导言区和独立公式环境，写法与 Markdown 中的 `$$...$$` 略有区别。
+
 ## 1 数学环境
 
 ### 1.1 行内公式
 
-使用 `$...$` 包裹公式。
+使用一对 `$` 包裹公式，公式会跟在正文中排版。
 
 示例：
 
@@ -22,7 +24,7 @@ $x = y + 1$
 
 ### 1.2 块公式
 
-使用 `$$...$$` 包裹公式。
+使用一对 `$$` 包裹公式，公式会单独占一行。
 
 示例：
 
@@ -42,35 +44,37 @@ $$
 
 ### 2.1 希腊字母
 
-| 写法       | 效果       |     | 写法       | 效果       |
-| ---------- | ---------- | --- | ---------- | ---------- |
-| `\alpha`   | $\alpha$   |
-| `\beta`    | $\beta$    |
-| `\gamma`   | $\gamma$   |     | `\Gamma`   | $\Gamma$   |
-| `\delta`   | $\delta$   |     | `\Delta`   | $\Delta$   |
-| `\epsilon` | $\epsilon$ |
-| `\zeta`    | $\zeta$    |
-| `\eta`     | $\eta$     |
-| `\theta`   | $\theta$   |     | `\Theta`   | $\Theta$   |
-| `\iota`    | $\iota$    |
-| `\kappa`   | $\kappa$   |
-| `\lambda`  | $\lambda$  |     | `\Lambda`  | $\Lambda$  |
-| `\mu`      | $\mu$      |
-| `\nu`      | $\nu$      |
-| `\xi`      | $\xi$      |     | `\Xi`      | $\Xi$      |
-| `\pi`      | $\pi$      |     | `\Pi`      | $\Pi$      |
-| `\rho`     | $\rho$     |
-| `\sigma`   | $\sigma$   |     | `\Sigma`   | $\Sigma$   |
-| `\tau`     | $\tau$     |
-| `\upsilon` | $\upsilon$ |     | `\Upsilon` | $\Upsilon$ |
-| `\phi`     | $\phi$     |     | `\Phi`     | $\Phi$     |
-| `\chi`     | $\chi$     |
-| `\psi`     | $\psi$     |     | `\Psi`     | $\Psi$     |
-| `\omega`   | $\omega$   |     | `\Omega`   | $\Omega$   |
+大写字形与拉丁字母相同的，直接输入对应的大写字母。
+
+| 小写写法   | 效果       | 大写写法   | 效果       |
+| ---------- | ---------- | ---------- | ---------- |
+| `\alpha`   | $\alpha$   | `A`        | $A$        |
+| `\beta`    | $\beta$    | `B`        | $B$        |
+| `\gamma`   | $\gamma$   | `\Gamma`   | $\Gamma$   |
+| `\delta`   | $\delta$   | `\Delta`   | $\Delta$   |
+| `\epsilon` | $\epsilon$ | `E`        | $E$        |
+| `\zeta`    | $\zeta$    | `Z`        | $Z$        |
+| `\eta`     | $\eta$     | `H`        | $H$        |
+| `\theta`   | $\theta$   | `\Theta`   | $\Theta$   |
+| `\iota`    | $\iota$    | `I`        | $I$        |
+| `\kappa`   | $\kappa$   | `K`        | $K$        |
+| `\lambda`  | $\lambda$  | `\Lambda`  | $\Lambda$  |
+| `\mu`      | $\mu$      | `M`        | $M$        |
+| `\nu`      | $\nu$      | `N`        | $N$        |
+| `\xi`      | $\xi$      | `\Xi`      | $\Xi$      |
+| `\pi`      | $\pi$      | `\Pi`      | $\Pi$      |
+| `\rho`     | $\rho$     | `P`        | $P$        |
+| `\sigma`   | $\sigma$   | `\Sigma`   | $\Sigma$   |
+| `\tau`     | $\tau$     | `T`        | $T$        |
+| `\upsilon` | $\upsilon$ | `\Upsilon` | $\Upsilon$ |
+| `\phi`     | $\phi$     | `\Phi`     | $\Phi$     |
+| `\chi`     | $\chi$     | `X`        | $X$        |
+| `\psi`     | $\psi$     | `\Psi`     | $\Psi$     |
+| `\omega`   | $\omega$   | `\Omega`   | $\Omega$   |
 
 ### 2.2 上下标
 
-`_` 表示下标，`^` 表示上标。
+`_` 表示下标，`^` 表示上标。上下标超过一个字符时，需要用 `{}` 括起来。
 
 | 示例      | 效果      |
 | --------- | --------- |
@@ -88,22 +92,19 @@ $$
 
 ### 2.4 根号
 
-- 平方根：`\sqrt{x}`  
-  效果：$\sqrt{x}$
-
-- n 次根：`\sqrt[n]{x}`  
-  效果：$\sqrt[n]{x}$
+- 平方根：`\sqrt{x}`，效果：$\sqrt{x}$
+- $n$ 次根：`\sqrt[n]{x}`，效果：$\sqrt[n]{x}$
 
 ### 2.5 求和与积分
 
-| 示例                      | 效果                      |
-| ------------------------- | ------------------------- |
-| `\sum_{i=1}^n a_i`        | $\sum_{i=1}^n a_i$        |
-| `\prod_{i=1}^n a_i`       | $\prod_{i=1}^n a_i$       |
-| `\int_a^b f(x)dx`         | $\int_a^b f(x)dx$         |
-| `\iint_D f(x,y)dxdy`      | $\iint_D f(x,y)dxdy$      |
-| `\iiint_V f(x,y,z)dxdydz` | $\iiint_V f(x,y,z)dxdydz$ |
-| `\oint_C f(z)dz`          | $\oint_C f(z)dz$          |
+| 示例                                                       | 效果                                                       |
+| ---------------------------------------------------------- | ---------------------------------------------------------- |
+| `\sum_{i=1}^n a_i`                                         | $\sum_{i=1}^n a_i$                                         |
+| `\prod_{i=1}^n a_i`                                        | $\prod_{i=1}^n a_i$                                        |
+| `\int_a^b f(x)\,\mathrm{d}x`                               | $\int_a^b f(x)\,\mathrm{d}x$                               |
+| `\iint_D f(x,y)\,\mathrm{d}x\,\mathrm{d}y`                 | $\iint_D f(x,y)\,\mathrm{d}x\,\mathrm{d}y$                 |
+| `\iiint_V f(x,y,z)\,\mathrm{d}x\,\mathrm{d}y\,\mathrm{d}z` | $\iiint_V f(x,y,z)\,\mathrm{d}x\,\mathrm{d}y\,\mathrm{d}z$ |
+| `\oint_C f(z)\,\mathrm{d}z`                                | $\oint_C f(z)\,\mathrm{d}z$                                |
 
 ### 2.6 极限
 
@@ -113,11 +114,11 @@ $$
 
 ### 2.7 微分与偏导
 
-| 示例                            | 效果                            |
-| ------------------------------- | ------------------------------- |
-| `\frac{dy}{dx}`                 | $\frac{dy}{dx}$                 |
-| `\frac{\partial u}{\partial t}` | $\frac{\partial u}{\partial t}$ |
-| `\nabla f`                      | $\nabla f$                      |
+| 示例                              | 效果                              |
+| --------------------------------- | --------------------------------- |
+| `\frac{\mathrm{d}y}{\mathrm{d}x}` | $\frac{\mathrm{d}y}{\mathrm{d}x}$ |
+| `\frac{\partial u}{\partial t}`   | $\frac{\partial u}{\partial t}$   |
+| `\nabla f`                        | $\nabla f$                        |
 
 ## 3 矩阵与数组
 
@@ -207,7 +208,7 @@ c & d
 \end{Vmatrix}
 $$
 
-### 3.3 大矩阵（跨多行）
+### 3.3 一般矩阵
 
 示例：
 
@@ -257,7 +258,7 @@ g & h & i
 \end{array}
 $$
 
-列对齐选项：`l`(左对齐)、`c`(居中)、`r`(右对齐)
+列对齐选项：`l`（左对齐）、`c`（居中）、`r`（右对齐）。
 
 ## 4 分段函数
 
@@ -267,8 +268,8 @@ $$
 $$
 f(x) =
 \begin{cases}
-x^2 & \text{if } x \geq 0 \\
--x & \text{if } x < 0
+x^2, & x \geq 0 \\
+-x, & x < 0
 \end{cases}
 $$
 ```
@@ -278,31 +279,31 @@ $$
 $$
 f(x) =
 \begin{cases}
-x^2 & \text{if } x \geq 0 \\
--x & \text{if } x < 0
+x^2, & x \geq 0 \\
+-x, & x < 0
 \end{cases}
 $$
 
 ## 5 多行公式
 
-示例：
+`&` 标记对齐位置，`\\` 表示换行。在 `$$...$$` 中可以使用 `aligned`：
 
 ```latex
 $$
-\begin{align}
+\begin{aligned}
 a^2 + b^2 &= c^2 \\
 e^{i\pi} + 1 &= 0
-\end{align}
+\end{aligned}
 $$
 ```
 
 效果：
 
 $$
-\begin{align}
+\begin{aligned}
 a^2 + b^2 &= c^2 \\
 e^{i\pi} + 1 &= 0
-\end{align}
+\end{aligned}
 $$
 
 ## 6 特殊符号
@@ -356,13 +357,12 @@ $$
 
 ### 6.4 箭头符号
 
-| 写法              | 效果              |     | 写法              | 效果              |
-| ----------------- | ----------------- | --- | ----------------- | ----------------- |
-| `\rightarrow`     | $\rightarrow$     |     | `\Rightarrow`     | $\Rightarrow$     |
-| `\leftarrow`      | $\leftarrow$      |     | `\Leftarrow`      | $\Leftarrow$      |
-| `\leftrightarrow` | $\leftrightarrow$ |     | `\Leftrightarrow` | $\Leftrightarrow$ |
-| `\mapsto`         | $\mapsto$         |
-| `\hookrightarrow` | $\hookrightarrow$ |
+| 写法              | 效果              | 写法              | 效果              |
+| ----------------- | ----------------- | ----------------- | ----------------- |
+| `\rightarrow`     | $\rightarrow$     | `\Rightarrow`     | $\Rightarrow$     |
+| `\leftarrow`      | $\leftarrow$      | `\Leftarrow`      | $\Leftarrow$      |
+| `\leftrightarrow` | $\leftrightarrow$ | `\Leftrightarrow` | $\Leftrightarrow$ |
+| `\mapsto`         | $\mapsto$         | `\hookrightarrow` | $\hookrightarrow$ |
 
 ### 6.5 特殊运算符
 
@@ -413,6 +413,8 @@ $$
 
 ### 7.3 文本插入
 
+普通说明文字用 `\text{}`；其余命令主要用于改变数学字符的字形，其中的空格不会按正文空格处理。
+
 | 示例                  | 效果                  |
 | --------------------- | --------------------- |
 | `\text{some text}`    | $\text{some text}$    |
@@ -426,7 +428,7 @@ $$
 
 ### 8.1 分数显示过小
 
-使用 `\dfrac` 代替 `\frac`：
+行内分数太小时，可以用 `\dfrac` 强制采用独立公式的尺寸：
 
 ```latex
 \dfrac{a}{b}  % 显示更大的分数
@@ -440,12 +442,12 @@ $$
 
 ### 8.2 矩阵元素对齐
 
-使用 `array` 环境并指定对齐方式：
+使用 `array` 环境并指定每一列的对齐方式：
 
 ```latex
 \begin{array}{rcl}
-left & center & right \\
-a & b & c
+a+b & = & c \\
+x & \leq & y
 \end{array}
 ```
 
@@ -453,18 +455,29 @@ a & b & c
 
 $$
 \begin{array}{rcl}
-left & center & right \\
-a & b & c
+a+b & = & c \\
+x & \leq & y
 \end{array}
 $$
 
 ### 8.3 长公式换行
 
-使用 `multline` 环境：
+在自然的运算位置断行，并用 `&` 对齐续行：
 
 ```latex
-\begin{multline}
-a + b + c + d + e + f \\
-+ g + h + i + j + k + l
-\end{multline}
+$$
+\begin{aligned}
+S ={}& a + b + c + d + e + f \\
+     &{}+ g + h + i + j + k + l
+\end{aligned}
+$$
 ```
+
+效果：
+
+$$
+\begin{aligned}
+S ={}& a + b + c + d + e + f \\
+     &{}+ g + h + i + j + k + l
+\end{aligned}
+$$
