@@ -102,18 +102,6 @@ const members = [
     ]
   },
   {
-    avatar: 'https://img.cdn1.vip/i/68bbdee513eb9_1757142757.webp',
-    name: 'LYEy_isine个人博客',
-    desc: '花海无一日,少年踏自来',
-    links: [
-      { icon: linkIcon, link: 'https://caiyifeng.top' },
-      { icon: 'qq', link: 'https://qm.qq.com/q/Uz2Vg3uzC2' },
-      { icon: 'bilibili', link: 'https://space.bilibili.com/1358278810' },
-      { icon: 'steam', link: 'https://steamcommunity.com/id/LYEy_isine/' },
-      { icon: 'github', link: 'https://github.com/caiyifeng0705' },
-    ]
-  },
-  {
     avatar: 'https://yyg.js.cool/img/icon.png',
     name: '云野阁',
     desc: '闲云野鹤，八方逍遥',
