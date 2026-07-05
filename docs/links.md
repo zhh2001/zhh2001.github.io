@@ -31,6 +31,31 @@ const members = [
     ]
   },
   {
+    avatar: 'https://bu.dusays.com/2024/10/25/671b2438203a6.gif',
+    name: 'Elykia',
+    desc: '致以无暇之人',
+    links: [
+      { icon: linkIcon, link: 'https://blog.elykia.cn' },
+      { icon: 'qq', link: 'mailto:elykia@qq.com' },
+      { icon: 'bilibili', link: 'https://space.bilibili.com/1451399239' },
+      { icon: 'gitee', link: 'https://gitee.com/Elykia' },
+      { icon: 'github', link: 'https://github.com/elykia-cn' },
+      { icon: 'telegram', link: 'https://t.me/Elykia_cn' },
+    ]
+  },
+  {
+    avatar: 'https://s2.loli.net/2025/02/19/gX19mThYxyUDaZu.gif',
+    name: 'Yesord',
+    desc: '你相信光吗~~',
+    links: [
+      { icon: linkIcon, link: 'https://blog.yesord.top' },
+      { icon: 'gmail', link: 'mailto:xuruolun666@gmail.com' },
+      { icon: 'github', link: 'https://github.com/Yesord' },
+      { icon: 'csdn', link: 'https://blog.csdn.net/aoliba_believer' },
+      { icon: 'bilibili', link: 'https://space.bilibili.com/1527890846' },
+    ]
+  },
+  {
     avatar: 'https://blog.ctdxz.com/avatar.webp',
     name: '吃土的小智',
     desc: '我家还蛮大的.jpg',
@@ -53,18 +78,6 @@ const members = [
       { icon: 'tiktok', link: 'https://v.douyin.com/i8wErq6N' },
       { icon: 'youtube', link: 'https://www.youtube.com/@miaoerchannel' },
       { icon: 'xiaohongshu', link: 'https://www.xiaohongshu.com/user/profile/64b41ff3000000001403fd5b' },
-    ]
-  },
-  {
-    avatar: 'https://s2.loli.net/2025/02/19/gX19mThYxyUDaZu.gif',
-    name: 'Yesord',
-    desc: '你相信光吗~~',
-    links: [
-      { icon: linkIcon, link: 'https://blog.yesord.top' },
-      { icon: 'gmail', link: 'mailto:xuruolun666@gmail.com' },
-      { icon: 'github', link: 'https://github.com/Yesord' },
-      { icon: 'csdn', link: 'https://blog.csdn.net/aoliba_believer' },
-      { icon: 'bilibili', link: 'https://space.bilibili.com/1527890846' },
     ]
   },
   {
@@ -175,19 +188,6 @@ const members = [
     desc: '分享一二',
     links: [
       { icon: linkIcon, link: 'https://blog.hantaotao.top' },
-    ]
-  },
-  {
-    avatar: 'https://bu.dusays.com/2024/10/25/671b2438203a6.gif',
-    name: 'Elykia',
-    desc: '致以无暇之人',
-    links: [
-      { icon: linkIcon, link: 'https://blog.elykia.cn' },
-      { icon: 'qq', link: 'mailto:elykia@qq.com' },
-      { icon: 'bilibili', link: 'https://space.bilibili.com/1451399239' },
-      { icon: 'gitee', link: 'https://gitee.com/Elykia' },
-      { icon: 'github', link: 'https://github.com/elykia-cn' },
-      { icon: 'telegram', link: 'https://t.me/Elykia_cn' },
     ]
   },
   {
