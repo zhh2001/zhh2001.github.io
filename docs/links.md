@@ -298,6 +298,30 @@ const friends = [
       { icon: 'github', link: 'https://github.com/BrandPeng' },
     ]
   },
+  {
+    avatar: 'https://avatars.githubusercontent.com/u/141030026',
+    name: '杨天成',
+    title: '硕士生',
+    org: 'SUES',
+    orgLink: 'https://www.sues.edu.cn/',
+    desc: '前沿技术探索者',
+    links: [
+      { icon: linkIcon, link: 'https://kingriouspersonalweb.pages.dev/' },
+      { icon: 'github', link: 'https://github.com/Kingrious' },
+    ]
+  },
+  {
+    avatar: 'https://avatars.githubusercontent.com/u/152713462',
+    name: '张从言',
+    title: '硕士生',
+    org: 'SUES',
+    orgLink: 'https://www.sues.edu.cn/',
+    desc: 'Hi, I am Sukkk',
+    links: [
+      { icon: linkIcon, link: 'https://sukkk-zcy.github.io/' },
+      { icon: 'github', link: 'https://github.com/Sukkk-zcy' },
+    ]
+  },
 ]
 
 const templates = [
