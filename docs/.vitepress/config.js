@@ -12,6 +12,7 @@ const SDNNoteItems = [
       { text: 'Formula', link: '/sdn/writing/formula' },
       { text: 'Unit', link: '/sdn/writing/unit' },
       { text: 'Theorem', link: '/sdn/writing/theorem' },
+      { text: 'Figure', link: '/sdn/writing/figure' },
       { text: 'Table', link: '/sdn/writing/table' },
       { text: 'Algorithm', link: '/sdn/writing/algorithm' },
       { text: 'Code', link: '/sdn/writing/code' },

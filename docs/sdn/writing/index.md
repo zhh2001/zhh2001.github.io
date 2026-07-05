@@ -14,6 +14,7 @@ outline: false
 
 ## 内容呈现
 
+- [图片](/sdn/writing/figure)：尺寸控制、浮动位置、子图、标题和交叉引用。
 - [表格](/sdn/writing/table)：三线表、对齐、跨行跨列和宽表处理。
 - [算法](/sdn/writing/algorithm)：伪代码、行号、输入输出和跨页处理。
 - [代码排版](/sdn/writing/code)：使用 `listings` 或 `minted` 排版源代码。
