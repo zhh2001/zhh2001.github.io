@@ -102,6 +102,50 @@ const members = [
     ]
   },
   {
+    avatar: 'https://dogeoss.grtsinry43.com/img/author.jpeg',
+    name: 'Grtsinry43\'s Blog',
+    desc: '总之岁月漫长，然而值得等待',
+    links: [
+      { icon: linkIcon, link: 'https://blog.grtsinry43.com' },
+      { icon: 'github', link: 'https://github.com/grtsinry43' },
+    ]
+  },
+  {
+    avatar: 'https://blog.hazenix.top/avatar.webp',
+    name: 'Hazenix\'s Blog',
+    desc: '我会一直走，走到灯火通明',
+    links: [
+      { icon: linkIcon, link: 'https://blog.hazenix.top/home' },
+      { icon: 'github', link: 'https://github.com/HazeHacker' },
+      { icon: 'x', link: 'https://x.com/hazenix56591' },
+    ]
+  },
+  {
+    avatar: 'https://youpai.roccoshi.top/avatar.jpg',
+    name: 'Moreality\'s Blog',
+    desc: 'The singularity is nearer.',
+    links: [
+      { icon: linkIcon, link: 'https://moreality.net' },
+      { icon: 'gmail', link: 'mailto:imroccoshi@gmail.com' },
+      { icon: 'github', link: 'https://github.com/Lincest' },
+      { icon: 'bilibili', link: 'https://space.bilibili.com/15255409' },
+      { icon: 'x', link: 'https://x.com/himoreality' },
+    ]
+  },
+  {
+    avatar: 'https://res.strikefreedom.top/static_res/blog/figures/avatar.png',
+    name: 'Strike Freedom',
+    desc: '潘少的博客、主页、技术分享',
+    links: [
+      { icon: linkIcon, link: 'https://strikefreedom.top' },
+      { icon: 'github', link: 'https://github.com/panjf2000' },
+      { icon: 'zhihu', link: 'https://www.zhihu.com/people/andy_pan' },
+      { icon: 'discord', link: 'https://discord.gg/UyKD7NZcfH' },
+      { icon: 'instagram', link: 'https://instagram.com/panjf2000' },
+      { icon: 'mastodon', link: 'https://mastodon.social/@andypan' },
+    ]
+  },
+  {
     avatar: 'https://hzzio.top/favicon.ico',
     name: '何智政个人博客',
     desc: 'Better Late Than Never',
@@ -188,50 +232,6 @@ const members = [
     desc: '分享一二',
     links: [
       { icon: linkIcon, link: 'https://blog.hantaotao.top' },
-    ]
-  },
-  {
-    avatar: 'https://dogeoss.grtsinry43.com/img/author.jpeg',
-    name: 'Grtsinry43\'s Blog',
-    desc: '总之岁月漫长，然而值得等待',
-    links: [
-      { icon: linkIcon, link: 'https://blog.grtsinry43.com' },
-      { icon: 'github', link: 'https://github.com/grtsinry43' },
-    ]
-  },
-  {
-    avatar: 'https://blog.hazenix.top/avatar.webp',
-    name: 'Hazenix\'s Blog',
-    desc: '我会一直走，走到灯火通明',
-    links: [
-      { icon: linkIcon, link: 'https://blog.hazenix.top/home' },
-      { icon: 'github', link: 'https://github.com/HazeHacker' },
-      { icon: 'x', link: 'https://x.com/hazenix56591' },
-    ]
-  },
-  {
-    avatar: 'https://youpai.roccoshi.top/avatar.jpg',
-    name: 'Moreality\'s Blog',
-    desc: 'The singularity is nearer.',
-    links: [
-      { icon: linkIcon, link: 'https://moreality.net' },
-      { icon: 'gmail', link: 'mailto:imroccoshi@gmail.com' },
-      { icon: 'github', link: 'https://github.com/Lincest' },
-      { icon: 'bilibili', link: 'https://space.bilibili.com/15255409' },
-      { icon: 'x', link: 'https://x.com/himoreality' },
-    ]
-  },
-  {
-    avatar: 'https://res.strikefreedom.top/static_res/blog/figures/avatar.png',
-    name: 'Strike Freedom',
-    desc: '潘少的博客、主页、技术分享',
-    links: [
-      { icon: linkIcon, link: 'https://strikefreedom.top' },
-      { icon: 'github', link: 'https://github.com/panjf2000' },
-      { icon: 'zhihu', link: 'https://www.zhihu.com/people/andy_pan' },
-      { icon: 'discord', link: 'https://discord.gg/UyKD7NZcfH' },
-      { icon: 'instagram', link: 'https://instagram.com/panjf2000' },
-      { icon: 'mastodon', link: 'https://mastodon.social/@andypan' },
     ]
   },
   {
