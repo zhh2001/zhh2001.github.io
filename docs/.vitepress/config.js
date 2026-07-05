@@ -15,6 +15,7 @@ const SDNNoteItems = [
       { text: 'Bibliography', link: '/sdn/writing/bibliography' },
       { text: 'Code', link: '/sdn/writing/code' },
       { text: 'Theorem', link: '/sdn/writing/theorem' },
+      { text: 'Unit', link: '/sdn/writing/unit' },
     ]
   }
 ]
