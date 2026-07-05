@@ -302,14 +302,13 @@ const friends = [
 
 const templates = [
   {
-    avatar: 'https://zhh2001.github.io/avatar.jpg',
+    avatar: '/avatar.jpg',
     name: '[网站名称]',
     desc: '[网站描述]',
     links: [
       { icon: 'gmail', ariaLabel: 'Gmail' },
-      { icon: 'qq', ariaLabel: 'QQ' },
-      { icon: 'wechat', ariaLabel: 'WeChat' },
-      { icon: 'sinaweibo', ariaLabel: '新浪微博' },
+      { icon: 'juejin', ariaLabel: 'JueJin' },
+      { icon: 'sinaweibo', ariaLabel: 'Sina' },
       { icon: 'zhihu', ariaLabel: '知乎' },
       { icon: 'bilibili', ariaLabel: 'B站' },
       { icon: 'tiktok', ariaLabel: 'TikTok' },
