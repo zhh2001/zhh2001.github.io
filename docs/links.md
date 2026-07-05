@@ -180,8 +180,6 @@ const members = [
   {
     avatar: 'https://bu.dusays.com/2024/10/25/671b2438203a6.gif',
     name: 'Elykia',
-    org: 'ZZU',
-    orgLink: 'https://www.zzu.edu.cn/',
     desc: '致以无暇之人',
     links: [
       { icon: linkIcon, link: 'https://blog.elykia.cn' },
@@ -195,8 +193,6 @@ const members = [
   {
     avatar: 'https://dogeoss.grtsinry43.com/img/author.jpeg',
     name: 'Grtsinry43\'s Blog',
-    org: 'CSU',
-    orgLink: 'https://www.csu.edu.cn',
     desc: '总之岁月漫长，然而值得等待',
     links: [
       { icon: linkIcon, link: 'https://blog.grtsinry43.com' },
@@ -206,8 +202,6 @@ const members = [
   {
     avatar: 'https://blog.hazenix.top/avatar.webp',
     name: 'Hazenix\'s Blog',
-    org: 'CSU',
-    orgLink: 'https://www.csu.edu.cn',
     desc: '我会一直走，走到灯火通明',
     links: [
       { icon: linkIcon, link: 'https://blog.hazenix.top/home' },
@@ -218,9 +212,6 @@ const members = [
   {
     avatar: 'https://youpai.roccoshi.top/avatar.jpg',
     name: 'Moreality\'s Blog',
-    title: 'Developer',
-    org: 'Amazon',
-    orgLink: 'https://www.amazon.com',
     desc: 'The singularity is nearer.',
     links: [
       { icon: linkIcon, link: 'https://moreality.net' },
@@ -233,8 +224,6 @@ const members = [
   {
     avatar: 'https://res.strikefreedom.top/static_res/blog/figures/avatar.png',
     name: 'Strike Freedom',
-    org: 'GNET',
-    orgLink: 'https://gnet.host',
     desc: '潘少的博客、主页、技术分享',
     links: [
       { icon: linkIcon, link: 'https://strikefreedom.top' },
@@ -248,7 +237,6 @@ const members = [
   {
     avatar: 'https://blog.qianyios.top/img/fluid.png',
     name: '严千屹',
-    title: 'HCIP 证书获得者',
     desc: '一个简简单单的云计算运维博客',
     links: [
       { icon: linkIcon, link: 'https://blog.qianyios.top' },
@@ -316,9 +304,6 @@ const templates = [
   {
     avatar: 'https://zhh2001.github.io/avatar.jpg',
     name: '[网站名称]',
-    title: '[角色]',
-    org: '[所在组织]',
-    orgLink: '',
     desc: '[网站描述]',
     links: [
       { icon: 'gmail', ariaLabel: 'Gmail' },
@@ -367,7 +352,6 @@ const templates = [
         <p>1.网站名称和地址（必须）</p>
         <p>2.网站描述和Logo（可选）</p>
         <p>3.各社交平台链接（可选）</p>
-        <p>4.所在组织及角色（可选）</p>
       </div>
       <div style="margin-bottom: 8px;">
         <strong>这些信息将像下面这样展示</strong>
