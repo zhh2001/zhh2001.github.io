@@ -249,6 +249,17 @@ const members = [
 
 const friends = [
   {
+    avatar: 'https://seee.sues.edu.cn/_upload/article/images/a2/b1/5596c5f54495bd320eea8ba7dbd9/70e432c7-4d57-4535-9cbb-cdbd2e4741da.jpg',
+    name: '陈珏',
+    title: '讲师/硕导',
+    org: 'SUES',
+    orgLink: 'https://www.sues.edu.cn/',
+    desc: '华东师范大学博士',
+    links: [
+      { icon: linkIcon, link: 'https://seee.sues.edu.cn/fb/d9/c20786a195545/page.htm' },
+    ]
+  },
+  {
     avatar: 'https://xiongyujie.cn/img/xiongyujie.jpg',
     name: '熊玉洁',
     title: '副教授/硕导',
@@ -261,14 +272,15 @@ const friends = [
     ]
   },
   {
-    avatar: 'https://seee.sues.edu.cn/_upload/article/images/a2/b1/5596c5f54495bd320eea8ba7dbd9/70e432c7-4d57-4535-9cbb-cdbd2e4741da.jpg',
-    name: '陈珏',
-    title: '讲师/硕导',
+    avatar: 'https://brandpeng.github.io/avatar.jpg',
+    name: '彭海东',
+    title: '硕士生',
     org: 'SUES',
     orgLink: 'https://www.sues.edu.cn/',
-    desc: '华东师范大学博士',
+    desc: '入侵检测领域大佬',
     links: [
-      { icon: linkIcon, link: 'https://seee.sues.edu.cn/fb/d9/c20786a195545/page.htm' },
+      { icon: linkIcon, link: 'https://brandpeng.github.io/' },
+      { icon: 'github', link: 'https://github.com/BrandPeng' },
     ]
   },
   {
@@ -282,20 +294,6 @@ const friends = [
       { icon: linkIcon, link: 'https://vovyh.github.io/' },
       { icon: 'gmail', link: 'mailto:vovyh0514@gmail.com' },
       { icon: 'github', link: 'https://github.com/VovyH' },
-      { icon: 'leetcode', link: 'https://leetcode.cn/u/wuyuhangwinner/' },
-      { icon: 'bilibili', link: 'https://space.bilibili.com/1054622831' },
-    ]
-  },
-  {
-    avatar: 'https://brandpeng.github.io/avatar.jpg',
-    name: '彭海东',
-    title: '硕士生',
-    org: 'SUES',
-    orgLink: 'https://www.sues.edu.cn/',
-    desc: '入侵检测领域大佬',
-    links: [
-      { icon: linkIcon, link: 'https://brandpeng.github.io/' },
-      { icon: 'github', link: 'https://github.com/BrandPeng' },
     ]
   },
   {
