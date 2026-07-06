@@ -1,9 +1,12 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"github.com/pkg/errors"
+	"runtime/debug"
 )
+
+var errEmptyName = errors.New("name is empty")
 
 type Student struct {
 	Name string
@@ -12,7 +15,7 @@ type Student struct {
 
 func (s *Student) SetName(name string) error {
 	if name == "" {
-		return errors.New("name is empty")
+		return errEmptyName
 	}
 	s.Name = name
 	return nil
@@ -24,7 +27,7 @@ func NewStudent() (*Student, error) {
 	}
 	err := stu.SetName("")
 	if err != nil {
-		return nil, errors.Wrap(err, "set name failed")
+		return nil, fmt.Errorf("set name: %w", err)
 	}
 	return stu, nil
 }
@@ -32,6 +35,8 @@ func NewStudent() (*Student, error) {
 func main() {
 	_, err := NewStudent()
 	if err != nil {
-		fmt.Printf("%+v\n", err)
+		fmt.Printf("error: %v\n", err)
+		fmt.Printf("is empty name: %t\n", errors.Is(err, errEmptyName))
+		fmt.Printf("stack:\n%s", debug.Stack())
 	}
 }
