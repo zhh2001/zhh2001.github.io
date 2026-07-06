@@ -114,7 +114,7 @@ Handigol, Nikhil, Brandon Heller, Vimalkumar Jeyakumar, David Mazières, and Nic
 
 - **相对 XD 的好处**：采集什么由 Source 统一决定，全路径口径一致；不像 XD 每个节点都要靠本地配置。
 - **相对 MD 的好处**：包的长度只增加一个固定大小的指令头，**不会随跳数膨胀**。
-- 这个思路借鉴自 IETF 的 [IOAM 直接导出模式](#IOAM)。
+- 这个思路借鉴自 IETF 的 IOAM 直接导出模式。
 
 ::: info IOAM
 
@@ -145,7 +145,7 @@ Handigol, Nikhil, Brandon Heller, Vimalkumar Jeyakumar, David Mazières, and Nic
 
 区别只在终点：Sink 收到后通常要**把合成包丢掉**，而不是继续往上转。INT 头部里的 **D 位（Discard Bit）** 就是干这个用的——Source 把 D 位置 1，Sink 看到就知道"提完数据就地销毁"。
 
-把 INT-MD 模式用在探测包上，效果基本等同于 IETF 的 [IFA](#IFA)。
+把 INT-MD 模式用在探测包上，效果基本等同于 IETF 的 IFA。
 
 ::: info IFA
 
@@ -178,10 +178,10 @@ Handigol, Nikhil, Brandon Heller, Vimalkumar Jeyakumar, David Mazières, and Nic
 
 - **排障与性能监测**：路径追踪（Traceroute）、微突发检测、数据包历史记录（即前面提到的"明信片"机制）。
 - **高级拥塞控制**：利用实时遥测比 ECN 更灵敏地调节发送速率。
-- **智能路由**：基于链路利用率做负载均衡，代表方案如 [HULA](#HULA) 和 [CLOVE](#CLOVE)。
+- **智能路由**：基于链路利用率做负载均衡，代表方案如 HULA 和 CLOVE。
 - **数据平面验证**：用 INT 轨迹来核对网络实际行为和预期是否一致。
 
-具体用例和评估可以看 [_Millions of Little Minions_](#Millions_of_Little_Minions)。
+具体用例和评估可以看 _Millions of Little Minions_。
 
 ::: info HULA
 Naga Katta, Mukesh Hira, Changhoon Kim, Anirudh Sivaraman, and Jennifer Rexford. 2016. HULA: Scalable Load Balancing Using Programmable Data Planes. In Proceedings of the Symposium on SDN Research (SOSR '16). ACM, Article 10, 1–12. <https://doi.org/10.1145/2890955.2890968>
@@ -199,7 +199,7 @@ Vimalkumar Jeyakumar, Mohammad Alizadeh, Yilong Geng, Changhoon Kim, and David M
 
 理论上 INT 什么设备内部状态都能采，但规范优先定义了一组**在多种硬件上都能落地**的基础集合。
 
-各项元数据的**精确语义**（时间戳单位、跳时延的计算方式、队列深度是字节还是包数……）不同厂商实现未必一致。规范的态度是：**让实现自由，但要把语义通过带外模型共享出去**——IETF 为此在做一份 [基于 YANG 的元数据语义模型](#yang)，让收数据的一端能准确解读。
+各项元数据的**精确语义**（时间戳单位、跳时延的计算方式、队列深度是字节还是包数……）不同厂商实现未必一致。规范的态度是：**让实现自由，但要把语义通过带外模型共享出去**——IETF 为此在做一份基于 YANG 的元数据语义模型，让收数据的一端能准确解读。
 
 ::: info YANG model
 p4-dtel-metadata-semantics, <https://github.com/p4lang/p4-applications/blob/master/telemetry/code/models/p4-dtel-metadata-semantics.yang>
