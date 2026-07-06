@@ -85,7 +85,7 @@ Source Transit Transit Sink
 INT 最早只有"指令和数据都塞进包里"的经典玩法，但它很快被各种变体扩展。规范按照**包被改动了多少**把 INT 分成三种模式，一张图对照着看就清楚了：
 
 <p id="fig1" align="center">
-    <img width="95%" src="/int/fig1.png" alt="Various modes of INT operation." />
+    <img width="95%" src="/int/fig1.webp" alt="Various modes of INT operation." />
     <span>图 1. INT 的三种运行模式</span>
 </p>
 

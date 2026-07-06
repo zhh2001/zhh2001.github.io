@@ -45,7 +45,7 @@ outline: [2, 3]
 - 其中 `repository` 就是镜像名
 - `tag` 是镜像版本
 
-在没有指定 tag 时，默认是 latest，代表最新版本的镜像
+没有指定 tag 时会使用 `latest`。它只是一个可变标签，并不等同于稳定版本，正式环境最好明确指定版本。
 
 ## 3 常见命令
 
@@ -60,7 +60,7 @@ outline: [2, 3]
 9. `docker exec`：在运行中的容器内部执行命令
 10. `docker ps`：查看运行容器的状态
 11. `docker rm`：删除容器
-12. `docket build`：构建自定义镜像
+12. `docker build`：构建自定义镜像
 13. `docker save`：保存本地镜像为压缩文件
 14. `docker load`：加载镜像压缩文件
 
@@ -116,14 +116,14 @@ outline: [2, 3]
 
 Dockerfile 就是一个文本文件，其中包含一个个的**指令（Instruction）**，用指令来说明要执行什么操作来构建镜像。将来 Docker 可以根据 Dockerfile 帮我们构建镜像。常见指令如下：
 
-|     指令     | 说明                                           | 示例                                                               |
-| :----------: | ---------------------------------------------- | ------------------------------------------------------------------ |
-|    `FROM`    | 指定基础镜像                                   | `FROM centos:6`                                                    |
-|    `ENV`     | 设置环境变量，可在后面指令使用                 | `ENV key value`                                                    |
-|    `COPY`    | 拷贝本地文件到镜像的指定目录                   | `COPY ./jre11.tar.gz /tmp`                                         |
-|    `RUN`     | 执行 Linux 的 shell 命令，一般是安装过程的命令 | `RUN tar -zxvf /tmp/jre11.tar.gz && EXPORTS path=/tmp/jre11:$path` |
-|   `EXPOSE`   | 指定容器运行时监听的端口，是给镜像使用者看的   | `EXPOSE 8080`                                                      |
-| `ENTRYPOINT` | 镜像中应用的启动命令，容器运行时调用           | `ENTRYPOINT java -jar xx.jar`                                      |
+| 指令         | 说明                                           | 示例                                                    |
+| ------------ | ---------------------------------------------- | ------------------------------------------------------- |
+| `FROM`       | 指定基础镜像                                   | `FROM eclipse-temurin:11-jre`                          |
+| `ENV`        | 设置环境变量，可在后面指令使用                 | `ENV TZ=Asia/Shanghai`                                 |
+| `COPY`       | 拷贝本地文件到镜像的指定目录                   | `COPY app.jar /app.jar`                                |
+| `RUN`        | 执行 Linux 的 shell 命令，一般是安装过程的命令 | `RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime`   |
+| `EXPOSE`     | 指定容器运行时监听的端口，是给镜像使用者看的   | `EXPOSE 8080`                                          |
+| `ENTRYPOINT` | 镜像中应用的启动命令，容器运行时调用           | `ENTRYPOINT ["java", "-jar", "/app.jar"]`            |
 
 示例：
 

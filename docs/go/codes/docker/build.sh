@@ -1,1 +1,1 @@
-docker build -t myImage:1.0 .
+docker build -t my-image:1.0 .
