@@ -1,5 +1,5 @@
 type Server struct {
-	proto.UnimplementedGreeterServer // 必须嵌入
+	proto.UnimplementedGreeterServer // 为后续新增 RPC 保留兼容性
 }
 
 func (s *Server) SayHello(_ context.Context, req *proto.HelloRequest) (*proto.HelloResponse, error) {
@@ -7,8 +7,14 @@ func (s *Server) SayHello(_ context.Context, req *proto.HelloRequest) (*proto.He
 }
 
 func main() {
+	lis, err := net.Listen("tcp", ":8080")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	server := grpc.NewServer()
 	proto.RegisterGreeterServer(server, &Server{})
-	lis, _ := net.Listen("tcp", ":8080")
-	server.Serve(lis)
+	if err := server.Serve(lis); err != nil {
+		log.Fatal(err)
+	}
 }

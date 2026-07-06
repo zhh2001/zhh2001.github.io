@@ -1,8 +1,10 @@
 syntax = "proto3";
 
-option go_package = ".;proto";
+package grpcdemo;
 
-service Greeter{
+option go_package = "example.com/grpcdemo/proto";
+
+service StreamService {
   rpc GetStream(StreamReqData) returns (stream StreamResData);
   rpc PutStream(stream StreamReqData) returns (StreamResData);
   rpc AllStream(stream StreamReqData) returns (stream StreamResData);

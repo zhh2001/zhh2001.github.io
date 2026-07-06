@@ -1,12 +1,17 @@
 // 服务端
-func (s *Server) Chat(stream pb.Service_ChatServer) error {
+func (s *Server) Chat(stream grpc.BidiStreamingServer[pb.ChatMessage, pb.ChatMessage]) error {
     for {
         msg, err := stream.Recv()
+        if err == io.EOF {
+            return nil
+        }
         if err != nil {
             return err
         }
         // 处理消息并回复
-        stream.Send(&pb.ChatResponse{...})
+        if err := stream.Send(&pb.ChatMessage{...}); err != nil {
+            return err
+        }
     }
 }
 

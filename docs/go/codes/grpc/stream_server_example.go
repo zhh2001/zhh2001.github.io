@@ -1,8 +1,8 @@
 type Server struct {
-	proto.UnimplementedGreeterServer // 必须嵌入
+	proto.UnimplementedStreamServiceServer
 }
 
-func (s Server) GetStream(req *proto.StreamReqData, stream grpc.ServerStreamingServer[proto.StreamResData]) error {
+func (s *Server) GetStream(req *proto.StreamReqData, stream grpc.ServerStreamingServer[proto.StreamResData]) error {
 	fmt.Println("====== 服务端 流模式 ======")
 	fmt.Println(req.GetData())
 	for i := 0; i < 10; i++ {
@@ -16,60 +16,45 @@ func (s Server) GetStream(req *proto.StreamReqData, stream grpc.ServerStreamingS
 	return nil
 }
 
-func (s Server) PutStream(stream grpc.ClientStreamingServer[proto.StreamReqData, proto.StreamResData]) error {
+func (s *Server) PutStream(stream grpc.ClientStreamingServer[proto.StreamReqData, proto.StreamResData]) error {
 	fmt.Println("====== 客户端 流模式 ======")
+	count := 0
 	for {
 		if req, err := stream.Recv(); err == io.EOF {
-			break
+			return stream.SendAndClose(&proto.StreamResData{
+				Data: fmt.Sprintf("received %d messages", count),
+			})
 		} else if err != nil {
 			return err
 		} else {
 			fmt.Println(req.GetData())
+			count++
 		}
 	}
-	return nil
 }
 
-func (s Server) AllStream(stream grpc.BidiStreamingServer[proto.StreamReqData, proto.StreamResData]) error {
+func (s *Server) AllStream(stream grpc.BidiStreamingServer[proto.StreamReqData, proto.StreamResData]) error {
 	fmt.Println("======  双向  流模式 ======")
-	wg := sync.WaitGroup{}
-
-	// 接收协程
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		for {
-			if req, err := stream.Recv(); err == io.EOF {
-				break
-			} else if err != nil {
-				panic(err)
-			} else {
-				fmt.Println(req.GetData())
-			}
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			return nil
 		}
-	}()
-
-	// 发送协程
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		for i := 0; i < 10; i++ {
-			if err := stream.Send(&proto.StreamResData{
-				Data: "Server: " + time.Now().Format("2006-01-02 15:04:05"),
-			}); err != nil {
-				panic(err)
-			}
-			time.Sleep(1 * time.Second)
+		if err != nil {
+			return err
 		}
-	}()
-	wg.Wait()
-	return nil
+		fmt.Println(req.GetData())
+		if err := stream.Send(&proto.StreamResData{
+			Data: "Server: " + time.Now().Format("2006-01-02 15:04:05"),
+		}); err != nil {
+			return err
+		}
+	}
 }
 
 func main() {
 	server := grpc.NewServer()
-	s := &Server{}
-	proto.RegisterGreeterServer(server, s)
+	proto.RegisterStreamServiceServer(server, &Server{})
 	lis, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		panic(err)

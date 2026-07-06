@@ -1,5 +1,5 @@
 // 服务端
-func (s *Server) StreamLogs(req *pb.LogRequest, stream pb.Service_StreamLogsServer) error {
+func (s *Server) StreamLogs(req *pb.LogRequest, stream grpc.ServerStreamingServer[pb.LogResponse]) error {
     for {
         if err := stream.Send(&pb.LogResponse{...}); err != nil {
             return err
@@ -14,6 +14,9 @@ for {
     res, err := stream.Recv()
     if err == io.EOF {
         break
+    }
+    if err != nil {
+        return err
     }
     log.Println(res)
 }

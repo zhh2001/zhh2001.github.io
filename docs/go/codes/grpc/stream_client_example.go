@@ -12,7 +12,7 @@ func main() {
 		}
 	}()
 
-	client := proto.NewGreeterClient(conn)
+	client := proto.NewStreamServiceClient(conn)
 	ctx := context.Background()
 
 	fmt.Println("====== 服务端 流模式 ======")
@@ -45,47 +45,43 @@ func main() {
 		}
 		time.Sleep(1 * time.Second)
 	}
-	if err = stream2.CloseSend(); err != nil {
+	res2, err := stream2.CloseAndRecv()
+	if err != nil {
 		panic(err)
 	}
+	fmt.Println(res2.GetData())
 
 	fmt.Println("======  双向  流模式 ======")
 	stream3, err := client.AllStream(ctx)
-	wg := sync.WaitGroup{}
+	if err != nil {
+		panic(err)
+	}
+	sendErr := make(chan error, 1)
 
-	// 发送协程
-	wg.Add(1)
 	go func() {
-		defer wg.Done()
-		defer func() {
-			if err = stream3.CloseSend(); err != nil {
-				panic(err)
-			}
-		}()
 		for i := 0; i < 10; i++ {
-			if err = stream3.Send(&proto.StreamReqData{
+			if err := stream3.Send(&proto.StreamReqData{
 				Data: "Client: " + time.Now().Format("2006-01-02 15:04:05"),
 			}); err != nil {
-				panic(err)
+				sendErr <- err
+				return
 			}
 			time.Sleep(1 * time.Second)
 		}
+		sendErr <- stream3.CloseSend()
 	}()
 
-	// 接收协程
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		for {
-			if res, err := stream3.Recv(); err == io.EOF {
-				break
-			} else if err != nil {
-				panic(err)
-			} else {
-				fmt.Println(res.GetData())
-			}
+	for {
+		res, err := stream3.Recv()
+		if err == io.EOF {
+			break
 		}
-	}()
-
-	wg.Wait()
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(res.GetData())
+	}
+	if err := <-sendErr; err != nil {
+		panic(err)
+	}
 }

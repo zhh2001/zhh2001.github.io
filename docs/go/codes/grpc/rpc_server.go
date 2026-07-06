@@ -6,14 +6,21 @@ func (s *HelloService) SayHello(request string, reply *string) error {
 }
 
 func main() {
-	_ = rpc.RegisterName("HelloService", new(HelloService))
+	if err := rpc.RegisterName("HelloService", new(HelloService)); err != nil {
+		log.Fatal(err)
+	}
 
-	// 监听 TCP 端口
-	listener, _ := net.Listen("tcp", ":1234")
+	listener, err := net.Listen("tcp", ":1234")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// 接受连接并处理请求
 	for {
-		conn, _ := listener.Accept()
+		conn, err := listener.Accept()
+		if err != nil {
+			log.Printf("accept: %v", err)
+			continue
+		}
 		go rpc.ServeConn(conn)
 	}
 }

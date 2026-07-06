@@ -1,9 +1,12 @@
 // 服务端
-func (s *Server) UploadFile(stream pb.Service_UploadFileServer) error {
+func (s *Server) UploadFile(stream grpc.ClientStreamingServer[pb.FileChunk, pb.FileSummary]) error {
     for {
         chunk, err := stream.Recv()
         if err == io.EOF {
             return stream.SendAndClose(&pb.FileSummary{...})
+        }
+        if err != nil {
+            return err
         }
         // 处理 chunk
     }
@@ -16,4 +19,4 @@ for _, chunk := range chunks {
         break
     }
 }
-res, err := stream.CloseAndRecv()
+summary, err := stream.CloseAndRecv()

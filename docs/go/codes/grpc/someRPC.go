@@ -1,6 +1,11 @@
-func (s *server) SomeRPC(ctx context.Context, in *pb.someRequest) (*pb.someResponse, error) {
+func (s *server) SomeRPC(ctx context.Context, in *pb.SomeRequest) (*pb.SomeResponse, error) {
 	header := metadata.Pairs("header-key", "val")
-	grpc.SetHeader(ctx, header)
+	if err := grpc.SetHeader(ctx, header); err != nil {
+		return nil, err
+	}
 	trailer := metadata.Pairs("trailer-key", "val")
-	grpc.SetTrailer(ctx, trailer)
+	if err := grpc.SetTrailer(ctx, trailer); err != nil {
+		return nil, err
+	}
+	return &pb.SomeResponse{}, nil
 }
