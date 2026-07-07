@@ -3,6 +3,38 @@ sidebar: false
 prev: false
 next: false
 footer: false
+description: 张恒华的个人简历，研究方向包括软件定义网络、可编程数据平面与带内网络遥测。
+head:
+  - - script
+    - type: application/ld+json
+    - |
+      {
+        "@context": "https://schema.org",
+        "@type": "ProfilePage",
+        "@id": "https://zhh2001.github.io/resume#profile-page",
+        "url": "https://zhh2001.github.io/resume",
+        "name": "张恒华的个人简历",
+        "inLanguage": "zh-CN",
+        "mainEntity": {
+          "@type": "Person",
+          "@id": "https://zhh2001.github.io/#henghua-zhang",
+          "name": "张恒华",
+          "alternateName": "Henghua Zhang",
+          "url": "https://zhh2001.github.io/resume",
+          "image": "https://zhh2001.github.io/avatar.jpg",
+          "description": "上海工程技术大学电子信息专业硕士研究生，研究方向为软件定义网络、可编程数据平面与带内网络遥测。",
+          "affiliation": {
+            "@type": "CollegeOrUniversity",
+            "name": "上海工程技术大学",
+            "url": "https://www.sues.edu.cn/"
+          },
+          "sameAs": [
+            "https://github.com/zhh2001",
+            "https://orcid.org/0009-0005-9456-8936",
+            "https://scholar.google.com/citations?user=nCPBFuMAAAAJ"
+          ]
+        }
+      }
 ---
 
 # 个人简历
