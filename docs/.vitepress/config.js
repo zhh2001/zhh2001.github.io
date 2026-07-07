@@ -77,7 +77,7 @@ const description_en = 'This is Henghua Zhang\'s personal website, where study n
 export default defineConfig({
   title: '张恒华',
   lang: 'zh-Hans',
-  description: description_cn + description_en,
+  description: description_cn + ' ' + description_en,
   cleanUrls: true,
   lastUpdated: true,
   head: [
