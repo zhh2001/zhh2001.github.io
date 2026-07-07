@@ -3,7 +3,7 @@ layout: home
 hero:
   name: 张恒华
   text: 技术爱好者
-  tagline: SDN, PDP, P4, P4Runtime, INT, Mininet
+  tagline: SDN, PDP, P4, INT, Mininet
   image:
     src: /typewriter.svg
     alt: Typewriter
