@@ -44,7 +44,7 @@ const members = [
     ]
   },
   {
-    avatar: 'https://s2.loli.net/2025/02/19/gX19mThYxyUDaZu.gif',
+    avatar: 'https://home.yesord.top/img/avatar.gif',
     name: 'Yesord',
     desc: '你相信光吗~~',
     links: [
