@@ -133,18 +133,6 @@ const members = [
     ]
   },
   {
-    avatar: 'https://aerisun.top/media/avatar',
-    name: 'Aerisun',
-    desc: '在喧嚣的缝隙里，做一个关于自由和好奇心的梦',
-    links: [
-      { icon: linkIcon, link: 'https://aerisun.top/' },
-      { icon: 'gmail', link: 'mailto:ywbforpureuse@gmail.com' },
-      { icon: 'github', link: 'https://github.com/Aerisun' },
-      { icon: 'telegram', link: 'https://t.me/aerisuni' },
-      { icon: 'rss', link: 'https://aerisun.top/rss.xml' },
-    ]
-  },
-  {
     avatar: 'https://res.strikefreedom.top/static_res/blog/figures/avatar.png',
     name: 'Strike Freedom',
     desc: '潘少的博客、主页、技术分享',
@@ -255,6 +243,18 @@ const members = [
       { icon: 'qq', link: 'https://blog.qianyios.top/img/qq.png' },
       { icon: 'wechat', link: 'https://blog.qianyios.top/img/weixin.png' },
       { icon: 'alipay', link: 'https://blog.qianyios.top/img/zfb.png' },
+    ]
+  },
+  {
+    avatar: 'https://aerisun.top/media/avatar',
+    name: 'Aerisun',
+    desc: '在喧嚣的缝隙里，做一个关于自由和好奇心的梦',
+    links: [
+      { icon: linkIcon, link: 'https://aerisun.top/' },
+      { icon: 'gmail', link: 'mailto:ywbforpureuse@gmail.com' },
+      { icon: 'github', link: 'https://github.com/Aerisun' },
+      { icon: 'telegram', link: 'https://t.me/aerisuni' },
+      { icon: 'rss', link: 'https://aerisun.top/rss.xml' },
     ]
   },
 ]
