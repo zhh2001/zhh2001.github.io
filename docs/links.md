@@ -263,7 +263,7 @@ const friends = [
   {
     avatar: 'https://seee.sues.edu.cn/_upload/article/images/a2/b1/5596c5f54495bd320eea8ba7dbd9/70e432c7-4d57-4535-9cbb-cdbd2e4741da.jpg',
     name: '陈珏',
-    title: '讲师/硕导',
+    title: '副教授/硕导',
     org: 'SUES',
     orgLink: 'https://www.sues.edu.cn/',
     desc: '华东师范大学博士',
