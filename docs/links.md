@@ -54,6 +54,18 @@ const members = [
     ]
   },
   {
+    avatar: 'https://home.yesord.top/img/avatar.gif',
+    name: 'Rolenx',
+    desc: '你相信光吗～～',
+    links: [
+      { icon: linkIcon, link: 'https://home.yesord.top' },
+      { icon: 'gmail', link: 'mailto:xuruolun666@gmail.com' },
+      { icon: 'github', link: 'https://github.com/Yesord' },
+      { icon: 'csdn', link: 'https://blog.csdn.net/aoliba_believer' },
+      { icon: 'bilibili', link: 'https://space.bilibili.com/1527890846' },
+    ]
+  },
+  {
     avatar: 'https://blog.ctdxz.com/avatar.webp',
     name: '吃土的小智',
     desc: '我家还蛮大的.jpg',
