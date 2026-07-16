@@ -134,7 +134,7 @@ export default defineConfig({
     },
     footer: {
       message: 'Released under the MIT License.',
-      copyright: 'Copyright © 2024-present Henghua Zhang'
+      copyright: 'Copyright © 2023-present Henghua Zhang'
     },
     nav: [
       { text: '首页', link: '/' },
