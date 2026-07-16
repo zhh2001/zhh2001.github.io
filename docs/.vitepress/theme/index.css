@@ -78,3 +78,7 @@
     box-sizing: border-box;
     padding: 0 16px;
 }
+
+.VPFooter {
+    padding-bottom: 8px !important;
+}

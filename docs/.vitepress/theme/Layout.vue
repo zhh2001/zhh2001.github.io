@@ -1,6 +1,6 @@
 <script setup>
 import DefaultTheme from 'vitepress/theme'
-import Busuanzi from './components/Busuanzi.vue'
+import SiteUptime from './components/SiteUptime.vue'
 
 const { Layout } = DefaultTheme
 </script>
@@ -8,7 +8,7 @@ const { Layout } = DefaultTheme
 <template>
   <Layout>
     <template #layout-bottom>
-      <Busuanzi />
+      <SiteUptime />
     </template>
   </Layout>
 </template>
