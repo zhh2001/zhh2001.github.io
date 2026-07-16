@@ -27,8 +27,8 @@ onMounted(() => {
   <div class="footer-meta">
     <span class="uptime">{{ years }} yr {{ restDays }} d online</span>
     <span class="sep">|</span>
-    <span id="busuanzi_container_site_pv" style="display:none;">
-      <span id="busuanzi_value_site_pv"></span> visits
+    <span id="busuanzi_container_site_pv">
+      <span id="busuanzi_value_site_pv">...</span> visits
     </span>
   </div>
 </template>
