@@ -44,15 +44,13 @@ const members = [
     ]
   },
   {
-    avatar: 'https://home.yesord.top/img/avatar.gif',
+    avatar: 'https://s2.loli.net/2025/02/19/gX19mThYxyUDaZu.gif',
     name: 'Yesord',
     desc: '你相信光吗~~',
     links: [
       { icon: linkIcon, link: 'https://blog.yesord.top' },
-      { icon: 'gmail', link: 'mailto:xuruolun666@gmail.com' },
       { icon: 'github', link: 'https://github.com/Yesord' },
       { icon: 'csdn', link: 'https://blog.csdn.net/aoliba_believer' },
-      { icon: 'bilibili', link: 'https://space.bilibili.com/1527890846' },
     ]
   },
   {
