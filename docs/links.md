@@ -66,6 +66,16 @@ const members = [
     ]
   },
   {
+    name: '灵的梦境',
+    desc: '愿美梦成真',
+    avatar: 'https://lemonadorable.github.io/favicon/favicon.gif',
+    links: [
+      { icon: linkIcon, link: 'https://lemonadorable.github.io/' },
+      { icon: 'gmail', link: 'mailto:lemonadorable@gmail.com' },
+      { icon: 'github', link: 'https://github.com/LemonAdorable' },
+    ]
+  },
+  {
     avatar: 'https://blog.ctdxz.com/avatar.webp',
     name: '吃土的小智',
     desc: '我家还蛮大的.jpg',
