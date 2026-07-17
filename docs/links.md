@@ -112,6 +112,19 @@ const members = [
     ]
   },
   {
+    name: 'NNNullptr南',
+    desc: '数学生的古早拼贴风格网站',
+    avatar: 'https://www.xnmoe.com/assets/images/pfp.png',
+    links: [
+      { icon: linkIcon, link: 'https://xnmoe.com' },
+      { icon: 'gmail', link: 'mailto:nnnullptr@gmail.com' },
+      { icon: 'github', link: 'https://github.com/NNNullptr' },
+      { icon: 'bilibili', link: 'https://space.bilibili.com/178072589' },
+      { icon: 'tiktok', link: 'https://v.douyin.com/5f5JN6lk3SM/' },
+      { icon: 'xiaohongshu', link: 'https://xhslink.com/m/4wHMfsaxnnq' },
+    ]
+  },
+  {
     avatar: 'https://dogeoss.grtsinry43.com/img/author.jpeg',
     name: 'Grtsinry43\'s Blog',
     desc: '总之岁月漫长，然而值得等待',
