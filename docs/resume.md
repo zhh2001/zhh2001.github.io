@@ -47,7 +47,7 @@ head:
 
 :brain:研究方向：软件定义网络、可编程数据平面、带内网络遥测
 
-:computer:GitHub 主页：[https://github.com/zhh2001](https://github.com/zhh2001)
+:computer:GitHub 主页：<https://github.com/zhh2001>
 
 ## 教育背景
 
