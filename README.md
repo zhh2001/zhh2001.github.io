@@ -37,7 +37,7 @@
 ## 联系方式
 
 - **GitHub**：[zhh2001](https://github.com/zhh2001)
-- **Email**：[1652709417@qq.com](mailto:1652709417@qq.com)
+- **Email**：<1652709417@qq.com>
 
 ## 许可证
 
