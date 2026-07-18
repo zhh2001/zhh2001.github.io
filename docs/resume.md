@@ -43,7 +43,7 @@ head:
 
 :phone:电话：+86 166 \*\*\*\* 6316
 
-:email:邮箱：<a href="mailto:1652709417@qq.com">1652709417@qq.com</a>、<a href="mailto:zhang@sues.edu.cn">zhang@sues.edu.cn</a>
+:email:邮箱：<1652709417@qq.com>、<zhang@sues.edu.cn>
 
 :brain:研究方向：软件定义网络、可编程数据平面、带内网络遥测
 
