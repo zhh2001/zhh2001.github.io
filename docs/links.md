@@ -23,8 +23,8 @@ const members = [
     desc: '天行健，君子以自强不息',
     links: [
       { icon: linkIcon, link: 'https://maozm.art/' },
-      { icon: 'github', link: 'https://github.com/ToBeMaster-Mao' },
       { icon: 'gmail', link: 'mailto:maozheming04@gmail.com' },
+      { icon: 'github', link: 'https://github.com/ToBeMaster-Mao' },
       { icon: 'x', link: 'https://x.com/maozm888' },
       { icon: 'telegram', link: 'https://t.me/maozmart' },
       { icon: 'csdn', link: 'https://blog.csdn.net/qq_44888152' },
