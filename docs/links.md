@@ -76,6 +76,15 @@ const members = [
     ]
   },
   {
+    name: '学海无涯',
+    desc: '停止摆烂，背水一战',
+    avatar: 'https://s2.loli.net/2024/06/02/wuJknzxaFigDSdL.gif',
+    links: [
+      { icon: linkIcon, link: 'https://clb.pages.dev' },
+      { icon: 'github', link: 'https://github.com/caolib' },
+    ]
+  },
+  {
     avatar: 'https://blog.ctdxz.com/avatar.webp',
     name: '吃土的小智',
     desc: '我家还蛮大的.jpg',
