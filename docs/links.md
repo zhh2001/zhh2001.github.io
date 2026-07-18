@@ -87,6 +87,18 @@ const members = [
     ]
   },
   {
+    name: '锦木祈杰',
+    desc: '敬....不完美的明天',
+    avatar: 'https://oss.qijieya.cn/1/hutao_hai.gif',
+    links: [
+      { icon: linkIcon, link: 'https://qijieya.cn' },
+      { icon: 'qq', link: 'mailto:2513461942@qq.com' },
+      { icon: 'bilibili', link: 'https://space.bilibili.com/1755772957' },
+      { icon: 'github', link: 'https://github.com/qijie233' },
+      { icon: 'telegram', link: 'https://t.me/qijieya' },
+    ]
+  },
+  {
     name: '学海无涯',
     desc: '停止摆烂，背水一战',
     avatar: 'https://s2.loli.net/2024/06/02/wuJknzxaFigDSdL.gif',
