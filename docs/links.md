@@ -76,6 +76,16 @@ const members = [
     ]
   },
   {
+    name: '番茄主理人',
+    desc: '坐而言不如起而行',
+    avatar: 'https://q1.qlogo.cn/g?b=qq&nk=20447289&s=640',
+    links: [
+      { icon: linkIcon, link: 'https://fqzlr.com' },
+      { icon: 'bilibili', link: 'https://space.bilibili.com/2017273493' },
+      { icon: 'github', link: 'https://github.com/fqzlr' },
+    ]
+  },
+  {
     name: '学海无涯',
     desc: '停止摆烂，背水一战',
     avatar: 'https://s2.loli.net/2024/06/02/wuJknzxaFigDSdL.gif',
