@@ -97,6 +97,15 @@ const members = [
     ]
   },
   {
+    name: 'BiuXin 与光',
+    desc: '记录生活、分享心情与日常',
+    avatar: 'https://x.xinb.de/i/2024/11/06/027080.gif',
+    links: [
+      { icon: linkIcon, link: 'https://blog.biuxin.com' },
+      { icon: 'github', link: 'https://github.com/damizai' },
+    ]
+  },
+  {
     avatar: 'https://blog.ctdxz.com/avatar.webp',
     name: '吃土的小智',
     desc: '我家还蛮大的.jpg',
