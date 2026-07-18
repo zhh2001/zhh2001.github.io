@@ -81,6 +81,7 @@ const members = [
     avatar: 'https://s2.loli.net/2024/06/02/wuJknzxaFigDSdL.gif',
     links: [
       { icon: linkIcon, link: 'https://clb.pages.dev' },
+      { icon: 'qq', link: 'mailto:caolibx@qq.com' },
       { icon: 'github', link: 'https://github.com/caolib' },
     ]
   },
