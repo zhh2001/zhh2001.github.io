@@ -106,6 +106,17 @@ const members = [
     ]
   },
   {
+    name: '摸鱼の客栈',
+    desc: '革命尚未成功，同志仍需努力',
+    avatar: 'https://img.fwneko.com/ico/logo.gif',
+    links: [
+      { icon: linkIcon, link: 'https://blog.fwneko.com' },
+      { icon: 'github', link: 'https://github.com/Hanabiiiiii' },
+      { icon: 'bilibili', link: 'https://space.bilibili.com/355164841' },
+      { icon: 'x', link: 'https://x.com/hanabinyaa' },
+    ]
+  },
+  {
     avatar: 'https://blog.ctdxz.com/avatar.webp',
     name: '吃土的小智',
     desc: '我家还蛮大的.jpg',
