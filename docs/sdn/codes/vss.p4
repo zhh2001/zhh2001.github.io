@@ -206,4 +206,8 @@ control TopDeparser(inout Parsed_packet p, packet_out b) {
 }
 
 // Instantiate the top-level VSS package
-VSS(TopParser(), TopPipe(), TopDeparser()) main;
+VSS(
+    TopParser(),
+    TopPipe(),
+    TopDeparser()
+) main;
