@@ -14,8 +14,6 @@ function update() {
   restDays.value = totalDays % 365
 }
 
-update()
-
 const router = useRouter()
 
 function loadBusuanzi() {
@@ -28,6 +26,7 @@ function loadBusuanzi() {
 }
 
 onMounted(() => {
+  update()
   loadBusuanzi()
   router.onAfterRouteChange = loadBusuanzi
 })
