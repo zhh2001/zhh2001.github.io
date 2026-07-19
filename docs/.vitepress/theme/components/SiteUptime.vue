@@ -16,6 +16,8 @@ function update() {
 
 update()
 
+const router = useRouter()
+
 function loadBusuanzi() {
   delete window.busuanziRequestSent
   const script = document.createElement('script')
@@ -26,12 +28,10 @@ function loadBusuanzi() {
 
 onMounted(() => {
   loadBusuanzi()
-  const router = useRouter()
   router.onAfterRouteChange = loadBusuanzi
 })
 
 onUnmounted(() => {
-  const router = useRouter()
   router.onAfterRouteChange = null
 })
 </script>
