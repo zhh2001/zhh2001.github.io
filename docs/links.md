@@ -18,9 +18,9 @@ const linkIcon = {
 
 const members = [
   {
-    avatar: 'https://maozm.art/assets/profile-avatar.webp',
     name: '浮生',
     desc: '天行健，君子以自强不息',
+    avatar: 'https://maozm.art/assets/profile-avatar.webp',
     links: [
       { icon: linkIcon, link: 'https://maozm.art/' },
       { icon: 'gmail', link: 'mailto:maozheming04@gmail.com' },
