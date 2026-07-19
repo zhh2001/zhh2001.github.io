@@ -20,6 +20,7 @@ const router = useRouter()
 
 function loadBusuanzi() {
   delete window.busuanziRequestSent
+  document.querySelectorAll('script[src*="busuanzi"]').forEach(s => s.remove())
   const script = document.createElement('script')
   script.async = true
   script.src = '//cdn.busuanzi.cc/busuanzi/3.6.9/busuanzi.min.js'
