@@ -17,7 +17,8 @@ function update() {
 update()
 
 function loadBusuanzi() {
-  document.querySelectorAll('script[src*="busuanzi"]').forEach(s => s.remove())
+  // 清除 V3 脚本的仅一次守卫，允许下次路由切换重新上报
+  delete window.busuanziRequestSent
   const script = document.createElement('script')
   script.async = true
   script.src = '//cdn.busuanzi.cc/busuanzi/3.6.9/busuanzi.min.js'
