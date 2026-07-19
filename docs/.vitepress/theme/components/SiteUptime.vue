@@ -17,7 +17,6 @@ function update() {
 update()
 
 function loadBusuanzi() {
-  // 清除 V3 脚本的仅一次守卫，允许下次路由切换重新上报
   delete window.busuanziRequestSent
   const script = document.createElement('script')
   script.async = true
@@ -28,12 +27,12 @@ function loadBusuanzi() {
 onMounted(() => {
   loadBusuanzi()
   const router = useRouter()
-  router.on('afterRouteChange', loadBusuanzi)
+  router.onAfterRouteChange = loadBusuanzi
 })
 
 onUnmounted(() => {
   const router = useRouter()
-  router.off('afterRouteChange', loadBusuanzi)
+  router.onAfterRouteChange = null
 })
 </script>
 
