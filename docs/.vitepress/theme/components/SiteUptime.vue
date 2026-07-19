@@ -1,5 +1,6 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vitepress'
 
 const launched = new Date('2023-12-19')
 const years = ref(0)
@@ -15,11 +16,23 @@ function update() {
 
 update()
 
-onMounted(() => {
+function loadBusuanzi() {
+  document.querySelectorAll('script[src*="busuanzi"]').forEach(s => s.remove())
   const script = document.createElement('script')
   script.async = true
-  script.src = '//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js'
+  script.src = '//cdn.busuanzi.cc/busuanzi/3.6.9/busuanzi.min.js'
   document.head.appendChild(script)
+}
+
+onMounted(() => {
+  loadBusuanzi()
+  const router = useRouter()
+  router.on('afterRouteChange', loadBusuanzi)
+})
+
+onUnmounted(() => {
+  const router = useRouter()
+  router.off('afterRouteChange', loadBusuanzi)
 })
 </script>
 
@@ -27,9 +40,7 @@ onMounted(() => {
   <div class="footer-meta">
     <span class="uptime">{{ years }} yr {{ restDays }} d online</span>
     <span class="sep">|</span>
-    <span id="busuanzi_container_site_pv">
-      <span id="busuanzi_value_site_pv">...</span> visits
-    </span>
+    <span id="busuanzi_site_pv">...</span> visits
   </div>
 </template>
 
