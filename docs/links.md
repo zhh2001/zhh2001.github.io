@@ -31,9 +31,9 @@ const members = [
     ]
   },
   {
-    avatar: 'https://bu.dusays.com/2024/10/25/671b2438203a6.gif',
     name: 'Elykia',
     desc: '致以无暇之人',
+    avatar: 'https://bu.dusays.com/2024/10/25/671b2438203a6.gif',
     links: [
       { icon: linkIcon, link: 'https://blog.elykia.cn' },
       { icon: 'qq', link: 'mailto:elykia@qq.com' },
@@ -44,9 +44,9 @@ const members = [
     ]
   },
   {
-    avatar: 'https://s2.loli.net/2025/02/19/gX19mThYxyUDaZu.gif',
     name: 'Yesord',
     desc: '你相信光吗~~',
+    avatar: 'https://s2.loli.net/2025/02/19/gX19mThYxyUDaZu.gif',
     links: [
       { icon: linkIcon, link: 'https://blog.yesord.top' },
       { icon: 'github', link: 'https://github.com/Yesord' },
@@ -54,9 +54,9 @@ const members = [
     ]
   },
   {
-    avatar: 'https://home.yesord.top/img/avatar.gif',
     name: 'Rolenx',
     desc: '你相信光吗～～',
+    avatar: 'https://home.yesord.top/img/avatar.gif',
     links: [
       { icon: linkIcon, link: 'https://home.yesord.top' },
       { icon: 'gmail', link: 'mailto:xuruolun666@gmail.com' },
