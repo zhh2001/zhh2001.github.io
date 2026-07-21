@@ -417,6 +417,7 @@ const friends = [
       { icon: linkIcon, link: 'https://sukkk-zcy.github.io/' },
       { icon: 'gmail', link: 'mailto:sukkkzcy@gmail.com' },
       { icon: 'github', link: 'https://github.com/Sukkk-zcy' },
+      { icon: 'telegram', link: 'https://t.me/sukkkzcy' },
     ]
   },
 ]
