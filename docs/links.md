@@ -415,6 +415,7 @@ const friends = [
     avatar: 'https://avatars.githubusercontent.com/u/152713462',
     links: [
       { icon: linkIcon, link: 'https://sukkk-zcy.github.io/' },
+      { icon: 'gmail', link: 'mailto:sukkkzcy@gmail.com' },
       { icon: 'github', link: 'https://github.com/Sukkk-zcy' },
     ]
   },
