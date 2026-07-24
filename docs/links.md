@@ -387,7 +387,7 @@ const friends = [
     title: '硕士生',
     org: 'SUES',
     orgLink: 'https://www.sues.edu.cn/',
-    avatar: 'https://vovyh.github.io/images/avatar.jpg',
+    avatar: 'https://avatars.githubusercontent.com/u/113747888',
     links: [
       { icon: linkIcon, link: 'https://vovyh.github.io/' },
       { icon: 'gmail', link: 'mailto:vovyh0514@gmail.com' },
