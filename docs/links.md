@@ -88,7 +88,7 @@ const members = [
   },
   {
     name: '锦木祈杰',
-    desc: '敬....不完美的明天',
+    desc: '敬...不完美的明天',
     avatar: 'https://oss.qijieya.cn/1/hutao_hai.gif',
     links: [
       { icon: linkIcon, link: 'https://qijieya.cn' },
