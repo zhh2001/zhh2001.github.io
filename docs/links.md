@@ -55,7 +55,7 @@ const members = [
   },
   {
     name: 'Rolenx',
-    desc: '你相信光吗～～',
+    desc: '你相信光吗~~',
     avatar: 'https://home.yesord.top/img/avatar.gif',
     links: [
       { icon: linkIcon, link: 'https://home.yesord.top' },
