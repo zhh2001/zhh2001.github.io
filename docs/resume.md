@@ -64,7 +64,7 @@ head:
 3. <span style="font-family: Times New Roman;">Jue Chen, Haidong Peng, **Henghua Zhang**, Junru Chen, and Xihe Qiu. [SCV-IDS: CNN-ViT Cross-Attention on Serialized Traffic Images for Spatiotemporal Intrusion Detection](https://doi.org/10.1109/jiot.2026.3695912). *IEEE Internet of Things Journal*, Aug. 2026.</span> <Badge type="warning" text="中科院一区TOP" /> <Badge type="danger" text="CCF推荐期刊" />
 4. <span style="font-family: Times New Roman;">Junru Chen, Jue Chen, **Henghua Zhang**, and Haidong Peng. [ATHGID: Two-stage graph intrusion detection via attention-fused network-host feature and producer-consumer parallelization](https://doi.org/10.1016/j.comnet.2026.112418). *Computer Networks*, Jul. 2026.</span> <Badge type="warning" text="中科院三区" /> <Badge type="danger" text="CCF-B类期刊" />
 
-另有 5 篇一作在投
+另有多篇一作在投
 
 ## 学术服务
 
