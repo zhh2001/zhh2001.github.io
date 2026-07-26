@@ -70,7 +70,11 @@ head:
 
 期刊审稿人：
 
-- *Future Generation Computer Systems*（FGCS）
+<div style="font-family: Times New Roman;">
+
+- *Future Generation Computer Systems* (FGCS)
+
+</div>
 
 ## 实习经历
 
