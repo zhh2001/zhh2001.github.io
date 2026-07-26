@@ -8,10 +8,18 @@ const restDays = ref(0)
 
 function update() {
   const now = new Date()
-  const diffMs = now.getTime() - launched.getTime()
-  const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-  years.value = Math.floor(totalDays / 365)
-  restDays.value = totalDays % 365
+
+  let y = now.getFullYear() - launched.getFullYear()
+  const anniversary = new Date(launched)
+  anniversary.setFullYear(launched.getFullYear() + y)
+
+  if (now < anniversary) {
+    y -= 1
+    anniversary.setFullYear(anniversary.getFullYear() - 1)
+  }
+
+  years.value = y
+  restDays.value = Math.floor((now - anniversary) / 86400000)
 }
 
 const router = useRouter()
