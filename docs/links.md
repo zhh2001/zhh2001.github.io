@@ -370,6 +370,17 @@ const friends = [
     ]
   },
   {
+    name: '邱禧荷',
+    desc: '新加坡国立大学博士',
+    title: '副教授/硕导',
+    org: 'SUES',
+    orgLink: 'https://www.sues.edu.cn/',
+    avatar: 'https://xiheqiu.github.io/assets/img/qxh.png',
+    links: [
+      { icon: linkIcon, link: 'https://xiheqiu.github.io/' },
+    ]
+  },
+  {
     name: '彭海东',
     desc: '入侵检测领域大佬',
     title: '硕士生',
