@@ -76,6 +76,14 @@ head:
 
 </div>
 
+会议审稿人：
+
+<div style="font-family: Times New Roman;">
+
+- ACM Symposium on Cloud Computing (SoCC)
+
+</div>
+
 ## 实习经历
 
 2026.03-2026.06 莉莉丝游戏  
