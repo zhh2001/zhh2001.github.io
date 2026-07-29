@@ -4,8 +4,6 @@ outline: [2, 4]
 
 # Redis
 
-Redis 诞生于 2009 年，全称是 <span style="color:red;">Re</span>mote <span style="color:red;">Di</span>ctionary <span style="color:red;">S</span>erver。
-
 ## 通用命令
 
 ### 1.1 `KEYS`
