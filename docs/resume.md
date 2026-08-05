@@ -57,7 +57,7 @@ head:
 2018.09-2022.06 湖南工商大学 <Badge type="tip" text="本科" />  
 理学院 | 数据科学与大数据技术
 
-## 学术成果
+## 科研成果
 
 1. <span style="font-family: Times New Roman;">**Henghua Zhang**, Jue Chen, Yuhang Wu, and Yujie Xiong. [TT-INT: A time-threshold-based lightweight in-band network telemetry scheme for P4-enabled programmable networks](https://doi.org/10.1109/tnsm.2026.3688086). *IEEE Transactions on Network and Service Management*, 2026.</span> <Badge type="warning" text="中科院二区" /> <Badge type="danger" text="CCF推荐期刊" />
 2. <span style="font-family: Times New Roman;">**Henghua Zhang**, Jue Chen, Haidong Peng, and Junru Chen. [MAT4PM: Machine learning-guided adaptive threshold control for P4-based monitoring in SDNs](https://doi.org/10.1109/tnsm.2026.3677416). *IEEE Transactions on Network and Service Management*, 2026.</span> <Badge type="warning" text="中科院二区" /> <Badge type="danger" text="CCF推荐期刊" />
