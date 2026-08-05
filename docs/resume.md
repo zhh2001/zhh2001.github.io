@@ -81,6 +81,7 @@ head:
 <div style="font-family: Times New Roman;">
 
 - ACM Symposium on Cloud Computing (SoCC)
+- IEEE Computer Security Foundations Symposium (CSF)
 
 </div>
 
