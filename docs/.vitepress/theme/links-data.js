@@ -387,7 +387,7 @@ export const friends = [
     orgLink: 'https://www.sues.edu.cn/',
     avatar: 'https://avatars.githubusercontent.com/u/141030026',
     links: [
-      { icon: linkIcon, link: 'https://kingrious.github.io },
+      { icon: linkIcon, link: 'https://kingrious.github.io' },
       { icon: 'github', link: 'https://github.com/Kingrious' },
     ]
   },
