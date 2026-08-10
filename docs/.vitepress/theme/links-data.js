@@ -325,7 +325,7 @@ export const friends = [
     desc: '华东师范大学博士',
     title: '副教授/硕导',
     org: 'SUES',
-    orgLink: 'https://www.sues.edu.cn/',
+    orgLink: 'https://www.sues.edu.cn',
     avatar: 'https://seee.sues.edu.cn/_upload/article/images/a2/b1/5596c5f54495bd320eea8ba7dbd9/70e432c7-4d57-4535-9cbb-cdbd2e4741da.jpg',
     links: [
       { icon: linkIcon, link: 'https://seee.sues.edu.cn/fb/d9/c20786a195545/page.htm' },
@@ -336,10 +336,10 @@ export const friends = [
     desc: '华东师范大学博士',
     title: '副教授/硕导',
     org: 'SUES',
-    orgLink: 'https://www.sues.edu.cn/',
+    orgLink: 'https://www.sues.edu.cn',
     avatar: 'https://xiongyujie.cn/img/xiongyujie.jpg',
     links: [
-      { icon: linkIcon, link: 'https://xiongyujie.cn/' },
+      { icon: linkIcon, link: 'https://xiongyujie.cn' },
       { icon: 'github', link: 'https://github.com/X-Lab-CN' },
     ]
   },
@@ -348,10 +348,10 @@ export const friends = [
     desc: '新加坡国立大学博士',
     title: '副教授/硕导',
     org: 'SUES',
-    orgLink: 'https://www.sues.edu.cn/',
+    orgLink: 'https://www.sues.edu.cn',
     avatar: 'https://xiheqiu.github.io/assets/img/qxh.png',
     links: [
-      { icon: linkIcon, link: 'https://xiheqiu.github.io/' },
+      { icon: linkIcon, link: 'https://xiheqiu.github.io' },
     ]
   },
   {
@@ -359,10 +359,10 @@ export const friends = [
     desc: '入侵检测领域大佬',
     title: '硕士生',
     org: 'SUES',
-    orgLink: 'https://www.sues.edu.cn/',
+    orgLink: 'https://www.sues.edu.cn',
     avatar: 'https://brandpeng.github.io/avatar.jpg',
     links: [
-      { icon: linkIcon, link: 'https://brandpeng.github.io/' },
+      { icon: linkIcon, link: 'https://brandpeng.github.io' },
       { icon: 'github', link: 'https://github.com/BrandPeng' },
     ]
   },
@@ -371,10 +371,10 @@ export const friends = [
     desc: '大模型爱好者',
     title: '硕士生',
     org: 'SUES',
-    orgLink: 'https://www.sues.edu.cn/',
+    orgLink: 'https://www.sues.edu.cn',
     avatar: 'https://avatars.githubusercontent.com/u/113747888',
     links: [
-      { icon: linkIcon, link: 'https://vovyh.github.io/' },
+      { icon: linkIcon, link: 'https://vovyh.github.io' },
       { icon: 'gmail', link: 'mailto:vovyh0514@gmail.com' },
       { icon: 'github', link: 'https://github.com/VovyH' },
     ]
@@ -384,7 +384,7 @@ export const friends = [
     desc: '前沿技术探索者',
     title: '硕士生',
     org: 'SUES',
-    orgLink: 'https://www.sues.edu.cn/',
+    orgLink: 'https://www.sues.edu.cn',
     avatar: 'https://avatars.githubusercontent.com/u/141030026',
     links: [
       { icon: linkIcon, link: 'https://kingrious.github.io' },
@@ -396,10 +396,10 @@ export const friends = [
     desc: 'Hi, I am Sukkk',
     title: '硕士生',
     org: 'SUES',
-    orgLink: 'https://www.sues.edu.cn/',
+    orgLink: 'https://www.sues.edu.cn',
     avatar: 'https://avatars.githubusercontent.com/u/152713462',
     links: [
-      { icon: linkIcon, link: 'https://sukkk-zcy.github.io/' },
+      { icon: linkIcon, link: 'https://sukkk-zcy.github.io' },
       { icon: 'gmail', link: 'mailto:sukkkzcy@gmail.com' },
       { icon: 'github', link: 'https://github.com/Sukkk-zcy' },
       { icon: 'telegram', link: 'https://t.me/sukkkzcy' },
