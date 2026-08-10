@@ -319,7 +319,7 @@ export const members = [
   },
 ]
 
-suesInfo = {
+const suesInfo = {
   org: 'SUES',
   orgLink: 'https://www.sues.edu.cn',
 }
