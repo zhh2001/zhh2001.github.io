@@ -384,7 +384,7 @@ export const friends = [
     name: '杨天成',
     desc: '前沿技术探索者',
     title: '硕士生',
-    avatar: 'https://avatars.githubusercontent.com/u/141030026',
+    avatar: 'https://kingrious.github.io/avatar.jpg',
     links: [
       { icon: linkIcon, link: 'https://kingrious.github.io' },
       { icon: 'github', link: 'https://github.com/Kingrious' },
