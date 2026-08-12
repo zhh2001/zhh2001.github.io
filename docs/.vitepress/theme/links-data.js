@@ -306,7 +306,7 @@ export const members = [
     ]
   },
   {
-    avatar: 'https://aerisun.top/media/avatar',
+    avatar: 'https://aerisun.top/media/assets/16e8deac-b725-42c5-9807-cb7bcad1742a.jpg',
     name: 'Aerisun',
     desc: '在喧嚣的缝隙里，做一个关于自由和好奇心的梦',
     links: [
