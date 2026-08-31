@@ -330,7 +330,7 @@ export const friends = [
     name: '陈珏',
     desc: '华东师范大学博士',
     title: '副教授/硕导',
-    avatar: 'https://seee.sues.edu.cn/_upload/article/images/a2/b1/5596c5f54495bd320eea8ba7dbd9/70e432c7-4d57-4535-9cbb-cdbd2e4741da.jpg',
+    avatar: 'https://seee.sues.edu.cn/_upload/article/images/a2/b1/5596c5f54495bd320eea8ba7dbd9/e06376f4-874a-499d-80f8-f8604ab0b2ef.png',
     links: [
       { icon: linkIcon, link: 'https://seee.sues.edu.cn/fb/d9/c20786a195545/page.htm' },
     ]
