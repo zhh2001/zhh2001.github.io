@@ -246,11 +246,11 @@ export const members = [
     ]
   },
   {
-    avatar: 'https://mccsjs.eu.org/img/head.jpg',
+    avatar: 'https://mccsjs.cn/img/ico.jpg',
     name: 'mccsjs',
     desc: '点一盏灯，等一个迷路的夜',
     links: [
-      { icon: linkIcon, link: 'https://mccsjs.eu.org' },
+      { icon: linkIcon, link: 'https://mccsjs.cn' },
       { icon: 'qq', link: 'https://seln.cn/asset/image/QQ.png' },
       { icon: 'wechat', link: 'https://seln.cn/asset/image/weixin.png' },
       { icon: 'bilibili', link: 'https://space.bilibili.com/209190096' },
