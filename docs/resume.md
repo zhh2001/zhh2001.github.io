@@ -133,7 +133,7 @@ head:
 2026.03-2026.06 LiLAC本地化平台  
 项目主体：莉莉丝游戏  
 角色：Golang后端工程师  
-技术栈：`Golang`、`go-zero`、`MongoDB`、`Redis`、`Phrase TMS`、`Docker`、`K8S`、`Jenkins`、`Git`
+技术栈：`Golang`、`go-zero`、`MongoDB`、`Redis`、`Phrase`、`Docker`、`K8S`、`Jenkins`、`Git`
 
 2025.09-2026.03 LC-Event交易平台  
 项目主体：简文投资  
