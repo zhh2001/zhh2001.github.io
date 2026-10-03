@@ -193,6 +193,18 @@ export const members = [
     ]
   },
   {
+    avatar: 'https://s1.imagehub.cc/images/2025/12/06/28380affd86b014a6dcaf082fcc97064.png',
+    name: 'Wcowin\'s Blog',
+    desc: '循此苦旅，以达星辰',
+    links: [
+      { icon: linkIcon, link: 'https://wcowin.work/' },
+      { icon: 'gmail', link: 'mailto:wangkewen821@gmail.com' },
+      { icon: 'qq', link: 'mailto:wcowin@qq.com' },
+      { icon: 'github', link: 'https://github.com/Wcowin' },
+      { icon: 'telegram', link: 'https://t.me/Wcowin' },
+    ]
+  },
+  {
     avatar: 'https://res.strikefreedom.top/static_res/blog/figures/avatar.png',
     name: 'Strike Freedom',
     desc: '潘少的博客、主页、技术分享',
