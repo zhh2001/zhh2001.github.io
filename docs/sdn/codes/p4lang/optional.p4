@@ -1,5 +1,5 @@
-package pipeline(/* 参数 */);
-package switch(pipeline first, @optional pipeline second);
+package Pipeline(/* 参数 */);
+package Switch(Pipeline first, @optional Pipeline second);
 
-pipeline(/* 参数 */) ingress;
-switch(ingress) main;  // 一个只有单级管道的交换机
+Pipeline(/* 参数 */) ingress;
+Switch(ingress) main;  // 一个只有单级流水线的交换机

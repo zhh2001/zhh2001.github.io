@@ -1,1 +1,1 @@
-tuple<int, bool>
+tuple<bit<32>, bool> pair;

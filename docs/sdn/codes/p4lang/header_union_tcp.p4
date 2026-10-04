@@ -1,3 +1,7 @@
+#include <core.p4>
+
+error { InvalidTcpOption }
+
 header Tcp_option_end_h {
     bit<8> kind;
 }
@@ -6,11 +10,13 @@ header Tcp_option_nop_h {
 }
 header Tcp_option_ss_h {
     bit<8>  kind;
-    bit<32> maxSegmentSize;
+    bit<8>  length;
+    bit<16> maxSegmentSize;
 }
 header Tcp_option_s_h {
     bit<8>  kind;
-    bit<24> scale;
+    bit<8>  length;
+    bit<8>  scale;
 }
 header Tcp_option_sack_h {
     bit<8>      kind;
@@ -32,8 +38,24 @@ struct Tcp_option_sack_top {
     bit<8> length;
 }
 
-parser Tcp_option_parser(packet_in b, out Tcp_option_stack vec) {
+// 调用时，b 的当前位置应是 TCP 选项区的起点。
+parser Tcp_option_parser(packet_in b, out Tcp_option_stack vec,
+                         in bit<32> optionsSizeInBytes) {
+    bit<32> remaining;
+
     state start {
+        verify(optionsSizeInBytes <= 40 && optionsSizeInBytes % 4 == 0,
+               error.InvalidTcpOption);
+        remaining = optionsSizeInBytes;
+        transition dispatch;
+    }
+    state dispatch {
+        transition select(remaining) {
+            0: accept;
+            default: parse_kind;
+        }
+    }
+    state parse_kind {
         transition select(b.lookahead<bit<8>>()) {
             8w0x0 : parse_tcp_option_end;
             8w0x1 : parse_tcp_option_nop;
@@ -44,25 +66,40 @@ parser Tcp_option_parser(packet_in b, out Tcp_option_stack vec) {
     }
     state parse_tcp_option_end {
         b.extract(vec.next.end);
+        // 跳过结束标记后的选项区填充，不读取 TCP 载荷。
+        b.advance((remaining - 1) * 8);
         transition accept;
     }
     state parse_tcp_option_nop {
         b.extract(vec.next.nop);
-        transition start;
+        remaining = remaining - 1;
+        transition dispatch;
     }
     state parse_tcp_option_ss {
+        verify(remaining >= 4, error.InvalidTcpOption);
+        verify(b.lookahead<Tcp_option_sack_top>().length == 4,
+               error.InvalidTcpOption);
         b.extract(vec.next.ss);
-        transition start;
+        remaining = remaining - 4;
+        transition dispatch;
     }
     state parse_tcp_option_s {
+        verify(remaining >= 3, error.InvalidTcpOption);
+        verify(b.lookahead<Tcp_option_sack_top>().length == 3,
+               error.InvalidTcpOption);
         b.extract(vec.next.s);
-        transition start;
+        remaining = remaining - 3;
+        transition dispatch;
     }
     state parse_tcp_option_sack {
+        verify(remaining >= 2, error.InvalidTcpOption);
         bit<8> n = b.lookahead<Tcp_option_sack_top>().length;
-        // n 是 TCP SACK 选项的总长度，以字节为单位。
-        // Tcp_option_sack_h 报头的 varbit 字段 'sack' 的长度因此为 n-2 字节。
-        b.extract(vec.next.sack, (bit<32>) (8 * n - 16));
-        transition start;
+        verify(n >= 10 && n <= 34 && (n - 2) % 8 == 0,
+               error.InvalidTcpOption);
+        verify((bit<32>)n <= remaining, error.InvalidTcpOption);
+        // 先扩宽 n，再计算 varbit 字段的位数，避免 8 位运算溢出。
+        b.extract(vec.next.sack, ((bit<32>)n - 2) * 8);
+        remaining = remaining - (bit<32>)n;
+        transition dispatch;
     }
 }

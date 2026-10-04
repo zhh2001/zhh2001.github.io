@@ -1,1 +1,1 @@
-error { ParseError, PacketTooShort }
+error { InvalidPacket, UnsupportedProtocol }

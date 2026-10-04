@@ -76,7 +76,7 @@ control TopPipe(inout Parsed_packet headers,
                 in InControl inCtrl,  // Input port
                 out OutControl outCtrl) {
     
-    IPv4Address nextHop;  // Local variable
+    IPv4Address nextHop = 0;  // Local variable
 
     /**
      * Indicates that a packet is dropped by setting the
@@ -107,8 +107,8 @@ control TopPipe(inout Parsed_packet headers,
     table ipv4_match {
         key = { headers.ip.dstAddr: lpm; }  // Longest-prefix match
         actions = {
-            Drop_action,
-            Set_nhop
+            Drop_action;
+            Set_nhop;
         }
         size = 1024;
         default_action = Drop_action;
@@ -126,8 +126,11 @@ control TopPipe(inout Parsed_packet headers,
      */
     table check_ttl {
         key = { headers.ip.ttl: exact; }
-        actions = { Send_to_cpu, NoAction }
+        actions = { Send_to_cpu; NoAction; }
         const default_action = NoAction; // Defined in core.p4
+        const entries = {
+            0: Send_to_cpu();
+        }
     }
 
     /**
@@ -146,8 +149,8 @@ control TopPipe(inout Parsed_packet headers,
     table dmac {
         key = { nextHop: exact; }
         actions = {
-            Drop_action,
-            Set_dmac
+            Drop_action;
+            Set_dmac;
         }
         size = 1024;
         default_action = Drop_action;
@@ -167,8 +170,8 @@ control TopPipe(inout Parsed_packet headers,
     table smac {
         key = { outCtrl.outputPort: exact; }
         actions = {
-            Drop_action,
-            Set_smac
+            Drop_action;
+            Set_smac;
         }
         size = 16;
         default_action = Drop_action;
@@ -177,6 +180,11 @@ control TopPipe(inout Parsed_packet headers,
     apply {
         if (parseError != error.NoError) {
             Drop_action();  // Invoke drop directly
+            return;
+        }
+        // Guard against 8-bit TTL underflow before Set_nhop decrements it.
+        if (headers.ip.ttl == 0) {
+            Send_to_cpu();
             return;
         }
         ipv4_match.apply();  // Match result will go into nextHop

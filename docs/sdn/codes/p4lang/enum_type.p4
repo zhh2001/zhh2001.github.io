@@ -1,4 +1,4 @@
-enum Suits { Clubs, Diamonds, Hearths, Spades }
+enum Suits { Clubs, Diamonds, Hearts, Spades }
 
 enum bit<16> EtherType {
     VLAN = 0x8100,
