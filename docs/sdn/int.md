@@ -4,496 +4,378 @@ outline: deep
 
 # P4 INT
 
-带内网络遥测（In-band Network Telemetry，INT）是一种“让数据包自己把路上的事讲出来”的网络监控思路。
+带内网络遥测（In-band Network Telemetry，INT）在数据平面中采集与报文转发相关的状态，例如经过的节点、接口、设备内时延和队列占用量。采集结果可以随业务报文传递，也可以由沿途节点直接导出到监控系统。s
 
-这份笔记是我在读 P4.org 的 [INT 规范](https://github.com/p4lang/p4-applications/blob/master/docs/INT_latest.pdf) 时整理出来的。一开始只是零散翻译，后来发现直译下来的术语链很难让人理解“这到底在解决什么问题”，于是把整份内容重新梳理了一遍：先用生活化的例子建立直观，再一步步推进到报文格式与工程细节。
+本文依据 P4.org 的 [INT Dataplane Specification v2.1](https://github.com/p4lang/p4-applications/blob/7eedb79d40e60ceb6d87f1a3682f75c28fc2b2ba/docs/INT_v2_1.pdf) 整理。涉及遥测报告时，采用 [Telemetry Report Format Specification v2.0](https://github.com/p4lang/p4-applications/blob/7eedb79d40e60ceb6d87f1a3682f75c28fc2b2ba/docs/telemetry_report_v2_0.pdf)。两份规范分别定义数据包中的 INT 信息和导出的报告格式，版本号不必相同。文中的“必须”“不得”表示规范要求，“建议”表示推荐做法。
 
-## 1 先回答一个问题：为什么要有 INT？
+## 1 INT 解决什么问题
 
-传统的网络监控基本只能拿到“设备自己愿意告诉你的东西”：
+设备和接口统计能反映一段时间内的网络状态，但仅凭这些统计，通常无法确定某个报文实际走过的路径，以及它经过各节点时的队列状态。轮询周期、采样策略和计数器语义也会影响观测结果。NetFlow 的流记录和 sFlow 的报文、计数器采样各有用途，不能笼统地归为同一种采样后聚合统计。
 
-- **SNMP / CLI 轮询**：要主动去问交换机“你现在队列多长”，粒度是秒级甚至分钟级，微突发早就过去了。
-- **NetFlow / sFlow**：看到的是采样后的聚合流统计，丢掉了单个包的行程信息。
-- **控制平面汇报**：控制器看到的永远是数据平面“过去某一时刻”的快照，和真实转发路径可能对不上。
+INT 将采集动作与被观测报文的转发关联起来。节点可以在处理报文时记录本地状态，使监控系统能够分析路径、定位拥塞和检查转发行为。是否监控每个报文、是否获得完整路径，取决于监控策略、节点能力、跳数限制、MTU 和报告是否成功送达。
 
-这些方法有一个共同问题——**监控动作和数据包本身是分离的**。我们看到的指标是“设备说它大概是这样”，而不是“这一个包实际经历了什么”。
+数据平面采集不需要为每个报文向控制器查询状态，但仍需要配置。控制平面通常负责流监控规则、节点标识、指令和报告目的地，监控系统负责解析、关联和分析结果。INT 本身不保证端到端的实时性，也不规定具体的控制算法。
 
-INT 换了一个角度：既然我想知道一个包走过了哪些设备、每一跳排队了多久，那就**让包自己把这些信息带回来**。每经过一个支持 INT 的节点，节点就把自己当时的状态（节点 ID、入/出端口、排队时延、队列深度……）按指令贴到包里；到达路径尽头时，接收端把这些信息抽出来送给监控系统。
+## 2 Source、Transit 和 Sink
 
-换句话说：
+INT 在一条观测路径上使用三个角色：
 
-> INT 不是外部探针去问网络，而是把"探针"直接揉进了每一个数据包里。
+| 角色        | 主要职责                                                         |
+| ----------- | ---------------------------------------------------------------- |
+| INT Source  | 选择需要监控的报文，在 MD/MX 模式下插入 INT 头部并设置指令       |
+| INT Transit | 按指令采集本地元数据，在 MD 模式下写入报文，在 MX 模式下直接导出 |
+| INT Sink    | 结束报文中的 INT 处理，移除相关封装，并按策略导出遥测信息        |
 
-这样拿到的是**数据平面一手的、单包粒度的、带完整路径信息的**状态，延迟低到可以用来做实时拥塞控制。
+这些是处理某个报文时的角色，不是三种互斥的设备类型。同一设备可以是某条路径的 Source，也可以是另一条路径的 Transit 或 Sink。Source 本身也可以采集并写入本地元数据。
 
-## 2 一个直观类比：盖章的包裹
+## 3 INT-MD 的基本流程
 
-把数据包想象成一个从 A 寄到 B 的包裹：
-
-- **普通转发**：中间每个快递点只看地址、换标签、继续发；到了 B 只知道包裹到了。
-- **SNMP 轮询**：每隔几分钟给每个快递点打电话，问"你那边忙不忙"，问到的永远是平均值。
-- **INT**：包裹上多了一张指令卡："请每个经手的快递点盖个章，写下时间、当前有多少件包裹在排队"。包裹到 B 时翻开章页，整条路径的情况一目了然。
-
-这个类比对应到 INT 的三个角色：
-
-- **寄件方 = INT Source**：生成指令卡，决定要盖哪些字段。
-- **中间快递点 = INT Transit**：按指令盖章（插入元数据）或把信息直接快递回总部。
-- **收件方 = INT Sink**：撕掉指令卡，整理盖章记录，上报到"总部"（监控系统）。
-
-后面所有术语，都可以先映射到这张图上，不容易被绕晕。
-
-## 3 最小工作流：一个包从头走到尾
-
-先不看任何报文格式，只看行为。假设一个 INT 包从 S 发出，经过 T1、T2，到达 D：
+假设报文从 S 发出，经过 T1、T2，到达 D：
 
 ```text
-  S ──► T1 ──► T2 ──► D
-  │     │      │      │
-Source Transit Transit Sink
+S (Source) -> T1 (Transit) -> T2 (Transit) -> D (Sink)
 ```
 
-1. **S（Source）**：根据流监控表（Flow Watchlist）命中了这条流，向包里**插入 INT 头部**，头部里写明"我想采集哪些字段"（Instruction Bitmap），比如节点 ID + 出端口 + 跳时延。
-2. **T1、T2（Transit）**：看到 INT 头部，按指令**把自己这一跳的元数据压栈**进去。栈里越往后，是越靠近 D 的节点。
-3. **D（Sink）**：把整个 INT 头部和元数据栈**从包里剥掉**，交给监控系统，业务包恢复成普通样子继续往上送。
+1. S 根据流监控规则选择报文，插入 INT-MD 头部，设置需要采集的字段。若启用了源节点的本地采集，S 也写入自己的元数据。
+2. T1、T2 分别将本地元数据插入固定 INT 元数据头之后，置于已有元数据之前。因此到达 D 时，栈中靠近头部的一端依次是 T2、T1、S。
+3. D 移除 INT 头部和元数据栈，并决定是否导出报告。D 的本地元数据既可以加入栈，也可以放在报告的独立元数据字段中。
 
-这就是所谓的 **INT-MD 模式**——指令和数据都嵌在包里。后面会看到，INT 还有只嵌指令不嵌数据（MX）、甚至指令都不嵌（XD）的变体。
-
-::: tip 一个容易被忽略的点
-同一个物理设备可以同时扮演多个角色。比如 Source 节点自己也会写一份元数据进去，它在逻辑上同时是 Source 和 Transit。
-:::
+正常业务报文在离开 INT 域前，应完成封装、长度字段和校验和的相应恢复。若 INT 头部的 D 位为 1，Sink 按规定完成遥测处理后丢弃该报文。
 
 ## 4 架构与术语
 
-有了上面直觉，正式术语就顺了。这些概念会在后文反复出现，先在这里集中梳理：
+| 术语           | 含义                                                              |
+| -------------- | ----------------------------------------------------------------- |
+| INT 头部       | 承载采集指令及相关信息的头部，类型包括 MD、MX 和 Destination      |
+| INT 包         | 携带 INT 头部的报文。XD 观测的报文不需要携带这种头部              |
+| INT 节点       | 支持相应 INT 处理的交换机、路由器、网卡或其他设备                 |
+| INT 指令       | 指定需要采集哪些元数据。MD/MX 在报文中携带指令，XD 由节点本地配置 |
+| Flow Watchlist | 流监控匹配规则，用于选择需要观测的报文或流                        |
+| INT 元数据     | 与报文在节点中的处理有关的状态，也可以包含域专用上下文            |
+| INT 域         | 由共同管理策略和元数据约定覆盖的一组 INT 节点                     |
+| 监控系统       | 接收遥测报告并解析、关联和分析数据的系统，可以采用分布式部署      |
 
-| 术语 | 一句话理解 |
-| --- | --- |
-| **INT 头部** | 包里用来承载 INT 信息的新字段，分 MD / MX / Destination 三类 |
-| **INT 包** | 身上带着 INT 头部的数据包 |
-| **INT 节点** | 能看懂并处理 INT 头部的交换机/路由器/网卡 |
-| **INT 指令** | 告诉节点"要采集哪些元数据"的位图，可以写在包头里，也可以配在流表里 |
-| **流监控表 (Flow Watchlist)** | 数据平面的一张匹配表：命中的流要做 INT |
-| **INT Source / Transit / Sink** | 三个角色：插入头部 / 沿路盖章 / 剥掉头部并上报 |
-| **INT 元数据** | 每跳采集的那一块信息（节点 ID、时延、队列深度等） |
-| **INT 域 (Domain)** | 一组同一管理下的 INT 节点；建议在域边界部署 Sink，避免信息泄露出域 |
-| **监控系统** | 最终收遥测数据的地方，物理上可分布、逻辑上视为集中 |
+部署时应明确 INT 域的边界，并在适当位置结束 INT 处理，避免业务端点收到无法识别的封装，或将内部拓扑和设备状态带出管理域。INT 是遥测机制，P4 可以用于实现它的数据平面处理，但具体硬件和架构是否支持所需字段、封装及导出能力，需要另外确认。
 
-有了这张表，再读规范原文就不会卡在"Transit Hop 到底是谁"这种问题上。
-
-## 5 三种运行模式：嵌多少、嵌什么
-
-INT 最早只有"指令和数据都塞进包里"的经典玩法，但它很快被各种变体扩展。规范按照**包被改动了多少**把 INT 分成三种模式，一张图对照着看就清楚了：
+## 5 三种运行模式
 
 <p id="fig1" align="center">
-    <img width="95%" src="/int/fig1.webp" alt="Various modes of INT operation." />
-    <span>图 1. INT 的三种运行模式</span>
+    <img width="96%" src="/int/fig1.webp" alt="INT-XD、INT-MX 和 INT-MD 三种运行模式" />
+    <span>图 1. INT 规范中的三种运行模式示意</span>
 </p>
 
-| 模式 | 包里嵌什么 | 谁来写入 | 谁来上报 |
-| --- | --- | --- | --- |
-| **INT-XD** | 什么都不嵌 | 无 | 每个节点直接把元数据导给监控系统 |
-| **INT-MX** | 只嵌**指令** | Source 写指令 | 各节点按指令各自上报 |
-| **INT-MD** | 嵌**指令 + 数据栈** | Source 写指令，Transit 逐跳压栈 | Sink 一次性剥出后上报 |
+| 模式   | 业务报文中的 INT 信息                      | 元数据导出方式                                |
+| ------ | ------------------------------------------ | --------------------------------------------- |
+| INT-XD | 不插入 INT 指令或元数据                    | 各节点根据本地规则直接导出                    |
+| INT-MX | 指令，以及可选的源端插入元数据             | 各节点按报文中的指令直接导出                  |
+| INT-MD | 指令和逐跳元数据栈，也可以有源端专用元数据 | 通常由 Sink 导出，也允许 Transit 生成中间报告 |
 
-### 5.1 INT-XD：包不动，节点各自汇报
+图中的 MX 部分简写为“只嵌入指令”，但 v2.1 也允许它携带源端插入元数据。
 
-**eXport Data**，也叫"明信片（Postcard）"模式。节点根据本地流监控表里配的指令，**直接把元数据导给监控系统**，包本身一个字节都不改。
+### 5.1 INT-XD：直接导出
 
-- **优点**：对数据平面零侵入，原包不需要扩容、不碰 MTU。
-- **代价**：监控系统要负责把不同节点的上报，按 5 元组 + 时间戳**重新拼回一条路径**——聚合开销全压给后端。
+XD（eXport Data）不在被观测报文中增加 INT 内容。各节点依据本地 Flow Watchlist 和指令，采集并导出自己的元数据。普通转发仍会进行必要的报文修改，例如更新 IP TTL。
 
-这个思路最早来自 Handigol 等人的论文。
+这种模式不因插入 INT 内容而增加业务报文长度，但采集和报告仍消耗设备资源与网络带宽。监控系统需要将不同节点的报告关联起来。五元组通常只能标识流，不能唯一标识流中的某个报文。逐包关联还需要报文标识、足够的报文片段或其他约定，并考虑重传、时钟误差和报告丢失。
 
-::: info Postcard 机制出处
-<span style="font-family: Times New Roman;">
-Handigol, Nikhil, Brandon Heller, Vimalkumar Jeyakumar, David Mazières, and Nick McKeown. "I know what your packet did last hop: Using packet histories to troubleshoot networks." In 11th USENIX Symposium on Networked Systems Design and Implementation (NSDI 14), pp. 71-85. 2014.
-</span>
-:::
+Postcard 是相关的逐节点导出思路，可以参考 Handigol 等人的 [I Know What Your Packet Did Last Hop（NSDI 2014）](https://www.usenix.org/conference/nsdi14/technical-sessions/presentation/handigol)。
 
-### 5.2 INT-MX：只嵌指令，元数据各自寄回
+### 5.2 INT-MX：携带指令，直接导出
 
-**eMbed instructions**。Source 在包里写一段 INT-MX 头部，里面装的是**指令位图**。沿路每个节点看到指令后，**自己决定要采哪些字段，然后直接把采到的数据走遥测报告发回监控系统**，而不是塞回包里。Sink 在转发之前把指令头剥掉。
+MX（eMbed instructions）由 Source 将指令写入报文，Source、Transit 和 Sink 按指令采集并导出各自的元数据，Sink 最后移除 INT-MX 头部。采集字段由源端指定，具体语义仍需域内约定。
 
-- **相对 XD 的好处**：采集什么由 Source 统一决定，全路径口径一致；不像 XD 每个节点都要靠本地配置。
-- **相对 MD 的好处**：包的长度只增加一个固定大小的指令头，**不会随跳数膨胀**。
-- 这个思路借鉴自 IETF 的 IOAM 直接导出模式。
+MX 不追加逐跳元数据栈，所以包长不会随经过的 INT 节点数量增加。不过，除固定头部外，它还可以携带域专用的 Source-Inserted Metadata。这部分内容可以保持源端取值，也可以按定义由后续节点累计更新，详见 [§8.7](#sec59)。
 
-::: info IOAM
+IETF 的 IOAM 也讨论了带内观测和直接导出，参见 [RFC 9197](https://doi.org/10.17487/RFC9197) 和 [RFC 9326](https://doi.org/10.17487/RFC9326)。它们与 INT 有相近的观测目标，但报文格式和协议定义不同，不能据此认为可以直接互通。
 
-- <span style="font-family: Times New Roman;">F. Brockners, S. Bhandari, and T. Mizrahi. 2022. RFC 9197: Data Fields for In Situ Operations, Administration, and Maintenance (IOAM). RFC Editor, USA.</span>
-- <span style="font-family: Times New Roman;">H. Song, B. Gafni, F. Brockners, S. Bhandari, and T. Mizrahi. 2022. RFC 9326: In Situ Operations, Administration, and Maintenance (IOAM) Direct Exporting. RFC Editor, USA.</span>
-:::
+### 5.3 INT-MD：携带指令和逐跳元数据
 
-### 5.3 INT-MD：经典玩法，指令和数据都塞在包里
+MD（eMbed Data）将沿途节点的元数据保存在同一个报文中。每个实际参与写入的节点增加一块元数据，Sink 可以利用这些记录分析被观测报文的路径和各跳状态。
 
-**eMbed Data**，也就是 §3 最小工作流里描述的那种：
+相较 XD/MX，MD 减少了监控系统对逐节点报告的关联需求，但会增加业务报文长度。缺失节点、跳数耗尽、中间报告和报告截断仍需要处理，不能假定每个报告都有完整路径。MTU 的处理见 §8.3。
 
-1. Source 写入 INT-MD 头部（含指令）；
-2. Source + 每个 Transit 按指令把自己的元数据**压栈**进包里；
-3. Sink 把头部和整个元数据栈一并剥出，再视需要上报。
+自 v2.0 起，MD 也支持域专用的 source-only 元数据。Source 只插入一次这类内容，它不计入每跳长度 `Hop ML`，但计入报文中的 INT 总长度。
 
-- **优点**：所有跳的信息在一个包里天然按路径顺序聚好，监控系统几乎不需要再做聚合。
-- **代价**：每跳都增加包长，会直接撞到 MTU 限制（§9.1 会专门讨论）；跳多时栈也会变大。
+### 5.4 探测包和克隆包
 
-自 INT 规范 2.0 起，MD 模式也支持"**仅源端插入**"的元数据，作为域专用指令的一部分，让 Source 可以附带一些路径无关的上下文。
+Source 可以在真实业务报文上启用 INT，也可以构造探测包或使用克隆包。后续节点按相应 INT 指令处理这些报文。MD/MX 中是否在 Sink 丢弃由 D 位决定，不是所有探测包都必须采用相同策略。
 
-::: warning 默认模式
-后文讨论报文格式时，如果不特别说明，默认都是 **INT-MD** 模式——它是 INT 最具代表性、也最复杂的形态。搞懂了 MD，MX 基本是它的"砍掉数据栈"版本。
-:::
+IFA（Inband Flow Analyzer）是另一项相关提案。[draft-kumar-ippm-ifa-08](https://datatracker.ietf.org/doc/html/draft-kumar-ippm-ifa-08) 发布于 2024 年 4 月，已于同年 10 月到期，是个人 Internet-Draft，不是已发布的 IETF 标准。IFA 与 INT 的目标和部分机制相近，不能把使用探测包的 INT-MD 简单视为 IFA。
 
-### 5.4 附加玩法：探测包和克隆包
+## 6 应用与相关研究
 
-前面讲的都是"在真实业务流量上加遥测"。但 INT Source 也可以**自己造包**专门用来探路——克隆一份原始包，或直接构造一个探测包（probe packet）。对中间节点来说，这类合成流量和普通 INT 包**没有任何区别**，照常处理。
+INT 的数据可用于路径追踪、微突发分析、拥塞定位和转发行为验证。它也可以为拥塞控制或负载均衡提供反馈，但反馈频率、聚合方式、报告可靠性和控制稳定性由具体方案决定。仅仅启用 INT，不会自动形成完整的拥塞控制机制。
 
-区别只在终点：Sink 收到后通常要**把合成包丢掉**，而不是继续往上转。INT 头部里的 **D 位（Discard Bit）** 就是干这个用的——Source 把 D 位置 1，Sink 看到就知道"提完数据就地销毁"。
+规范讨论了遥测驱动的网络管理和控制。以下论文有助于理解这些用途，但论文中的设计不应直接当作符合 INT v2.1 的实现：
 
-把 INT-MD 模式用在探测包上，效果基本等同于 IETF 的 IFA。
+- Katta 等，2016，*HULA: Scalable Load Balancing Using Programmable Data Planes*。[DOI: 10.1145/2890955.2890968](https://doi.org/10.1145/2890955.2890968)。
+- Katta 等，2017，*Clove: Congestion-Aware Load Balancing at the Virtual Edge*。[DOI: 10.1145/3143361.3143401](https://doi.org/10.1145/3143361.3143401)。
+- Jeyakumar 等，2014，*Millions of Little Minions: Using Packets for Low Latency Network Programming and Visibility*。[DOI: 10.1145/2619239.2626292](https://doi.org/10.1145/2619239.2626292)。
 
-::: info IFA
+## 7 元数据及其语义 {#sec4}
 
-```bibtex
-@techreport{kumar-ippm-ifa-08,
-    number =    {draft-kumar-ippm-ifa-08},
-    type =      {Internet-Draft},
-    institution =   {Internet Engineering Task Force},
-    title =     {{Inband Flow Analyzer}},
-    year =      2024, month = apr, day = 26,
-    url =       {https://datatracker.ietf.org/doc/draft-kumar-ippm-ifa/08/},
-}
-```
+规范定义了一组基础元数据，也允许通过域专用指令扩展。能否取得某项状态，以及采集位置和精度，取决于设备实现。
 
-:::
+| 元数据                      | 含义及注意事项                                                                                             |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Node ID                     | 管理员配置的节点标识，在 INT 域内必须唯一                                                                  |
+| Ingress/Egress Interface ID | 报文的入、出接口标识。可以报告两个接口层级，每层同时包含入、出标识，不能简单将层级固定理解为物理口和逻辑口 |
+| Ingress/Egress Timestamp    | 报文在入、出方向采集点的本地时间戳                                                                         |
+| Hop Latency                 | 报文在本节点中的时延，可包含处理和排队时间，不等同于单独的排队时延                                         |
+| Egress TX Link Utilization  | 出接口的发送利用情况，单位、测量窗口和计算方法由实现及语义约定确定                                         |
+| Queue Occupancy             | 所选队列的占用量，默认格式包含队列 ID 和占用量                                                             |
+| Buffer Occupancy            | 所选缓冲区的占用量，默认格式包含缓冲区 ID 和占用量                                                         |
 
-## 6 数据到了监控系统，能拿它做什么？
+时间字段的宽度不能代替单位定义。例如，8 字节时间戳不意味着其单位一定是纳秒。队列占用量也可能以字节、报文或缓冲单元表示，不能直接理解为百分比。跨节点相减时间戳之前，还要确认时钟同步、时间基准和精度。本地 Hop Latency 不要求不同节点共享同一个时钟。
 
-把视角拉回应用层。遥测数据收上来以后，Sink（或监控系统）根据场景可以走三条典型路线：
+采集端与接收端需要通过带外方式共享这些语义。规范引用了 P4.org 应用工作组的实验性 [p4-dtel-metadata-semantics YANG 模型](https://github.com/p4lang/p4-applications/blob/7eedb79d40e60ceb6d87f1a3682f75c28fc2b2ba/telemetry/code/models/p4-dtel-metadata-semantics.yang)。该文件的 2018 年修订仍引用 INT 和报告格式 v1.0，不能直接视为覆盖 v2.1 全部字段的完整模型。它不是 IETF 发布的标准，也不是实现 INT 时唯一可用的语义交换方式。
 
-- **运维监控（OAM）**：把采到的原始或经加工（压缩、去重、截断）的数据平面状态上传控制器，供事后分析。
-- **实时控制反馈**：根据遥测结果立刻给流量源反信号——例如告诉发送端换路径、降速率。ECN 就是一种最朴素的反馈控制。
-- **网络事件检测**：识别拥塞热点或数据平面不变量被打破的情况，立即触发响应。这种响应可以集中式（由控制器下发），也可以像 TCP 那样完全分布式。
+## 8 INT 头部与处理规则
 
-::: tip Transit 也可以发起
-虽然上面三种行为通常由 Sink 做，但如果 Transit 节点自己观察到本地的异常（比如队列爆了），它**也可以直接发 OAM 事件**，不必等到 Sink。
-:::
+本节主要讨论 MD/MX 在业务报文中的格式。XD 不需要在被观测报文中放置 INT 头部，但仍需要约定导出的遥测报告。
 
-基于这三类行为，INT 支撑了一批非常实用的上层场景：
+### 8.1 头部类型 {#sec51}
 
-- **排障与性能监测**：路径追踪（Traceroute）、微突发检测、数据包历史记录（即前面提到的"明信片"机制）。
-- **高级拥塞控制**：利用实时遥测比 ECN 更灵敏地调节发送速率。
-- **智能路由**：基于链路利用率做负载均衡，代表方案如 HULA 和 CLOVE。
-- **数据平面验证**：用 INT 轨迹来核对网络实际行为和预期是否一致。
+| Type | 类型            | 用途                                       |
+| ---- | --------------- | ------------------------------------------ |
+| 1    | INT-MD          | 携带采集指令和元数据栈                     |
+| 2    | INT Destination | 用于端到端处理，由 Sink 处理，Transit 忽略 |
+| 3    | INT-MX          | 携带采集指令及可选的源端插入元数据         |
 
-具体用例和评估可以看 _Millions of Little Minions_。
+一个报文可以携带 MD 或 MX 之一，以及可选的 Destination 头部。两者同时出现时，MD/MX 位于 Destination 之前。
 
-<div style="font-family: Times New Roman;">
+v2.1 尚未定义 Destination 头部的具体格式。规范列举了序列号和路径检测等可能用途，这些例子不构成可直接实现的格式定义。利用 IP TTL 和 INT 跳数推断未参与 INT 的设备，还依赖相关设备确实执行三层 TTL 更新等条件。
 
-::: info HULA
-Naga Katta, Mukesh Hira, Changhoon Kim, Anirudh Sivaraman, and Jennifer Rexford. 2016. HULA: Scalable Load Balancing Using Programmable Data Planes. In Proceedings of the Symposium on SDN Research (SOSR '16). ACM, Article 10, 1–12. <https://doi.org/10.1145/2890955.2890968>
-:::
+### 8.2 各角色的处理与权限
 
-::: info CLOVE
-Naga Katta, Aditi Ghag, Mukesh Hira, Isaac Keslassy, Aran Bergman, Changhoon Kim, and Jennifer Rexford. 2017. Clove: Congestion-Aware Load Balancing at the Virtual Edge. In Proceedings of CoNEXT '17. ACM, 323–335. <https://doi.org/10.1145/3143361.3143401>
-:::
+Source 创建头部并设置指令。MD 模式下，它还设置 `Hop ML` 和 `Remaining Hop Count`，并可以写入本地元数据。Transit 按指令处理，Sink 结束 INT 封装并决定是否导出。
 
-::: info Millions of Little Minions
-Vimalkumar Jeyakumar, Mohammad Alizadeh, Yilong Geng, Changhoon Kim, and David Mazières. 2014. Millions of little minions: using packets for low latency network programming and visibility. In Proceedings of SIGCOMM '14. ACM, 3–14. <https://doi.org/10.1145/2619239.2626292>
-:::
+| 字段                               | Source               | Transit                   |
+| ---------------------------------- | -------------------- | ------------------------- |
+| Ver、D、Instruction Bitmap         | 初始化               | 不得改变源端选择          |
+| Hop ML（仅 MD）                    | 设置每跳长度         | 不得修改                  |
+| Remaining Hop Count（仅 MD）       | 设置允许写入的节点数 | 实际压入本地元数据时递减  |
+| E、M（仅 MD）                      | 初始化，E 必须为 0   | 按跳数和 MTU 处理规则置位 |
+| Domain Specific ID、DS Instruction | 按域定义设置         | 不得修改                  |
+| DS Flags                           | 按域定义设置         | 可以按域定义修改          |
 
-</div>
+MX 的源端插入元数据另有可变性规则，见 [§8.7](#sec59)。`DS Flags` 可以修改，不表示 Transit 可以改变 `DS Instruction`。
 
-## 7 能采集哪些元数据？ {#sec4}
+### 8.3 MTU 与封装容量
 
-理论上 INT 什么设备内部状态都能采，但规范优先定义了一组**在多种硬件上都能落地**的基础集合。
+MD 的每跳元数据会增加报文长度，MX 的固定头部和可选源端元数据也会占用空间。是否超过出口 MTU，需要按实际封装计算。
 
-各项元数据的**精确语义**（时间戳单位、跳时延的计算方式、队列深度是字节还是包数……）不同厂商实现未必一致。规范的态度是：**让实现自由，但要把语义通过带外模型共享出去**——IETF 为此在做一份基于 YANG 的元数据语义模型，让收数据的一端能准确解读。
-
-<div style="font-family: Times New Roman;">
-
-::: info YANG model
-p4-dtel-metadata-semantics, <https://github.com/p4lang/p4-applications/blob/master/telemetry/code/models/p4-dtel-metadata-semantics.yang>
-:::
-
-</div>
-
-按采集位置，基础元数据分成三类：
-
-### 7.1 设备级
-
-- **Node ID**：INT 节点在域内的唯一编号，由管理员配置，用于标识数据来源。
-
-### 7.2 入方向
-
-- **Ingress Interface ID**：包进来时用的接口。物理接口可能嵌在 LAG → SVI → Tunnel 这样的多层堆栈里，规范建议最多报两层——物理端口（16 位）和逻辑接口（32 位）。具体报哪一层由节点自己决定。
-- **Ingress Timestamp**：包进入入接口时的本地时间。
-
-### 7.3 出方向
-
-出方向元数据是排障和拥塞控制真正关心的重点：
-
-- **Egress Interface ID**：和入接口同样的两层模型。
-- **Egress Timestamp**：包离开出接口时的本地时间。
-- **Hop Latency**：包在本设备内被处理的时延（收到 → 发出）。
-- **Egress TX Link Utilization**：出接口的实时带宽占用率。具体算法（桶计数 / 滑动平均 / ……）由实现决定，滑动平均效果通常更好。
-- **Queue Occupancy**：当前出队列积压量。4 字节字段，单位是字节 / 包 / 单元由实现决定，语义由 YANG 模型描述。
-- **Buffer Occupancy**：多队列共享缓冲时，整个 Buffer 的积压量，字段和语义约定同上。
-
-::: tip 经验
-排障时最常用的四样是 Node ID、Hop Latency、Queue Occupancy 和 Egress Timestamp——几乎能回答"这个包在哪一跳慢下来的、慢了多少、因为谁在排队"这三个核心问题。
-:::
-
-## 8 INT 头部格式
-
-从这里开始进入"数据平面里真正发生的事"。这一节讲的内容只适用于需要在包里放点东西的 **INT-MX** 和 **INT-MD** 模式（INT-XD 完全不碰包，用不上这一节）。
-
-### 8.1 先整体上认识三种头部 {#sec51}
-
-规范一共定义了三种 INT 头部类型，关系如下：
-
-| 类型 | 谁处理 | 作用 |
-| --- | --- | --- |
-| **MD（Type 1）** | Source / Transit / Sink 都处理 | 承载指令 + 逐跳元数据栈（详见 §8.6） |
-| **MX（Type 3）** | Source / Transit / Sink 都处理 | 只承载指令，元数据直接上报（详见 §8.7） |
-| **Destination（Type 2）** | **仅 Sink 处理**，Transit 必须忽略 | 做"端到端"用途，比如塞序列号检测丢包、用 IP TTL + 剩余跳数对比推断路径上有没有不支持 INT 的设备 |
-
-一个 INT 包里可以带 MD 或 MX 之一，以及（可选的）一个 Destination 头部。如果两个都带，**MD/MX 必须在 Destination 前面**。Destination 头部的具体格式留待后续版本定义。
-
-### 8.2 每一跳要做什么
-
-按角色拆开看：
-
-**Source 节点**：在路径起点，负责**构造** INT-MD / INT-MX 头部。MD 模式下还要附上自己的那份元数据；同时强烈建议设好 **Remaining Hop Count**，给后续 Transit 能写的条数上一个上限，防止环路把栈写爆。
-
-**Transit 节点**：
-
-- MD 模式：按指令把自己这一跳的元数据**压栈**进 INT 头部，并**递减** Remaining Hop Count。
-- MX 模式：按指令采集本地元数据，**通过遥测报告**送回监控系统。
-- 两种模式下，都**可以**改 `DS Flags`，但**不允许**改 `Hop ML`、`Instruction Bitmap`、`Domain Specific ID`、`DS Instruction`——这些由 Source 定调，沿路不能篡改。
-
-**Sink 节点**：
-
-- MD 模式：剥掉 INT 头部和整个元数据栈，视需要上报。
-- MX 模式：剥掉 INT-MX 头部，采集本地元数据，视需要上报。
-
-### 8.3 MTU：INT 会不会把包撑爆？
-
-MD 模式下，每加一跳就往包里塞一段元数据，包会越走越长，撞上出口链路 MTU 几乎是必然。规范给了几种应对：
-
-**方案 A（推荐）：提前留出余量**。Source 和 Sink 之间的链路 MTU 配得比服务器/虚机网卡的 MTU 多出一块：
+对采用 4 字节 shim/选项头、12 字节 INT 元数据头的封装，基本增量为：
 
 ```text
-MD 模式需要预留：
-    Hop ML × 4 × 最大 INT 跳数 + 固定 INT 头部长度  字节
-
-MX 模式只需预留：
-    固定 INT 头部长度  字节
+MD 增量 = 4 + 12 + Hop ML × 4 × 写入节点数 + 源端专用元数据长度
+MX 增量 = 4 + 12 + 源端插入元数据长度
 ```
 
-固定 INT 头部长度 = 12 字节（INT 元数据头） + 4 字节（封装特定的 shim/选项头），共 16 字节（详见 §8.5）。
+这里没有计入新增 IP、UDP、GRE 等封装头，也没有计入探测标记。仅在不增加这些内容时，固定 INT 开销才是 16 字节。建议为域内链路预留足够余量，并按可能写入的最大节点数计算。
 
-**方案 B：参与 Path MTU Discovery**。Source 或 Transit 可以按 IPv4（RFC 1191）/ IPv6（RFC 1981）的机制，向流量源发 ICMP 报告一个**保守的** MTU 估算值——假设下游每一跳都会继续写满。这样源端能尽快收敛，代价是估得偏紧。更激进的做法是每一跳只报自己这段增量，估算更准但 ICMP 会更多。
+Source 和 Transit 也可以参与 Path MTU Discovery，向流量源报告扣除 INT 增量后的可用 MTU。IPv4 的机制见 [RFC 1191](https://doi.org/10.17487/RFC1191)，IPv6 见 [RFC 8201](https://doi.org/10.17487/RFC8201)，后者取代了 INT v2.1 引用的 RFC 1981。估计下游增量时，应说明采用的跳数和链路 MTU 假设。
 
-**真的写不下怎么办？** 如果某 Transit 插入全部请求的元数据会让包超 MTU，它必须二选一：
+若 Transit 无法在出口 MTU 内插入全部请求的元数据，规范要求选择以下一种处理：
 
-1. **啥也不插**，但要在 INT 头部把 **M 位**置 1，标识"此跳 MTU 超限"。
-2. **先把栈里前几跳的元数据报告出去**（如果是 Telemetry Report 2.0，同时置 Intermediate Report 位），然后把栈清空，再把本跳元数据填上，让后续跳继续用。
+1. 不插入本跳元数据，将 M 位置 1，不递减 `Remaining Hop Count`。
+2. 导出先前各跳的元数据栈并从业务报文中移除。本跳元数据可以放入该报告，也可以重新写入业务报文。采用 Telemetry Report v2.0 时，应设置其 Intermediate Report 位。
 
-Source 自己也可能遇到 MTU 问题。如果连 12 字节的固定 INT 头都塞不下，这个包就不能启动 INT；如果头塞得下但自己的元数据塞不下，就正常启动 INT，但把 **M 位**置 1。
+M 位表示至少有一跳因 MTU 限制未写入元数据，不能单凭它判断具体缺失节点。后续节点如果有足够空间，仍可继续写入。
 
-::: warning 不要用 IP 分片绕开 MTU
-理论上 Transit 可以用 IPv4 分片绕开出口 MTU，但：（1）分片对应用不友好；（2）IPv6 中间节点根本不允许分片；（3）带 INT 元数据的分片会让后端聚合逻辑变得非常复杂。**规范建议 INT 节点不对数据包做分片**。
+Source 也要检查实际封装开销。若固定封装和 INT 头部已经无法容纳，就不能为该报文启动 INT。若固定头部可以容纳，但配置要求插入的源节点元数据无法容纳，则启动 INT 并将 M 位置 1。
+
+::: warning 分片限制
+INT 节点不得为了追加 INT 信息而对报文分片。这是规范要求，不是一般性的建议。
 :::
 
-### 8.4 拥塞与校验和：别把网络搞乱
+MTU 之外还有封装自身的长度上限。例如，Geneve 的单个选项使用 5 位 Length，以 4 字节为单位，选项数据最多为 124 字节，不含 4 字节选项头。整个 INT-MD 元数据头和栈必须装入同一个选项。因此即使链路 MTU 足够大，也要相应限制 `Remaining Hop Count`。
 
-**拥塞**。INT 封装本身**不应加剧拥塞**。TCP / SCTP / DCCP / QUIC 自带拥塞控制；UDP 没有，这就要求应用层自己限流。规范明确**建议不要**对已知没有拥塞控制的流量启用 INT（参见 RFC 8085 §3.1.11），并应提供基于 IP 协议号 / L4 端口的 ACL 过滤。运营者如果一定要开，必须自己评估影响，辅以容量规划、流量工程、速率限制。
+GRE、TCP/UDP、VXLAN-GPE 的 INT shim 则使用 8 位 Length。据其位宽和长度单位计算，INT 元数据头及后续元数据最多为 `255 × 4 = 1020` 字节，不含 4 字节 shim。配置跳数时同样要遵守这一上限，不能只检查链路 MTU。
 
-**校验和**。INT 头部经常会承载在 TCP/UDP 或含 L4 的封装（如 VXLAN）里。只要 INT 节点**改了 L4 有效载荷**（插入或删除元数据），就**必须更新 TCP/UDP 校验和**。
+### 8.4 拥塞、长度字段与校验和
 
-几个例外：
+INT 会增加业务报文或导出报告的带宽开销。规范建议不要对已知缺乏拥塞控制的流量启用 INT，并提供基于 IP 协议号或传输层端口的过滤能力。UDP 本身没有拥塞控制，但使用 UDP 的应用可能实现自己的控制机制。部署时还需限制报告流量，避免观测开销反过来影响被观测网络。UDP 使用指南见 [RFC 8085 §3.1.11](https://www.rfc-editor.org/rfc/rfc8085.html#section-3.1.11)。
 
-- IPv4 上的 UDP 允许校验和为 0（RFC 768）——收到零校验和就别动它。
-- IPv6 上的 UDP 有些场景也允许零校验和（RFC 6936）——同样别动。
+插入、删除或更新 INT 内容后，节点必须处理受影响的协议字段，包括相应的 IP 长度、UDP 长度和校验和。IPv4 头部中的长度等字段发生变化时，需要更新 IPv4 头部校验和。若改变 IP Protocol 或 IPv6 Next Header，也要检查封装和传输层伪首部的关系，不能只处理新增的元数据字节。
 
-更新校验和有两种做法：
+对于需要校验的 TCP/UDP 报文，INT 内容改变校验和覆盖的数据后，必须保持校验和正确。合法使用零校验和的 IPv4 UDP 报文应保留零值。IPv6 UDP 通常必须计算校验和，仅符合 [RFC 6935](https://doi.org/10.17487/RFC6935) 和 [RFC 6936](https://doi.org/10.17487/RFC6936) 条件的特定隧道场景可使用零校验和，不能把任意 IPv6 UDP 零校验和报文视为合法。
 
-1. **直接改**：重新算出正确的 L4 校验和写进去。
-2. **Checksum Complement 中性更新**：Source 在指令位里允许后，Source 或 Transit 插入一个补偿字段，让整个 L4 载荷的校验和"看起来像是没变"，原 L4 校验和字段完全不动。Checksum Complement 必须是元数据栈里的**最后一项**。
+Source 和 Transit 可以采用两种更新方式：
 
-::: warning Sink 不能用 Checksum Complement
-Sink 会把 INT 字段全部剥掉，补偿字段也跟着没了，只能走"直接改校验和"这条路。
-:::
+- 更新传输层校验和字段，使其与修改后的报文一致。
+- 在 MD 的 bit 15 指令已置位时，使用 Checksum Complement 补偿 INT 相关变化，保持原传输层校验和字段不变。该补偿项按规范放在元数据栈的最后。
 
-无论哪种方式，都建议使用**增量校验和算法**，并在重算前先**验证一次已有的校验和**——防止掩盖前一跳发生的损坏。
+若已请求 Checksum Complement，但节点选择直接更新校验和字段，补偿字段必须填保留值 `0xFFFFFFFF`。MX 不定义这项指令。Sink 会移除 INT 内容，不能用即将被移除的补偿字段实现这种中性更新，需要更新相应校验和字段。
 
-### 8.5 INT 头部放在哪里？ {#sec57}
+增量更新可以保留对先前数据损坏的检测能力，算法可参考 [RFC 1624](https://doi.org/10.17487/RFC1624)。如果节点选择重新计算完整校验和，规范建议先验证原校验和，避免为已经损坏的报文重新生成有效校验和。
 
-规范**不限制** INT 头部的绝对位置，只要求：封装层留出足够空间、域内所有节点对位置达成一致。自 v2.0 起，规范推荐以下几种典型组合：
+### 8.5 封装位置与识别方式 {#sec57}
 
-- **INT over IPv4/GRE**：插在 GRE 头与被封装的负载之间。
-- **INT over TCP/UDP**：L4 头之后加 shim 层，再放 INT 头；或在原 L4 头前**再加一层 UDP**，然后放 INT 头。后者不需要任何隧道或虚拟化，原生和虚拟流量都能用。
-- **INT over VXLAN**：借助 VXLAN 的 GPE 扩展，插在 VXLAN 头与负载之间。
-- **INT over Geneve**：作为 Geneve 选项字段插入，这是 Geneve 最自然的用法。
-- **INT over NSH**：作为 NSH 负载插入。
+INT 头部的位置由封装约定决定，域内节点必须使用一致的识别和解析规则。v2.1 给出了以下四种具体格式，也讨论了其他封装的可能性：
 
-### 8.6 深入 INT-MD 头部 {#sec58}
+| 封装      | INT 所在位置                                                         |
+| --------- | -------------------------------------------------------------------- |
+| IPv4/GRE  | GRE 头部之后、被封装负载之前，使用 INT shim                          |
+| TCP/UDP   | TCP/UDP 头部之后，使用 INT shim。也可以在原传输层报文前增加 UDP 封装 |
+| VXLAN-GPE | 利用 GPE 扩展和 INT shim，位于 VXLAN-GPE 头部与内部负载之间          |
+| Geneve    | 放在 Geneve 选项中                                                   |
 
-INT-MD 头固定 12 字节，后面跟一个**可变长度**的元数据栈：
+不能将普通 VXLAN 与 VXLAN-GPE 的 INT 处理混为一谈。NSH 等其他承载方式也可讨论，但不属于 v2.1 在本节详细定义的四种格式。
 
-```text
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|Ver = 2|D|E|M|       Reserved        | Hop ML  |RemainingHopCnt|
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|        Instruction Bitmap     |        Domain Specific ID     |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|           DS Instruction      |            DS Flags           |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|          INT 元数据堆栈（每跳 Hop ML × 4 字节）                 |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                         ......                                |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                     最后一跳 INT 元数据                        |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-```
+TCP/UDP 承载还需要区分 INT 与普通流量。规范讨论了约定 UDP 目的端口、DSCP 标记和 64 位探测标记三种办法，并强烈建议一个 INT 域使用一致的机制。某些码点在 v2.1 文档中仍标为待分配，不能据此宣称存在统一的默认 INT UDP 端口。
 
-#### 字段拆解
+这些方案会影响业务语义。改 UDP 目的端口可能改变 ECMP 哈希，使用 DSCP 标记需要与 QoS 分类协调。新增 UDP 封装也可能改变路径选择。INT 记录的是实际经过的路径，不能自动保证它与未插入 INT 的报文路径相同。
 
-先看控制部分：
+对于规范中的 shim/选项 Length 字段，其单位是 4 字节，计入 INT 元数据头及后续元数据，不计入 shim/选项头自身。GRE、TCP/UDP、VXLAN-GPE 的 INT shim 为 4 字节，Geneve 的选项头也是 4 字节，但各自 Length 字段的位宽和其他字段定义不同。
 
-- **Ver（4 位）**：版本号，当前固定为 2。
-- **D（1 位）**：Discard，置 1 时 Sink 在提完数据后直接丢包。
-- **E（1 位）**：Exceeded，当 `RemainingHopCnt` 已经降到 0、当前节点又想写元数据时置 1。Source 初始化为 0。
-- **M（1 位）**：MTU Exceeded，当前节点写不下（§8.3）就置 1 并不插任何元数据。
-- **Reserved（12 位）**：Source 写 0，其他节点忽略。
-- **Hop ML（5 位）**：Hop Metadata Length，以 4 字节为单位，规定每个 Transit 要写多长的元数据（不含"源端专用"部分），由 Source 设定。
-- **RemainingHopCnt（8 位）**：剩余还能写几跳。每个实际写入的节点把它减一；为 0 时不得再写。
+TCP/UDP shim 的 NPT（Next Protocol Type）为 2 位。使用 UDP 目的端口识别 INT 时，NPT=1 表示保存了原 UDP 目的端口，NPT=2 表示保存了原 IP 协议号，Sink 必须据此恢复。使用 DSCP 或探测标记时 NPT 必须为 0，此时 shim 可以保存原 DSCP，是否恢复 DSCP 由部署约定决定。不能只删除 INT 字节而保留错误的协议标识。
 
-再看指令部分：
+### 8.6 INT-MD 元数据头 {#sec58}
 
-- **Instruction Bitmap（32 位）**：标准元数据的位图，每个 bit 对应 §7 里的一个字段。
-- **Domain Specific ID / DS Instruction / DS Flags**：成对工作。DSID = 0x0000 表示默认域，此时 DS Instruction 无效；否则用 0x0001–0xFFFF 由运营者自行分配。DS Instruction 里有些位可以被定义成"仅源端插入"，只有 Source 写。
+MD 固定元数据头为 12 字节，按网络字节序包含三个 32 位字。下表中的字段从高位到低位排列，随后是可变长度元数据栈。
 
-#### 元数据栈：压栈顺序和对齐
+| 字  | 字段及位宽                                                                |
+| --- | ------------------------------------------------------------------------- |
+| 0   | Ver：4，D：1，E：1，M：1，Reserved：12，Hop ML：5，Remaining Hop Count：8 |
+| 1   | Instruction Bitmap：16，Domain Specific ID：16                            |
+| 2   | DS Instruction：16，DS Flags：16                                          |
 
-栈里的内容由沿路节点按 Instruction Bitmap 和 DS Instruction 里**置位的顺序**写入。每跳**往栈顶压**（push），因此最先到达接收端视角的栈顶对应的是**最后一跳**。Checksum Complement 如果有，必须是栈中最后一项。
+#### 控制字段
 
-栈总长度必须是 `Hop ML × 4` 的整数倍（加上可选的源端专用元数据），可以用下式反推：
+- `Ver` 为 2，表示 INT v2.x 的头部版本，不是把规范次版本号 2.1 写进字段。
+- D 为 Discard。置 1 时，Sink 提取 INT-MD 元数据后必须丢弃报文。
+- E 表示跳数上限已阻止节点继续写入。Source 必须初始化为 0，节点因 `Remaining Hop Count` 为 0 而无法写入时置 1。最后一次允许的写入将计数减到 0，本身不意味着 E 必须置 1。
+- M 表示因 MTU 限制未能插入元数据，处理方式见 §8.3。
+- Reserved 建议由 Source 置 0，其他节点忽略。
+- `Hop ML` 是每跳元数据长度，单位为 4 字节，包含每跳域专用元数据及已请求的 Checksum Complement，不含 source-only 部分。5 位字段的最大值是 31，即每跳最多 124 字节。
+- `Remaining Hop Count` 表示还允许多少个节点压入本地元数据，不是 IP 跳数。Source、Transit，以及采用压栈方式的 Sink，在实际写入时都要递减。未写入的节点不得递减。
 
-```text
-INT 元数据总长度 = (INT Shim Header 长度 × 4) - 12   字节
-```
+#### 标准指令位图
 
-#### 几个实现上的特殊情况
+`Instruction Bitmap` 为 16 位，bit 0 是最高位，掩码为 `0x8000`。各项默认格式如下，MX 与 MD 的 bit 15 定义不同。
 
-- **某字段拿不到？** 写保留值（4 字节 `0xFFFFFFFF`，或 8 字节全 `0xFF`）表示"无效"。
-- **DSID 不认识怎么办？** 二选一：填保留值占位、或整个跳过 INT 处理。
-- **资源受限节点**：可以只插部分字段，剩余部分用保留值填满到 Hop ML × 4；连一整段都写不下就直接跳过。
-- **没写元数据的节点**：**不得**递减 RemainingHopCnt——保持语义一致。
+| bit     | 元数据                                     | 字节数                            | MX 中的定义 |
+| ------- | ------------------------------------------ | --------------------------------- | ----------- |
+| 0       | Node ID                                    | 4                                 | 相同        |
+| 1       | Level 1 入接口 ID：16 位，出接口 ID：16 位 | 4                                 | 相同        |
+| 2       | Hop Latency                                | 4                                 | 相同        |
+| 3       | Queue ID：8 位，Queue Occupancy：24 位     | 4                                 | 相同        |
+| 4       | Ingress Timestamp                          | 8                                 | 相同        |
+| 5       | Egress Timestamp                           | 8                                 | 相同        |
+| 6       | Level 2 入接口 ID：32 位，出接口 ID：32 位 | 8                                 | 相同        |
+| 7       | Egress TX Link Utilization                 | 4                                 | 相同        |
+| 8       | Buffer ID：8 位，Buffer Occupancy：24 位   | 4                                 | 相同        |
+| 9 至 14 | 保留                                       | 置位时按 4 字节占位或跳过整跳处理 | 保留        |
+| 15      | Checksum Complement                        | 4                                 | 保留        |
 
-#### Sink 插自己数据的两种风格
+Queue/Buffer 的默认 4 字节格式包含 ID 和占用量，不能说占用量本身有 4 字节。实现需要其他语义时，必须让接收端知道对应约定。
 
-Sink 也要记录自己这一跳的遥测，有两种做法：
+#### 域专用字段
 
-1. **像 Transit 那样压进栈里**：最终作为遥测报告里的截断片段发出。
-2. **塞进遥测报告的"可选基础元数据 / 可选域专用元数据"字段**（MX 风格，详见 §8.7）：如果用这种方式，就不再适用 Checksum Complement，其对应位应清零；但源端专用元数据仍然会出现在截断栈里。
+`Domain Specific ID`、`DS Instruction`、`DS Flags` 都是 16 位。DSID 为 `0x0000` 时，所有 DS Instruction 位都按保留位处理。其他值由运营者在 `0x0001` 至 `0xFFFF` 范围内分配。
 
-::: warning
-一个 INT 节点**实现上只能二选一**，但接收端的遥测收集系统**两种都要能解析**。
-:::
+域专用指令需要定义字段的格式、长度和语义。MD 中也可以定义 source-only 字段，仅由 Source 插入。其长度不计入 `Hop ML`，但必须计入封装 Length。
 
-#### 字段修改权限速查
+#### 栈顺序、长度与缺失值
 
-| 字段 | Source | Transit |
-| --- | --- | --- |
-| Ver / D / M / Hop ML / RemainingHopCnt / Instruction Bitmap | **必须设** | 只能按规则改 E / M / RemainingHopCnt / DS Flags |
-| Domain Specific 相关字段 | 可选设 | **不得修改** |
-
-### 8.7 深入 INT-MX 头部 {#sec59}
-
-INT-MX 头同样是 12 字节的固定头，后面跟**可选的**源端插入元数据（变长，4 字节对齐）：
+各节点在固定元数据头之后插入自己的元数据块，放在上游已插入的块之前。每块内部按指令位号的顺序排列基础和域专用字段，Checksum Complement 按规范最后放置。没有 source-only 或补偿项时，S、T1、T2 的排列可以直接写成：
 
 ```text
-  0                   1                   2                   3
-  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- |Ver = 2|D|                  Reserved                           |
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- |      Instruction Bitmap       |    Domain Specific ID (16b)   |
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- |      DS Instruction (16b)     |        DS Flags               |
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- |   可选：域专用 Source-Inserted Metadata（变长，4B 对齐）       |
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+INT 固定元数据头 | T2 元数据 | T1 元数据 | S 元数据 | 原业务负载
 ```
 
-相对 MD 头，少了 `Hop ML` 和 `RemainingHopCnt`——因为 MX 模式下根本不往包里压数据栈。
+若共有 n 个节点写入，source-only 长度为 s，则：
 
-#### Instruction Bitmap 的含义
+```text
+栈长度 = n × Hop ML × 4 + s
+栈长度 = Length 字段值 × 4 - 12
+```
 
-每一位对应 §7 中的一类标准元数据，常见位分配：
+第二式适用于前述 Length 语义，式中的 Length 是字段值，不是 shim 自身的 4 字节长度。
 
-| bit | 含义 |
-| --- | --- |
-| 0 | Node ID |
-| 1 | 一级入/出端口 ID |
-| 2 | Hop Latency |
-| 3 | Queue ID + 队列占用率 |
-| 4 / 5 | 入/出时间戳（各 8 字节） |
-| 6 | 二级端口 ID（入 + 出） |
-| 7 | 出端口利用率 |
-| 8 | Buffer ID + Buffer 占用率 |
-| 9 – 14 | 其他基础位 |
-| 15 – 31 | 保留 |
+某项元数据不可取得时，必须在该项位置填充全 1 的保留值，长度为该字段的 4 或 8 字节。对于不理解的保留指令位，节点可以填 4 字节全 1，也可以跳过整跳 INT 元数据写入。
 
-每个置位对应采 4 或 8 字节的元数据。
+若不认识 DSID，节点必须在域专用部分填全 1，或跳过整跳处理。域专用每跳长度可以由 `Hop ML × 4` 减去位图要求的基础元数据长度推得，计算时也要计入已请求的补偿项。
 
-#### DS Instruction 的两种子模式
+资源受限的节点也必须保持完整布局。能处理部分指令时，其余位置填全 1，使写入长度仍为 `Hop ML × 4`。若连完整块都无法插入，则不插入任何本跳元数据，不得缩短块后继续压栈，也不得递减剩余计数。
 
-域专用指令位可以按两种语义使用：
+#### Sink 的本地元数据
 
-- **Export 模式**：节点按指令采数据，然后上报。
-- **Source-Inserted 模式**：源节点把元数据塞进包里，由**谁**消费则由策略决定：
-  - **All Nodes**：所有节点都要上报一份。
-  - **Sink Node**：只有 Sink 上报。
-  - **None**：只在网络内部用（比如引导路径决策），谁也不上报。
-- **源端插入元数据的可变性**：
-  - **Source-Only**：Source 写了就不能再改。
-  - **Cumulative**：Transit 和 Sink 可以更新或覆盖。
+Sink 可以采用以下两种形式：
 
-#### 节点的处理流程
+1. 按 Transit 规则将本地元数据压入 MD 栈，再把栈放入报告，通常作为截断报文片段的一部分。
+2. 将本地元数据放入报告的 `Variable Optional Baseline Metadata` 和 `Variable Optional Domain Specific Metadata` 字段。source-only 数据仍随 MD 栈报告。
 
-每一个 MX 节点（Source / Transit / Sink）都按下面的套路产遥测报告：
+第二种形式中，`RepMdBits` 的 bit 15 不表示 Checksum Complement，正常本地遥测应清除它。丢包报告可使用该位表示丢包相关信息，详见 §9。规范预期单个实现通常采用其中一种形式，并建议监控系统支持两种解析方式，没有要求实现只能支持一种。
 
-1. **复制位图**：把 INT-MX 头部里的 `Instruction Bitmap` / `DS Instruction` 复制到遥测报告的 `RepMdBits` / `DSMdBits`。
-2. **特殊处理**：
-   - Instruction Bitmap 里置了 bit 0（Node ID），那就**清除** `RepMdBits` 中的 bit 0——Node ID 已经在遥测报告通用头里带了，避免重复。
-   - 本地采不到的字段，对应位在遥测报告里清掉。
-3. **DSID 不认识**：二选一——只报标准元数据并把 `DSMdBits` 清零；或干脆什么都不发。
-4. **处理 Source-Inserted Metadata**：如果策略要求"All Nodes"或"Sink Node"上报，节点尽力把它带进遥测报告。两种方式：
-   - 把原始 INT-MX 头（含源插入元数据）嵌进遥测报告的 Individual Report 内容里。
-   - 解析后填入遥测报告的 `Variable Optional Domain Specific Metadata` 字段（需要知道对应 DSID 和 DSMdBits 的定义，以保证顺序）。
+#### 一个长度算例
 
-   ::: warning
-   如果没走方式 2，就必须把对应的 `DSMdBits` 清除。两种方式可以并存，但**一个节点通常只用其中之一**。域管理员将来定义新的 source-inserted 元数据时，要谨慎处理保留位。
-   :::
-5. **资源限制**：能报多少报多少，相应更新 `RepMdBits` / `DSMdBits`。
-6. **长度字段**：遥测报告里的 `MD Length`、`Variable Optional Baseline Metadata`、`Variable Optional Domain Specific Metadata` 都由上面这两个位图算出来。
+只采集 Node ID、Hop Latency 和 Queue ID/Occupancy，启用 bit 0、2、3，则位图为 `0xB000`，`Hop ML = 3`，每跳写入 12 字节。不使用域专用数据、补偿项或额外探测标记，Source 初始设置 `Remaining Hop Count = 4`。
 
-#### 字段修改权限速查
+| 处理后的位置            | 已写入块数 | Remaining Hop Count | 栈长度  | Length 字段值 | shim 加 INT 头及栈 |
+| ----------------------- | ---------- | ------------------- | ------- | ------------- | ------------------ |
+| S                       | 1          | 3                   | 12 字节 | 6             | 28 字节            |
+| T1                      | 2          | 2                   | 24 字节 | 9             | 40 字节            |
+| T2                      | 3          | 1                   | 36 字节 | 12            | 52 字节            |
+| D，采用压栈后报告的形式 | 4          | 0                   | 48 字节 | 15            | 64 字节            |
 
-| 字段 | Source | Transit |
-| --- | --- | --- |
-| Ver / D / Instruction Bitmap | **必须设** | 不得修改 |
-| Domain Specific ID / DS Instruction / Source-Inserted Metadata | 可选设 | 不得修改 |
-| DS Flags | — | **可改** |
+此时 E 仍可为 0，因为没有节点因计数耗尽而被拒绝写入。D 的报告栈顺序是 D、T2、T1、S，业务报文随后移除 INT 内容。表中的 64 字节不是报告的完整长度，报告另有头部和封装开销。
 
-INT 元数据总长度必须是 **4 字节的倍数**，这是硬性要求。
+若在已有 TCP/UDP 头之后插入这种 INT 内容，并保守地按四个写入节点预留空间，1500 字节的原 IP 报文需要 1564 字节的容量。上例中 D 压栈后即导出，D 的本地块不必继续随业务报文转发。若改用 Geneve 选项，即使 MTU 足够大，12 字节元数据头加每块 12 字节的栈也最多容纳 9 块，因为 `12 + 9 × 12 = 120`，而 10 块需要 132 字节，超过选项数据的 124 字节上限。
 
-## 9 小结
+### 8.7 INT-MX 元数据头 {#sec59}
 
-1. **INT 的核心观点**：把采集动作放进数据平面、放进每个包本身，而不是从外面问设备。
-2. **三角色**：Source 写头，Transit 盖章（或上报），Sink 剥头上报。一个物理设备可以同时扮演多个角色。
-3. **三模式**：XD 什么都不嵌，MX 只嵌指令，MD 指令+数据栈都嵌。三者是**监控后端聚合复杂度** vs **数据包侵入度**的权衡。
-4. **元数据**：Node ID、出/入口 ID + 时间戳、Hop Latency、Queue/Buffer 占用率是最常用的几样，单位语义靠带外 YANG 模型对齐。
-5. **工程注意**：MTU（建议预留 + PMTUD）、L4 校验和（直接改或 Checksum Complement）、拥塞（对无拥塞控制流量慎开）。
+MX 固定元数据头同样为 12 字节，其后可以跟随域专用的源端插入元数据。
+
+| 字  | 字段及位宽                                     |
+| --- | ---------------------------------------------- |
+| 0   | Ver：4，D：1，Reserved：27                     |
+| 1   | Instruction Bitmap：16，Domain Specific ID：16 |
+| 2   | DS Instruction：16，DS Flags：16               |
+
+`Ver` 为 2，D 为 1 时，Sink 必须在发送所请求的遥测数据后丢弃报文。Reserved 建议置 0。MX 不含 `Hop ML` 和 `Remaining Hop Count`，其标准位图的 bit 0 至 8 与 MD 相同，bit 9 至 15 保留，也不支持 MD 的 Checksum Complement 指令。
+
+#### 域专用指令与源端插入元数据
+
+DSID、DS Instruction 和 DS Flags 的宽度及默认域规则与 MD 相同。定义每个 MX 域专用指令时，还需要说明以下属性：
+
+| 属性                       | 可选定义                                                                                 |
+| -------------------------- | ---------------------------------------------------------------------------------------- |
+| 指令模式                   | Export：各节点采集并导出本地字段。Source-Inserted：Source 将字段写入业务报文             |
+| Source-Inserted 的报告要求 | All Nodes：建议所有节点报告。Sink Node：建议仅 Sink 报告。None：无需导出，供域内处理使用 |
+| Source-Inserted 的可变性   | Source-Only：Transit 和 Sink 不得改值。Cumulative：Transit 和 Sink 可以按定义更新或替换  |
+
+源端插入元数据位于 DS Instruction、DS Flags 之后，长度必须计入封装的 Length，并与其 4 字节长度单位一致。由每跳导出的域专用元数据长度必须为 4 字节的倍数，格式和排列顺序由域定义确定。
+
+#### 报告生成
+
+支持 MX 的 Source、Transit 和 Sink 根据指令生成自己的报告，采用 Telemetry Report v2.0 时按下列规则处理：
+
+1. 将 Instruction Bitmap 和 DS Instruction 分别复制到 `RepMdBits` 和 `DSMdBits`，再按实际报告内容调整。
+2. 清除 `RepMdBits` 的 bit 0。报告节点的 Node ID 已在公共的 Report Group Header 中，不在可选基础元数据中重复携带。
+3. 对本地不可取得的字段或不支持的保留指令，清除相应位，不把全 1 占位值当成已提供的报告字段。这与 MD 栈的固定长度占位规则不同。
+4. 若不认识 DSID，可以只报告基础元数据并清零 `DSMdBits`，也可以不生成本节点报告。
+5. 按域定义尽力报告 Source-Inserted 内容。它可以随内部报文片段携带，也可以解析后复制到 `Variable Optional Domain Specific Metadata`。未复制到这个可选字段的源端插入项，必须清除对应 `DSMdBits`，即使它仍出现在内部报文片段中。
+6. 资源只允许报告部分元数据时，保留实际提供字段对应的位，并据此更新元数据长度。
+
+源端插入内容的两种报告形式可以同时使用。接收端应解析位图实际指示的字段，并区分报告自身的元数据与内部报文中保留的 INT 内容。
+
+## 9 Telemetry Report 的解析边界
+
+Telemetry Report v2.0 的公共 Report Group Header 包含报告节点的 Node ID，之后可以携带一个或多个 Individual Report。报告包与业务报文不是同一层封装，不能把业务报文中的 INT 头部直接当成报告头。
+
+对于 `RepType = 1` 的 INT 报告，Individual Report 的首个 4 字节之后，Main Contents 的固定部分为 8 字节，包含 `RepMdBits`、DSID、`DSMdBits`、`DSMdstatus`，每个字段都是 16 位。其后是可选元数据，再后面是由 InType 指定的内部内容，例如截断的业务报文。
+
+| 字段          | 含义                                                                                                                                                                     |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| RepMdBits     | 可选基础元数据的存在位图。bit 0 保留，bit 1 至 8 对应基础字段，bit 9 至 14 保留，bit 15 表示 Queue ID、Drop Reason 和填充组成的 4 字节丢包信息                           |
+| DSMdBits      | 可选域专用元数据的存在位图，取值必须与实际携带字段一致                                                                                                                   |
+| MD Length     | 可选基础元数据与可选域专用元数据的总长度，以 4 字节为单位。不含 Main Contents 的固定 8 字节，也不含内部报文片段                                                          |
+| Report Length | 从首个 4 字节之后开始计算的 Individual Report 长度，以 4 字节为单位，包含 Main Contents 和 Inner Contents。`0xFF` 是特殊值，表示长度至少为 255 个字并延伸至 UDP 负载末尾 |
+| D             | Dropped，表示命中监控规则的报文发生丢包，不是业务 INT 头部中的 Discard 指令                                                                                              |
+| I             | Intermediate Report，表示 Transit 导出的 MD 中间报告                                                                                                                     |
+
+报告的 `RepMdBits` 与业务报文的 Instruction Bitmap 都是 16 位，但 bit 0、bit 15 的语义不同。报告的 `MD Length` 与 shim 的 `Length` 也统计不同内容。解析器必须依据报告类型、存在位图、长度和域定义定位字段，不能将这些名称相近的字段混用。
+
+最后还要检查报告是否被截断或丢失。MD 的 E/M 标志能说明部分采集限制，但不能证明整条路径已被覆盖。MX/XD 则需要额外的逐包关联方法。实验中应同时记录采样规则、元数据单位、时钟条件、封装方式和报告策略，才能解释观测结果。
