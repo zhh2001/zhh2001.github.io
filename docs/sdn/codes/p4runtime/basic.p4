@@ -5,13 +5,13 @@ const bit<9> CPU_PORT = 510;
 
 @controller_header("packet_out")
 header packet_out_t {
-    @controller_metadata("egress_port") bit<9> egress_port;
+    bit<9> egress_port;
     bit<7> reserved;
 }
 
 @controller_header("packet_in")
 header packet_in_t {
-    @controller_metadata("ingress_port") bit<9> ingress_port;
+    bit<9> ingress_port;
     bit<7> reserved;
 }
 
@@ -101,8 +101,12 @@ control MyVerifyChecksum(inout headers_t hdr, inout metadata_t meta) {
 control MyIngress(inout headers_t hdr,
                   inout metadata_t meta,
                   inout standard_metadata_t standard_metadata) {
-    action ipv4_forward(bit<48> dst_addr, bit<9> port) {
-        hdr.ethernet.src_addr = hdr.ethernet.dst_addr;
+    action drop() {
+        mark_to_drop(standard_metadata);
+    }
+
+    action ipv4_forward(bit<48> dst_addr, bit<48> src_addr, bit<9> port) {
+        hdr.ethernet.src_addr = src_addr;
         hdr.ethernet.dst_addr = dst_addr;
         hdr.ipv4.ttl = hdr.ipv4.ttl - 1;
         standard_metadata.egress_spec = port;
@@ -111,6 +115,7 @@ control MyIngress(inout headers_t hdr,
     action send_to_controller() {
         hdr.packet_in.setValid();
         hdr.packet_in.ingress_port = standard_metadata.ingress_port;
+        hdr.packet_in.reserved = 0;
         standard_metadata.egress_spec = CPU_PORT;
     }
 
@@ -121,14 +126,21 @@ control MyIngress(inout headers_t hdr,
         actions = {
             ipv4_forward;
             send_to_controller;
-            NoAction;
+            drop;
         }
         size = 1024;
-        default_action = NoAction();
+        default_action = drop();
     }
 
     apply {
-        if (hdr.packet_out.isValid()) {
+        // This example supports IPv4 headers without options only.
+        if (standard_metadata.parser_error != error.NoError ||
+            standard_metadata.checksum_error != 0 ||
+            (hdr.ipv4.isValid() &&
+             (hdr.ipv4.version != 4 || hdr.ipv4.ihl != 5 ||
+              hdr.ipv4.total_len < 20))) {
+            drop();
+        } else if (hdr.packet_out.isValid()) {
             standard_metadata.egress_spec = hdr.packet_out.egress_port;
             hdr.packet_out.setInvalid();
 
@@ -137,9 +149,16 @@ control MyIngress(inout headers_t hdr,
             if (standard_metadata.egress_spec == CPU_PORT) {
                 hdr.packet_in.setValid();
                 hdr.packet_in.ingress_port = CPU_PORT;
+                hdr.packet_in.reserved = 0;
             }
         } else if (hdr.ipv4.isValid()) {
-            ipv4_lpm.apply();
+            if (hdr.ipv4.ttl <= 1) {
+                drop();
+            } else {
+                ipv4_lpm.apply();
+            }
+        } else {
+            drop();
         }
     }
 }
