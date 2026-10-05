@@ -8,21 +8,23 @@
 ![GitHub Repo stars](https://img.shields.io/github/stars/zhh2001/zhh2001.github.io?style=for-the-badge&logo=refinedgithub)
 ![VitePress](https://img.shields.io/github/package-json/dependency-version/zhh2001/zhh2001.github.io/dev/vitepress?style=for-the-badge&logo=vitepress)
 
-欢迎访问我的个人学习笔记网站！这里涵盖了编程、科研和其他技术领域的学习记录与总结。
+这个仓库存放我的个人学习笔记，主要记录软件定义网络与可编程数据平面的学习和实验，也整理 Go 后端开发、数据库及 LaTeX 学术写作中的常用方法。
+
+在线阅读：[zhh2001.github.io](https://zhh2001.github.io/)。
 
 ## 内容分类
 
 ### 科研笔记
 
-- **SDN 基础**：SDN 架构、OpenFlow 协议、P4 语言、P4Runtime API
-- **SDN 应用**：网络虚拟化、流量工程、负载均衡、网络监控、带内网络遥测
-- **SDN 工具**：Mininet、Wireshark、iPerf、Scapy
+- **网络架构与编程**：[SDN](docs/sdn/index.md)、[P4](docs/sdn/p4.md)、[P4Runtime](docs/sdn/p4runtime.md)、[INT 带内网络遥测](docs/sdn/int.md)
+- **实验环境与工具**：[Mininet](docs/sdn/mininet.md)、[iPerf](docs/sdn/iperf.md)、[WSL](docs/sdn/wsl.md)
+- **学术写作**：[LaTeX 排版](docs/sdn/writing/index.md)，包括公式、数值与单位、定理、图片、表格、算法、代码和参考文献
 
 ### 编程笔记
 
-- **Go 语言**：GoLang、Goroutine、Gin、gRPC、Eino
-- **数据库**：MySQL、Redis
-- **DevOps**：Docker、K8S
+- **Go 开发**：[语言基础](docs/go/golang.md)、[Goroutine 与并发](docs/go/goroutine.md)、[Gin](docs/go/gin.md)、[gRPC](docs/go/grpc.md)、[Eino](docs/go/eino.md)
+- **数据库**：[MySQL](docs/db/mysql.md)、[Redis](docs/db/redis.md)
+- **容器**：[Docker](docs/go/docker.md)
 
 ## 技术栈
 
@@ -32,7 +34,7 @@
 
 ## 贡献
 
-欢迎提交 Pull Request！请确保内容准确清晰，格式与现有笔记保持一致。
+欢迎提交 Pull Request。涉及语言规则、协议行为或工具参数时，请注明适用版本并优先引用官方资料。外部引用尽量使用 DOI、RFC 或固定提交链接。代码示例应说明运行环境及其适用范围，提交前运行 `npm run docs:build` 检查文档构建。
 
 ## 联系方式
 
