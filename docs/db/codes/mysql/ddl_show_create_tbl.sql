@@ -1,1 +1,1 @@
-SHOW CREATE TABLE table_name;
+SHOW CREATE TABLE tb_user;

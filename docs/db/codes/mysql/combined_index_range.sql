@@ -1,12 +1,11 @@
--- 创建联合索引
-CREATE INDEX `idx_user_pro_age_sta` ON `tb_user` (`profession`, `age`, `status`);
+-- 使用 7.3 已创建的 (profession, age, status) 联合索引。
 
 /* 验证范围查询的情况 */
 
--- 部分失效，只使用到了 profession 和 age 的索引
-SELECT * FROM `tb_user`
+-- 观察范围扫描以及 status 条件的过滤位置
+EXPLAIN FORMAT=JSON SELECT * FROM `tb_user`
 WHERE `profession` = '电子信息' AND `age` > 22 AND `status` = '0';
 
--- 完全生效，三个字段的索引全生效
-SELECT * FROM `tb_user`
+-- >= 不保证后续列都能收窄整个范围，比较实际计划
+EXPLAIN FORMAT=JSON SELECT * FROM `tb_user`
 WHERE `profession` = '电子信息' AND `age` >= 22 AND `status` = '0';

@@ -1,7 +1,11 @@
 -- 计算从 1 到 n 的和
+DELIMITER $$
 CREATE PROCEDURE p6(IN p_n INT)
 BEGIN
-    DECLARE v_total INT DEFAULT 0;
+    DECLARE v_total BIGINT DEFAULT 0;
+    IF p_n IS NULL OR p_n < 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'n must be nonnegative';
+    END IF;
     sum:
     LOOP
         IF p_n <= 0 THEN
@@ -11,12 +15,15 @@ BEGIN
         SET p_n := p_n - 1;
     END LOOP sum;
     SELECT v_total AS sum_result;
-END;
+END$$
 
 -- 计算从 1 到 n 中间偶数的和
 CREATE PROCEDURE p7(IN p_n INT)
 BEGIN
-    DECLARE v_total INT DEFAULT 0;
+    DECLARE v_total BIGINT DEFAULT 0;
+    IF p_n IS NULL OR p_n < 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'n must be nonnegative';
+    END IF;
     sum:
     LOOP
         IF p_n <= 0 THEN
@@ -27,9 +34,11 @@ BEGIN
             ITERATE sum;
         END IF;
         SET v_total := v_total + p_n;
+        SET p_n := p_n - 1;
     END LOOP sum;
     SELECT v_total AS sum_result;
-END;
+END$$
+DELIMITER ;
 
 CALL p6(100); -- 5050
 CALL p7(100); -- 2550

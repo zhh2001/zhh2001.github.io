@@ -1,9 +1,9 @@
--- 创建索引前，根据 profession 字段分组
+-- 以下 Extra 为可能的表现，实际结果取决于数据与成本选择。
+-- 未建索引的表可能需要临时表，比较时先移除相应索引
 EXPLAIN SELECT `profession`, COUNT(*) FROM `tb_user`
-GROUP BY `profession`; -- Using temporary（临时表，效率较低）
+GROUP BY `profession`; -- 可能使用临时表
 
--- 创建索引
-CREATE INDEX `idx_user_pro_age_sta` ON `tb_user` (`profession`, `age`, `status`);
+-- 使用 7.3 已创建的联合索引，需要比较前后计划时单独移除、重建。
 
 -- 创建索引后，根据 profession 字段分组
 EXPLAIN SELECT `profession`, COUNT(*) FROM `tb_user`

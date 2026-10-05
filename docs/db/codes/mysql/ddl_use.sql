@@ -1,1 +1,1 @@
-USE dbname;
+USE demo_sql;

@@ -1,2 +1,1 @@
-USE `mysql`;
-SELECT * FROM `user`;
+SELECT User, Host, plugin FROM mysql.user;

@@ -1,3 +1,4 @@
+-- 以下 Extra 为可能的表现，实际结果取决于数据与成本选择。
 -- 没创建索引时，根据 age、phone 进行排序
 EXPLAIN SELECT `id`, `age`, `phone` FROM `tb_user`
 ORDER BY `age` ASC, `phone` ASC; -- Using filesort

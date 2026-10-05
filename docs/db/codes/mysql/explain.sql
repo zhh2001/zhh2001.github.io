@@ -1,13 +1,3 @@
-EXPLAIN SELECT * FROM `tb_user` WHERE `id` = 1;
--- +----+-------------+---------+-------+---------------+---------+---------+------+----------+-------+
--- | id | select_type | table   | type  | possible_keys | key     | key_len | rows | filtered | Extra |
--- +----+-------------+---------+-------+---------------+---------+---------+------+----------+-------+
--- |  1 | SIMPLE      | tb_user | const | PRIMARY       | PRIMARY | 4       |    1 |   100.00 | NULL  |
--- +----+-------------+---------+-------+---------------+---------+---------+------+----------+-------+
-
-DESC SELECT * FROM `tb_user` WHERE `id` = 1;
--- +----+-------------+---------+-------+---------------+---------+---------+------+----------+-------+
--- | id | select_type | table   | type  | possible_keys | key     | key_len | rows | filtered | Extra |
--- +----+-------------+---------+-------+---------------+---------+---------+------+----------+-------+
--- |  1 | SIMPLE      | tb_user | const | PRIMARY       | PRIMARY | 4       |    1 |   100.00 | NULL  |
--- +----+-------------+---------+-------+---------------+---------+---------+------+----------+-------+
+EXPLAIN FORMAT=TRADITIONAL SELECT * FROM tb_user WHERE id = 1;
+EXPLAIN FORMAT=TREE SELECT * FROM tb_user WHERE id = 1;
+EXPLAIN ANALYZE SELECT * FROM tb_user WHERE profession = '电子信息';

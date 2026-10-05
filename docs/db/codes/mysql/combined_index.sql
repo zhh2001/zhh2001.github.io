@@ -1,22 +1,21 @@
--- 创建联合索引
-CREATE INDEX `idx_user_pro_age_sta` ON `tb_user` (`profession`, `age`, `status`);
+-- 使用 7.3 已创建的 (profession, age, status) 联合索引。
 
 /* 验证最左前缀原则 */
 
--- 生效，三个索引字段全生效
-SELECT * FROM `tb_user`
+-- 可用三列等值条件构造查找范围
+EXPLAIN FORMAT=JSON SELECT * FROM `tb_user`
 WHERE `profession` = '电子信息' AND `age` = 22 AND `status` = '0';
 
--- 生效，前两个索引字段生效
-SELECT * FROM `tb_user`
+-- 可用前两列构造查找范围
+EXPLAIN FORMAT=JSON SELECT * FROM `tb_user`
 WHERE `profession` = '电子信息' AND `age` = 22;
 
--- 生效，第一个字段全生效
-SELECT * FROM `tb_user`
+-- 可用首列构造查找范围
+EXPLAIN FORMAT=JSON SELECT * FROM `tb_user`
 WHERE `profession` = '电子信息';
 
-SELECT * FROM `tb_user` WHERE `age` = 22 AND `status` = '0'; -- 未生效
-SELECT * FROM `tb_user` WHERE `status` = '0'; -- 未生效
+EXPLAIN FORMAT=JSON SELECT * FROM `tb_user` WHERE `age` = 22 AND `status` = '0'; -- 缺少首列，观察优化器选择
+EXPLAIN FORMAT=JSON SELECT * FROM `tb_user` WHERE `status` = '0'; -- 缺少首列，观察优化器选择
 
--- 部分失效，profession 字段索引生效，跳过了 age 字段导致 status 字段未生效
-SELECT * FROM `tb_user` WHERE `profession` = '电子信息' AND `status` = '0';
+-- 跳过 age，profession 仍可用于定位，status 可能参与过滤
+EXPLAIN FORMAT=JSON SELECT * FROM `tb_user` WHERE `profession` = '电子信息' AND `status` = '0';

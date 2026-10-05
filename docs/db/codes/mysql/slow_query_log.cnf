@@ -1,3 +1,4 @@
-slow_query_log      = 1
-slow_query_log_file = /var/log/mysql/mysql-slow.log
+[mysqld]
+slow_query_log      = ON
+slow_query_log_file = mysql-slow.log
 long_query_time     = 2

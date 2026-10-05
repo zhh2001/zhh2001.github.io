@@ -1,3 +1,4 @@
+DELIMITER $$
 CREATE PROCEDURE p3()
 BEGIN
     DECLARE score INT DEFAULT 58;
@@ -8,8 +9,11 @@ BEGIN
     ELSEIF score >= 60 THEN
         SET result := '及格';
     ELSE
-        SET result := '及格';
+        SET result := '不及格';
     END IF;
 
     SELECT result;
-END;
+END$$
+DELIMITER ;
+
+CALL p3(); -- 不及格

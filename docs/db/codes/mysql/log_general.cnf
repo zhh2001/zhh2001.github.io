@@ -1,2 +1,4 @@
-general_log_file = /var/log/mysql/query.log
+[mysqld]
+log_output       = FILE
+general_log_file = query.log
 general_log      = 1

@@ -1,2 +1,2 @@
-SELECT COUNT(DISTINCT `email`) / COUNT(*) FROM `tb_user`;
-SELECT COUNT(DISTINCT SUBSTRING(`email`, 1, 5)) / COUNT(*) FROM `tb_user`;
+SELECT COUNT(DISTINCT `email`) / NULLIF(COUNT(*), 0) FROM `tb_user`;
+SELECT COUNT(DISTINCT SUBSTRING(`email`, 1, 5)) / NULLIF(COUNT(*), 0) FROM `tb_user`;

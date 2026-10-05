@@ -1,1 +1,1 @@
-DESC table_name;
+DESC tb_user;

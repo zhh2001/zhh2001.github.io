@@ -1,1 +1,1 @@
-mysqldump -uroot -p123456 test_db > test_db.sql
+mysqldump -u root -p demo_query > demo_query.sql

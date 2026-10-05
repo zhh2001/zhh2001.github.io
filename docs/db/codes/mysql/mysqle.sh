@@ -1,1 +1,1 @@
-mysql -h10.120.100.27 -P3306 -uroot -p123456 db01 -e "SELECT * FROM stu"
+mysql -h 127.0.0.1 -P 3306 -u root -p demo_query -e "SELECT id, name FROM tb_user ORDER BY id"
