@@ -175,6 +175,8 @@ Dockerfile 是构建镜像的文本描述，常见指令如下：
 
 `RUN` 在构建时执行，`ENTRYPOINT` 和 `CMD` 在容器启动时使用。JSON 数组形式不会自动启动 shell，也不会自动展开 `$变量`。同时使用 exec 形式的 `ENTRYPOINT` 和 `CMD` 时，`CMD` 的内容作为默认参数追加到入口命令后，`docker run 镜像 参数...` 可以替换这些默认参数，`--entrypoint` 可以替换入口程序。
 
+本例将 Dockerfile 命名为 `e.dockerfile`。先创建这个文本文件，再写入下面的内容。文件名中的 `e` 没有特殊含义，Docker 也不要求使用 `.dockerfile` 扩展名。默认文件名是 `Dockerfile`，使用其他名称时需要通过 `docker build -f` 指定。
+
 下面的示例使用 Java 25 JRE，`noble` 表示镜像中的基础系统为 Ubuntu 24.04。JRE 用于运行已经构建好的应用，编译需要 JDK。准备一个包含 `Main-Class`、可在 Java 25 上运行的可执行 `docker-demo.jar`，放在 `e.dockerfile` 同一目录。这里假定应用监听容器的 `0.0.0.0:8080`，实际端口应按应用配置调整。Java 与第三方依赖的兼容性需要实际验证，不能仅根据旧 JAR 的编译版本判断。
 
 <<< @/go/codes/docker/e.dockerfile
