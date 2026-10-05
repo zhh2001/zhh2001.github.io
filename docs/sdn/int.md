@@ -4,7 +4,7 @@ outline: deep
 
 # P4 INT
 
-带内网络遥测（In-band Network Telemetry，INT）在数据平面中采集与报文转发相关的状态，例如经过的节点、接口、设备内时延和队列占用量。采集结果可以随业务报文传递，也可以由沿途节点直接导出到监控系统。s
+带内网络遥测（In-band Network Telemetry，INT）在数据平面中采集与报文转发相关的状态，例如经过的节点、接口、设备内时延和队列占用量。采集结果可以随业务报文传递，也可以由沿途节点直接导出到监控系统。
 
 本文依据 P4.org 的 [INT Dataplane Specification v2.1](https://github.com/p4lang/p4-applications/blob/7eedb79d40e60ceb6d87f1a3682f75c28fc2b2ba/docs/INT_v2_1.pdf) 整理。涉及遥测报告时，采用 [Telemetry Report Format Specification v2.0](https://github.com/p4lang/p4-applications/blob/7eedb79d40e60ceb6d87f1a3682f75c28fc2b2ba/docs/telemetry_report_v2_0.pdf)。两份规范分别定义数据包中的 INT 信息和导出的报告格式，版本号不必相同。文中的“必须”“不得”表示规范要求，“建议”表示推荐做法。
 
