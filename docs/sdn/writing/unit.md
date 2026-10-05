@@ -1,4 +1,6 @@
 ---
+title: LaTeX 数值与单位排版及 siunitx 用法
+description: 使用 siunitx 3 排版数值、物理量、复合单位、范围和不确定度，区分网络中的 bit 与 byte，并通过示例说明参数设置和表格中的数值对齐。
 outline: deep
 ---
 

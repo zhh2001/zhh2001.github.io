@@ -1,4 +1,6 @@
 ---
+title: LaTeX 参考文献与 BibTeX、Biber 编译流程
+description: 维护 LaTeX 文献数据库，区分 BibTeX 与 biblatex、Biber 的编译流程，说明引用命令、文献样式、DOI 字段和条目整理中的常见问题。
 outline: deep
 ---
 

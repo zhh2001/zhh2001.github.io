@@ -1,4 +1,6 @@
 ---
+title: P4Runtime 控制接口与 BMv2 实验
+description: 依据 P4Runtime 1.5.0 规范梳理 P4Info、运行时实体、RPC 和控制器仲裁，结合 Python 与 BMv2 示例说明流水线配置、表项读写和异步消息处理。
 outline: deep
 ---
 

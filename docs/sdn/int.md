@@ -1,4 +1,6 @@
 ---
+title: INT 带内网络遥测原理与报文格式
+description: 按 INT 2.1 与遥测报告 2.0 规范说明 Source、Transit、Sink 的职责，比较 MD、XD、MX 模式，并讨论逐跳元数据、报文格式及部署限制。
 outline: deep
 ---
 

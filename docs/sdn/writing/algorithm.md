@@ -1,4 +1,6 @@
 ---
+title: LaTeX 算法伪代码与 algpseudocode 用法
+description: 使用 algorithm 与 algpseudocode 排版算法，编写输入输出、循环和条件语句，设置行号与交叉引用，并说明较长算法的拆分方式及宏包兼容性。
 outline: deep
 ---
 

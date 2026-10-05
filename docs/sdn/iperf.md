@@ -1,4 +1,6 @@
 ---
+title: iPerf 网络吞吐测试与结果解读
+description: 在 Mininet 等 Linux 实验环境中使用 iperf 2 和 iperf 3 测试 TCP、UDP 流量，比较版本与参数差异，解读吞吐量、UDP 丢包和抖动，并说明统计口径。
 outline: [2, 3]
 ---
 

@@ -1,4 +1,6 @@
 ---
+title: LaTeX 代码排版与 listings、minted 用法
+description: 比较 listings 与 minted 的代码排版方式，设置语法高亮、行号、换行和外部源码引用，说明 minted 3 的编译依赖、中文处理及常见问题。
 outline: deep
 ---
 

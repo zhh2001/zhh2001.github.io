@@ -1,4 +1,6 @@
 ---
+title: Mininet 网络拓扑搭建与实验指南
+description: 使用 Mininet 搭建虚拟主机、交换机和链路，通过命令行与 Python 定义拓扑、配置链路参数并连接控制器，同时说明网络隔离方式和实验环境的性能边界。
 outline: deep
 ---
 

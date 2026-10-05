@@ -1,4 +1,6 @@
 ---
+title: LaTeX 图片插入、浮动位置与子图排版
+description: 通过 graphicx 与 subcaption 插入图片、调整尺寸、裁剪旋转和组织子图，说明浮动位置、标题、交叉引用及双栏文档中的图片安排。
 outline: deep
 ---
 

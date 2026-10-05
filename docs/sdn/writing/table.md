@@ -1,4 +1,6 @@
 ---
+title: LaTeX 三线表、宽表与跨页表格排版
+description: 整理 LaTeX 表格的列格式、三线表、合并单元格和尺寸控制，比较 tabularx 与 longtable 的用途，说明数值对齐、跨页处理和浮动体设置。
 outline: deep
 ---
 

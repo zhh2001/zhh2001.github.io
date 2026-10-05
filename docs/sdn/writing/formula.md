@@ -1,4 +1,6 @@
 ---
+title: LaTeX 数学公式、矩阵与多行排版
+description: 从行内公式与独立公式开始，整理 LaTeX 数学符号、矩阵、分段函数、多行对齐和公式编号的写法，并说明常见排版问题与 MathJax 显示差异。
 outline: deep
 ---
 

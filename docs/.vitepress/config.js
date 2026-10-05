@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitepress'
+import { SITE_URL, transformPageData } from './seo.js'
 
 const SDNNoteItems = [
   { text: 'P4 Language', link: '/sdn/p4' },
@@ -80,6 +81,7 @@ export default defineConfig({
   description: description_cn + ' ' + description_en,
   cleanUrls: true,
   lastUpdated: true,
+  transformPageData,
   head: [
     ['meta', { name: 'keywords', content: keywords.join(', ') }],
     ['meta', { name: 'google-site-verification', content: 'wMOTcBwCiCMV7ESftQRY3Glvq8UL4xzUKrZ-1wjOpqM' }],
@@ -163,5 +165,5 @@ export default defineConfig({
       { icon: 'qq', link: 'mailto:1652709417@qq.com' },
     ]
   },
-  sitemap: { hostname: 'https://zhh2001.github.io' }
+  sitemap: { hostname: SITE_URL }
 })
