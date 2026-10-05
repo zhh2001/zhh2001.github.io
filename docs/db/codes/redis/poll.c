@@ -1,20 +1,7 @@
-// pollfd 中的事件类型
-#define POLLIN   // 可读事件
-#define POLLOUT  // 可写事件
-#define POLLERR  // 错误事件
-#define POLLNVAL // fd 未打开
+#include <poll.h>
 
-// pollfd 结构
-struct pollfd
-{
-    int fd;            // 要监听的 fd
-    short int events;  // 要监听的事件类型 读、写、异常
-    short int revents; // 实际发生的事件类型
-};
-
-// poll函数
-int poll(
-    struct pollfd *fds, // pollfd 数组，可以自定义大小
-    nfds_t nfds,        // 数组元素个数
-    int timeout         // 超时时间
-);
+// 接口声明，struct pollfd 由头文件定义
+int poll(struct pollfd *fds, nfds_t nfds, int timeout);
+// timeout 单位为毫秒，负值表示无限等待，0 表示立即返回
+// events 表示关注事件，revents 表示实际事件
+// 常见标志包括 POLLIN、POLLOUT、POLLERR、POLLHUP、POLLNVAL

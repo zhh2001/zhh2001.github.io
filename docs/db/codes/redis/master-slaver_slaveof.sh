@@ -1,21 +1,17 @@
-# 在 7002 的 redis-cli 执行：
-SLAVEOF 10.120.82.95 7001
-# 在 7003 的 redis-cli 执行：
-SLAVEOF 10.120.82.95 7001
+# 在 shell 中配置两个副本
+redis-cli -p 7002 REPLICAOF 127.0.0.1 7001
+# OK
+redis-cli -p 7003 REPLICAOF 127.0.0.1 7001
+# OK
 
-# 在主节点 7001 上查看信息：
-INFO REPLICATION
-# # Replication
+# 查看复制角色及连接状态，同步需要一定时间
+redis-cli -p 7001 INFO replication
 # role:master
 # connected_slaves:2
-# slave0:ip=10.120.82.95,port=7002,state=online,offset=280,lag=0
-# slave1:ip=10.120.82.95,port=7003,state=online,offset=280,lag=0
-# master_failover_state:no-failover
-# master_replid:a25030c9b6542dfc6dd30f217121bc2b5e3b6a52
-# master_replid2:0000000000000000000000000000000000000000
-# master_repl_offset:280
-# second_repl_offset:-1
-# repl_backlog_active:1
-# repl_backlog_size:1048576
-# repl_backlog_first_byte_offset:1
-# repl_backlog_histlen:280
+# 其他字段省略
+redis-cli -p 7002 INFO replication
+# role:slave
+# master_host:127.0.0.1
+# master_port:7001
+# master_link_status:up
+# 其他字段省略

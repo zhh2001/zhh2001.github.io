@@ -26,7 +26,7 @@ struct __attribute__ ((__packed__)) sdshdr64 {
     char buf[];
 };
 
-// 弃用
+// 短字符串布局仍在使用，通常直接访问 flags
 struct __attribute__ ((__packed__)) sdshdr5 {
     unsigned char flags; /* 3 lsb of type, and 5 msb of string length */
     char buf[];

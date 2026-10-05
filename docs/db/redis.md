@@ -1,16 +1,24 @@
 ---
-outline: [2, 4]
+outline: [2, 3]
 ---
 
 # Redis
 
-## 通用命令
+本文以 Redis 8.2.x 为主，命令、配置和源码片段使用 Redis 8.2.3 核对。涉及旧版实现时单独注明版本。底层 C 源码片段用于说明结构，部分省略了无关字段或分支。
+
+数据操作示例在 `redis-cli` 交互提示符内输入，配置和建群章节标注的 shell 命令在终端执行。各组数据操作在独立的空数据库中分别执行，展示的是 `redis-cli` 的 RESP2 格式化输出。
+
+命令参数可查阅[官方命令参考](https://redis.io/docs/latest/commands/)，版本范围以正文说明为准。
+
+## 1 通用命令
 
 ### 1.1 `KEYS`
 
 - 语法：`KEYS pattern`
-- 功能：查看符合模版的所有 `key`，不建议在生产环境使用
+- 功能：一次返回所有匹配模式的 `key`
 - 时间复杂度：`O(N)`，其中 `N` 是数据库中的键数
+
+`KEYS` 会遍历整个数据库，大键空间下可能阻塞其他请求。日常遍历优先使用 `SCAN cursor [MATCH pattern] [COUNT count]`，从游标 `0` 开始，直到返回游标再次为 `0`。`COUNT` 是工作量提示，单次返回数量不固定，也可能返回空集合但尚未结束。完整迭代可能重复返回键，遍历期间发生的增删不能按一致性快照理解。
 
 ```bash
 MSET firstname Jack lastname Stuntman age 35
@@ -31,6 +39,8 @@ KEYS *
 - 语法：`DEL key [key ...]`
 - 功能：删除指定的 `key`，如果 `key` 不存在则忽略
 
+返回实际删除的键数。删除大型集合可能需要同步释放大量内存，Redis 4.0 起可用 `UNLINK` 将键移出键空间，再按对象情况异步释放内存。
+
 ```bash
 SET key1 "Hello"
 # "OK"
@@ -43,7 +53,7 @@ DEL key1 key2 key3
 ### 1.3 `EXISTS`
 
 - 语法：`EXISTS key [key ...]`
-- 功能：判断指定的 `key` 是否存在
+- 功能：返回参数中存在的键数，重复传入同一个存在的键会重复计数
 
 ```bash
 SET key1 "Hello"
@@ -60,8 +70,10 @@ EXISTS key1 key2 nosuchkey
 
 ### 1.4 `EXPIRE`
 
-- 语法：`EXPIRE key seconds`
-- 功能：设置 `key` 的过期时长
+- 语法：`EXPIRE key seconds [NX | XX | GT | LT]`
+- 功能：设置 `key` 的剩余存活时间，单位为秒，成功返回 `1`，键不存在或条件不满足返回 `0`
+
+Redis 7.0 起支持条件选项：`NX` 仅给没有过期时间的键设置，`XX` 仅更新已有过期时间，`GT` 和 `LT` 分别要求新的过期时间更晚或更早。比较时，没有过期时间的键视为无限期。设置成功时，非正时长会立即删除键。`INCR`、`HSET` 等修改值的操作通常保留键的 TTL，`SET` 等覆盖操作则默认移除 TTL。
 
 ### 1.5 `TTL`
 
@@ -70,102 +82,114 @@ EXISTS key1 key2 nosuchkey
 
 如果 `key` 存在但是没有设置过期时长，返回 `-1`。如果 `key` 不存在返回 `-2`。
 
-## String 类型
+## 2 String 类型
 
 String 类型，也就是字符串类型，是 Redis 中最简单的存储类型。
 
-其 value 是字符串，不过根据字符串的格式不同，又可以分为 3 类：
+String 保存二进制安全的字节序列，也能保存文本形式的整数或浮点数。整数、浮点数不是独立的 Redis 数据类型，只是部分命令会按数值解释字符串内容。
 
-- string：普通字符串
-- int：整数类型，可以进行自增自减
-- float：浮点类型，可以进行自增自减
-
-不管哪种格式，底层都是字节数组形式存储，只不过是编码方式不同。字符串类型的最大空间不能超过 512m
+Redis 8.2.x 默认将单个字符串及请求中的 bulk string 限制为 512 MiB，相关限制由 `proto-max-bulk-len` 控制。底层可以采用 `int`、`embstr` 或 `raw` 编码，整数编码直接保存数值。
 
 ### 2.1 `SET`
 
-- 语法：`SET key value [NX | XX] [EX seconds | KEEPTTL]`
+- 语法：`SET key value [NX | XX] [GET] [EX seconds | PX milliseconds | EXAT unix-time-seconds | PXAT unix-time-milliseconds | KEEPTTL]`
 - 功能：添加或修改一个 String 类型的键值对
 - 可选项：
   - `NX`：只有 `key` 不存在时才设置
   - `XX`：只有 `key` 已存在时才设置
-  - `EX`：设置过期时长
+  - `GET`：返回写入前的字符串值，不存在时返回空值。旧值不是 String 时返回错误
+  - `EX`、`PX`：分别按秒、毫秒设置剩余存活时间
+  - `EXAT`、`PXAT`：分别按秒、毫秒指定绝对到期时间
   - `KEEPTTL`：保留 `key` 原有的过期时长
+
+普通 `SET` 可以覆盖其他类型的键，成功后默认清除原 TTL。条件不满足时不写入，不带 `GET` 时返回空值。`KEEPTTL` 在 Redis 6.0 加入，`GET`、`EXAT`、`PXAT` 在 6.2 加入，`NX` 与 `GET` 从 7.0 起可以一起使用。
 
 ### 2.2 `GET`
 
 - 语法：`GET key`
 - 功能：根据 `key` 获取 String 类型的 `value`
 
+键不存在时返回空值，键存在但不是 String 时返回 `WRONGTYPE` 错误。
+
 ### 2.3 `MSET`
 
 - 语法：`MSET key value [key value ...]`
 - 功能：批量添加多个 String 类型的键值对
+
+同一条 `MSET` 原子地写入所有键，覆盖旧值并移除被覆盖键的 TTL。Redis Cluster 要求这些键属于同一个槽。
 
 ### 2.4 `MGET`
 
 - 语法：`MGET key [key ...]`
 - 功能：批量获取多个 `key` 的 `value`
 
+结果与参数顺序对应，不存在的键和非 String 类型的键都返回空值。
+
 ### 2.5 `INCR`
 
 - 语法：`INCR key`
 - 功能：整型自增 `1`
+
+键不存在时按 `0` 初始化。`INCR` 和 `INCRBY` 使用有符号 64 位整数，内容不能解析为整数或计算溢出时返回错误。
 
 ### 2.6 `INCRBY`
 
 - 语法：`INCRBY key increment`
 - 功能：整型自增 `increment`
 
+步长可以为负数，也可用 `DECR`、`DECRBY` 表达减法。
+
 ### 2.7 `INCRBYFLOAT`
 
 - 语法：`INCRBYFLOAT key increment`
 - 功能：浮点型自增 `increment`
 
+步长可以为负数，键不存在时按 `0` 初始化。计算结果不能是 NaN 或无穷大。不应依赖浮点运算提供十进制金额的精确表示。
+
 ### 2.8 `SETNX`
 
-> 弃用，推荐采用 `SET key value NX`
+> Redis 2.6.12 起不推荐用于新代码，改用 `SET key value NX`。命令仍可使用。
 
 - 语法：`SETNX key value`
 - 功能：如果 `key` 不存在才新增。
 
 `SETNX` 是 **SET** if **N**ot e**X**ists 的简写。
 
+需要同时设置过期时间时使用 `SET key value NX EX seconds`，避免将 `SETNX` 和 `EXPIRE` 分成两次操作。
+
 ### 2.9 `SETEX`
 
-> 弃用，推荐采用 `SET key value EX seconds`
+> Redis 2.6.12 起不推荐用于新代码，改用 `SET key value EX seconds`。命令仍可使用。
 
 - 语法：`SETEX key seconds value`
 - 功能：新增 `key` 并设置有效时长
 
-## Key 的层级格式
+## 3 Key 的层级格式
 
-Redis 的 `key` 允许有多个单词形成层级结构，多个单词间用 `:` 隔开。
+通常用 `业务:对象:ID` 命名键，例如 `login:user:101`。冒号只是便于阅读的命名约定，Redis 键空间本身是平面的，不会建立目录或父子关系。键也是二进制安全的字节序列。
 
-## Hash 类型
+## 4 Hash 类型
 
-Hash 类型，也叫散列，其 `value` 是一个无序字典，类似于 Java 中的 HashMap 结构。
+Hash 类型保存无序的字段与值映射。字段和值都是二进制安全的字符串，同一个 Hash 中字段名唯一，不保证遍历顺序。
 
-String 结构将对象的所有字段保存为一整个字符串，如果要修改其中某个字段很不方便。
-
-Hash 结构可以将对象中的每个字段独立存储，可以针对单个字段做 CRUD。
+对象可以序列化后整体保存为 String，也可以将字段分别放入 Hash。后者便于单独读取和更新字段。
 
 ### 4.1 `HSET`
 
 - 语法：`HSET key field value [field value ...]`
-- 功能：添加或修改 hash 类型 `key` 的 `filed` 的值
+- 功能：添加或修改 Hash 的字段值，返回新增字段数，更新已有字段不计入返回值
 
 ### 4.2 `HGET`
 
 - 语法：`HGET key field`
-- 功能：获取一个 hash 类型 `key` 的 `filed` 的值
+- 功能：读取字段值，键或字段不存在时返回空值
 
 ### 4.3 `HMSET`
 
-> 弃用，采用 `HSET` 效果一样
+> Redis 4.0 起不推荐用于新代码，改用支持多个字段的 `HSET`。两者写入效果相同，但 `HMSET` 返回 `OK`，`HSET` 返回新增字段数。
 
 - 语法：`HMSET key field value [field value ...]`
-- 功能：批量添加多个 hash 类型 `key` 的 `filed` 的值
+- 功能：批量添加多个 hash 类型 `key` 的 `field` 的值
 
 ```bash
 HMSET myhash field1 "Hello" field2 "World"
@@ -179,7 +203,7 @@ HGET myhash field2
 ### 4.4 `HMGET`
 
 - 语法：`HMGET key field [field ...]`
-- 功能：批量获取多个 hash 类型 `key` 的 `filed` 的值
+- 功能：按参数顺序读取多个字段，不存在的键或字段对应空值
 
 ```bash
 HSET myhash field1 "Hello" field2 "World"
@@ -193,7 +217,7 @@ HMGET myhash field1 field2 nofield
 ### 4.5 `HGETALL`
 
 - 语法：`HGETALL key`
-- 功能：获取一个 hash 类型的 `key` 中的所有 `filed` 和对应 `value`
+- 功能：返回所有字段和值。RESP2 是字段和值交替排列的数组，RESP3 是映射，均不保证顺序
 
 ```bash
 HSET myhash field1 "Hello" field2 "World"
@@ -208,7 +232,7 @@ HGETALL myhash
 ### 4.6 `HKEYS`
 
 - 语法：`HKEYS key`
-- 功能：获取一个 hash 类型的 `key` 中的所有的 `filed`
+- 功能：返回所有字段名，不保证顺序
 
 ```bash
 HSET myhash field1 "Hello" field2 "World"
@@ -221,7 +245,7 @@ HKEYS myhash
 ### 4.7 `HVALS`
 
 - 语法：`HVALS key`
-- 功能：获取一个 hash 类型的 `key` 中的所有的 `value`
+- 功能：返回所有字段值，不保证顺序
 
 ```bash
 HSET myhash field1 "Hello" field2 "World"
@@ -234,21 +258,7 @@ HVALS myhash
 ### 4.8 `HINCRBY`
 
 - 语法：`HINCRBY key field increment`
-- 功能：让一个 hash 类型的 `key` 的字段值增加指定步长
-
-```bash
-HSET myhash field 5
-# (integer) 1
-HINCRBY myhash field 1
-# (integer) 6
-HINCRBY myhash field -10
-# (integer) -4
-```
-
-### 4.9 `HINCRBY`
-
-- 语法：`HINCRBY key field increment`
-- 功能：让一个 hash 类型的 `key` 的字段值增加指定步长
+- 功能：将字段值按有符号 64 位整数增加指定步长，字段不存在时从 `0` 开始，不能解析为整数或溢出时返回错误
 
 ```bash
 HSET myhash field 5
@@ -273,9 +283,9 @@ HGET myhash field
 # "Hello"
 ```
 
-## List 类型
+## 5 List 类型
 
-Redis 的 List 类型与 Java 的 LinkedList 类似，可以看作双向链表。既可以正向检索也可以反向检索。
+List 是有序的字符串列表，允许重复元素，支持从两端插入和弹出，也支持按索引访问。底层编码见后面的数据结构章节。
 
 ### 5.1 `LPUSH`
 
@@ -303,6 +313,8 @@ RPUSH mylist "one" "two" "three" "four" "five"
 
 - 语法：`LPOP key [count]`
 - 功能：从列表左侧移除元素
+
+`count` 在 Redis 6.2 加入。不带 `count` 时返回单个元素，带 `count` 时返回数组。键不存在时返回空值。
 
 ```bash
 RPUSH mylist "one" "two" "three" "four" "five"
@@ -334,6 +346,8 @@ RPOP mylist 2
 - 语法：`LRANGE key start stop`
 - 功能：返回索引在 `[start stop]` 内的所有元素
 
+范围包含两端，索引从 `0` 开始，`-1` 表示最后一个元素。超出列表边界的范围会被截取，起始位置在列表末尾之外时返回空数组。
+
 ```bash
 RPUSH mylist "one" "two" "three"
 # (integer) 3
@@ -351,9 +365,9 @@ LRANGE mylist 5 10
 # (empty array)
 ```
 
-## Set 类型
+## 6 Set 类型
 
-Redis 的 Set 结构与 Java 中的 HashSet 类似，可以看作是一个 `value` 为 `null` 的 HashMap。因为也是一个 hash 表，因此具备与 HashSet 类似的特征：
+Set 是无序的字符串集合，可以采用 intset、listpack 或哈希表编码。它在逻辑上与 Java 的 HashSet 类似，具有以下特征：
 
 - 无序
 - 元素不重复
@@ -363,7 +377,7 @@ Redis 的 Set 结构与 Java 中的 HashSet 类似，可以看作是一个 `valu
 ### 6.1 `SADD`
 
 - 语法：`SADD key member [member ...]`
-- 功能：往集合中添加元素
+- 功能：添加成员，返回新增成员数，重复成员不计入
 
 ```bash
 SADD myset "Hello" "World"
@@ -375,7 +389,7 @@ SADD myset "World"
 ### 6.2 `SREM`
 
 - 语法：`SREM key member [member ...]`
-- 功能：移除集合中的指定元素
+- 功能：移除指定成员，返回实际移除数
 
 ```bash
 SADD myset "one" "two" "three"
@@ -415,7 +429,7 @@ SISMEMBER myset "two"
 ### 6.5 `SMEMBERS`
 
 - 语法：`SMEMBERS key`
-- 功能：获取集合中的全部元素
+- 功能：返回所有成员，不保证顺序。大型集合可用 `SSCAN` 分批遍历，游标语义与 `SCAN` 相同
 
 ```bash
 SADD myset Hello World
@@ -428,14 +442,14 @@ SMEMBERS myset
 ### 6.6 `SINTER`
 
 - 语法：`SINTER key [key ...]`
-- 功能：求交集（intersection）
+- 功能：求所有集合的交集，任意输入键不存在时交集为空
 
 ```bash
 SADD s1 a b c d
 # (integer) 4
 SADD s2 c
 # (integer) 1
-SADD s2 a c e
+SADD s3 a c e
 # (integer) 3
 SINTER s1 s2 s3
 # 1) "c"
@@ -444,14 +458,14 @@ SINTER s1 s2 s3
 ### 6.7 `SDIFF`
 
 - 语法：`SDIFF key [key ...]`
-- 功能：求差集（difference set）
+- 功能：返回第一个集合中不属于后续任何集合的成员
 
 ```bash
 SADD s1 a b c d
 # (integer) 4
 SADD s2 c
 # (integer) 1
-SADD s2 a c e
+SADD s3 a c e
 # (integer) 3
 SDIFF s1 s2 s3
 # 1) "d"
@@ -461,14 +475,14 @@ SDIFF s1 s2 s3
 ### 6.8 `SUNION`
 
 - 语法：`SUNION key [key ...]`
-- 功能：求并集（union）
+- 功能：求所有集合的并集，相同成员只返回一次
 
 ```bash
 SADD s1 a b c d
 # (integer) 4
 SADD s2 c
 # (integer) 1
-SADD s2 a c e
+SADD s3 a c e
 # (integer) 3
 SUNION s1 s2 s3
 # 1) "c"
@@ -478,9 +492,11 @@ SUNION s1 s2 s3
 # 5) "a"
 ```
 
-## SortedSet 类型
+## 7 SortedSet 类型
 
-Redis 的 SortedSet 是一个可排序的集合，与 Java 中的 TreeSet 有些类似，但底层数据结构差别很大。SortedSet 中每个元素都带有一个 score 属性，可以基于 score 属性对元素排序，底层实现是一个跳表（SkipList）加 hash 表。
+SortedSet（ZSet）保存成员与分数的映射。成员唯一，分数可以重复，按分数升序排列，分数相同时按成员的二进制字典序排列。小型集合使用 listpack，较大的集合使用跳表和字典。
+
+分数使用 IEEE 754 双精度浮点数，区间 `[-2^53, 2^53]` 内的整数可以精确表示，NaN 不能作为分数。
 
 SortedSet 具备下列特性：
 
@@ -492,11 +508,14 @@ SortedSet 具备下列特性：
 
 ### 7.1 `ZADD`
 
-- 语法：`ZADD key [NX | XX] score member [score member ...]`
+- 语法：`ZADD key [NX | XX] [GT | LT] [CH] [INCR] score member [score member ...]`
 - 功能：添加元素到有序集合，如果已存在则更新 `score`
 - 可选项：
   - `XX`：仅更新已存在的元素。不添加新元素。
   - `NX`：只添加新元素。不更新现有元素。
+  - `GT`、`LT`：仅在新分数更大或更小时更新，不限制新增成员。不能与 `NX` 一起使用
+  - `CH`：返回新增和分数发生变化的成员总数，默认仅返回新增数
+  - `INCR`：按 `ZINCRBY` 方式增加分数，此时只能指定一组分数与成员
 
 ```bash
 ZADD myzset 1 one 1 uno 2 two 3 three
@@ -529,8 +548,8 @@ ZSCORE myzset one
 
 ### 7.4 `ZRANK`
 
-- 语法：`ZRANK key member`
-- 功能：获取指定元素在有序集合中的排名
+- 语法：`ZRANK key member [WITHSCORE]`
+- 功能：获取指定元素按升序排列的排名，从 `0` 开始。`WITHSCORE` 从 Redis 7.2 起可用，同时返回分数
 
 ```bash
 ZADD z 1 one 2 two 3 three
@@ -558,6 +577,8 @@ ZCARD z
 - 语法：`ZCOUNT key min max`
 - 功能：获取有序集合中的 `score` 在 `[min, max]` 内的元素数量
 
+边界默认包含，可以用 `(` 排除边界，例如 `ZCOUNT z (1 3`。`-inf` 和 `+inf` 表示无穷边界。
+
 ```bash
 ZADD z 1 one 2 two 3 three
 # (integer) 3
@@ -581,11 +602,15 @@ ZINCRBY myzset 2 "one"
 
 ### 7.8 `ZRANGE`
 
-- 语法：`ZRANGE key start stop [BYSCORE | BYLEX] [REV] [WITHSCORES]`
+- 语法：`ZRANGE key start stop [BYSCORE | BYLEX] [REV] [LIMIT offset count] [WITHSCORES]`
 - 功能：按照 `score` 升序排序后，获取指定排名范围内的元素，排名从 0 开始
 - 参数：
-  - `REV`：是否降序顺序
-  - `WITHSCORES`：是否返回 `score`
+  - 默认：`start`、`stop` 是包含两端的排名范围，支持负索引
+  - `BYSCORE`：改按分数边界查询，支持 `(`、`-inf` 和 `+inf`
+  - `BYLEX`：改按成员字典序边界查询，使用 `[`、`(`、`-`、`+` 表示边界。应保证所有成员分数相同，否则结果不具备该模式预期的语义
+  - `REV`：反向查询。配合分数或字典序查询时，先写较大边界，再写较小边界
+  - `LIMIT`：仅用于 `BYSCORE`、`BYLEX` 查询
+  - `WITHSCORES`：同时返回分数
 
 ```bash
 ZADD z 1 one 2 two 3 three
@@ -602,7 +627,7 @@ ZRANGE z 0 1 WITHSCORES
 
 ### 7.9 `ZRANGEBYSCORE`
 
-> 弃用，推荐 `ZRANGE`
+> Redis 6.2 起不推荐用于新代码，改用 `ZRANGE key min max BYSCORE [WITHSCORES] [LIMIT offset count]`。
 
 - 语法：`ZRANGEBYSCORE key min max [WITHSCORES] [LIMIT offset count]`
 - 功能：按照 `score` 排序后，获取指定 `score` 范围内的元素
@@ -610,7 +635,7 @@ ZRANGE z 0 1 WITHSCORES
 ### 7.10 `ZDIFF`
 
 - 语法：`ZDIFF numkeys key [key ...] [WITHSCORES]`
-- 功能：求差集（difference set）
+- 功能：求第一个集合相对其余集合的差集，保留第一个集合的分数。Redis 6.2 加入
 
 ```bash
 ZADD zset1 1 "one" 2 "two" 3 "three"
@@ -624,27 +649,10 @@ ZDIFF 2 zset1 zset2 WITHSCORES
 # 2) "3"
 ```
 
-### 7.11 `ZDIFF`
+### 7.11 `ZINTER`
 
-- 语法：`ZDIFF numkeys key [key ...] [WITHSCORES]`
-- 功能：求差集（difference set）
-
-```bash
-ZADD zset1 1 "one" 2 "two" 3 "three"
-# (integer) 3
-ZADD zset2 1 "one" 2 "two"
-# (integer) 2
-ZDIFF 2 zset1 zset2
-# 1) "three"
-ZDIFF 2 zset1 zset2 WITHSCORES
-# 1) "three"
-# 2) "3"
-```
-
-### 7.12 `ZINTER`
-
-- 语法：`ZINTER numkeys key [key ...] [WITHSCORES]`
-- 功能：求交集（intersection）
+- 语法：`ZINTER numkeys key [key ...] [WEIGHTS weight [weight ...]] [AGGREGATE SUM | MIN | MAX] [WITHSCORES]`
+- 功能：求交集。Redis 6.2 加入，分数默认相加，`WEIGHTS` 指定各集合的权重，`AGGREGATE` 指定聚合方式
 
 ```bash
 ZADD zset1 1 "one" 2 "two"
@@ -661,10 +669,10 @@ ZINTER 2 zset1 zset2 WITHSCORES
 # 4) "4"
 ```
 
-### 7.13 `ZUNION`
+### 7.12 `ZUNION`
 
-- 语法：`ZUNION numkeys key [key ...] [WITHSCORES]`
-- 功能：求并集（union）
+- 语法：`ZUNION numkeys key [key ...] [WEIGHTS weight [weight ...]] [AGGREGATE SUM | MIN | MAX] [WITHSCORES]`
+- 功能：求并集。Redis 6.2 加入，分数默认相加，支持权重及 `SUM`、`MIN`、`MAX` 聚合
 
 ```bash
 ZADD zset1 1 "one" 2 "two"
@@ -684,105 +692,89 @@ ZUNION 2 zset1 zset2 WITHSCORES
 # 6) "4"
 ```
 
-## 缓存穿透
+## 8 缓存穿透
 
-缓存穿透是指客户端请求的数据在缓存中和数据库中都不存在，这样缓存永远不会生效，这些请求都会打到数据库。
+请求的数据在缓存和数据库中都不存在，如果每次缓存未命中都查询数据库，重复的无效请求就会持续占用数据库资源。
 
-常见的解决方案有两种：
+常用处理方式：
 
-- 缓存空对象
-- 布隆过滤
+- 缓存空结果，设置较短的 TTL，并在数据创建或更新后失效相关缓存。应区分“确实不存在”和查询失败，避免把暂时故障缓存为空结果。
+- 使用布隆过滤器预先判断。过滤器可能误判为存在，仍需访问缓存或数据库。没有误判为不存在的前提是相关数据已正确加入过滤器，数据更新和过滤器维护必须协调。
+- 校验请求参数，对异常请求限流。
 
-## 缓存雪崩
+## 9 缓存雪崩
 
-缓存雪崩是指同一时段大量的缓存 key 同时失效或者 Redis 服务宕机，导致大量请求到达数据库，带来巨大压力。
+大量键在短时间内过期，或者缓存服务不可用，可能使请求集中到达数据库。
 
-解决方案：
+可按触发原因采取措施：
 
-- 给不同的 key 的 TTL 添加随机值
-- 利用 Redis 集群提高服务的可用性
-- 给缓存业务添加降级限流策略
-- 给业务添加多级缓存
+- 在合理范围内给 TTL 增加随机偏移，错开批量预热和刷新时间。
+- 配置主从复制与自动故障转移，降低缓存中断的概率。故障切换期间仍可能出现请求失败或数据丢失。
+- 给回源请求限流、合并并发请求，并准备降级响应。
+- 必要时增加本地缓存，同时处理一致性与失效问题。
 
-## 缓存击穿
+## 10 缓存击穿
 
-缓存击穿问题也叫热点 Key 问题，就是一个被高并发访问并且缓存重建业务比较复杂的 key 突然失效了，无数的请求访问会在瞬间给数据库带来巨大的冲击。
+高并发访问的热点键失效后，大量请求同时重建同一份缓存，给数据库带来瞬时压力。重建越慢，并发回源越容易累积。
 
-解决方案：
+常用处理方式：
 
-- 互斥锁
-- 逻辑过期
+- 合并同一进程内的并发回源，或使用带超时的互斥锁。获得锁后再次检查缓存，锁值使用唯一标识，释放时原子地校验持有者，避免删除其他请求的锁。
+- 使用逻辑过期，由少量请求触发后台刷新，其余请求暂时读取旧值。该方式允许短期陈旧数据，需要安排刷新失败后的重试或降级。
 
-## 执行脚本
+## 11 执行脚本
 
-`EVAL` 命令：
-
-- 语法：`EVAL script numkeys [key [key ...]] [arg [arg ...]]]`
-- 功能：执行 Lua 脚本
+- 语法：`EVAL script numkeys [key [key ...]] [arg [arg ...]]`
+- 功能：执行 Lua 脚本，键参数通过 `KEYS` 读取，普通参数通过 `ARGV` 读取
 
 <<< @/db/codes/redis/eval.sh
 
-## 消息队列
+脚本在主线程执行，期间其他命令不能与其交错执行，因此应限制脚本耗时。原子执行不等于出错后回滚，运行时错误之前已经完成的写入会保留。脚本访问的键应全部显式传入，Redis Cluster 中这些键必须属于同一个槽，不应在脚本中拼接出未声明的键名。参见[官方脚本说明](https://redis.io/docs/latest/develop/programmability/eval-intro/)。
+
+## 12 消息队列
 
 ### 12.1 基于 List
 
-消息队列（Message Queue），字面意思就是存放消息的队列。而 Redis 的 List 数据结构是一个双向链表，很容易模拟出队列效果。
+可以用 `LPUSH` 与 `RPOP`，或 `RPUSH` 与 `LPOP` 构造 FIFO 队列。队列为空时，普通弹出命令立即返回空值，`BRPOP`、`BLPOP` 则能阻塞等待。
 
-队列是入口和出口不在同一边，因此我们可以利用：`LPUSH` 结合 `RPOP`、或者 `RPUSH` 结合 `LPOP` 来实现。
+多个消费者可以竞争弹出同一个 List 的消息，每条消息只会被其中一个弹出。弹出顺序不代表并发消费者的处理完成顺序。弹出后如果消费者崩溃，消息已经离开队列，不能自动重投。
 
-不过要注意的是，当队列中没有消息时，`RPOP` 或 `LPOP` 操作会返回 `nil`，并不像 JVM 的阻塞队列那样会阻塞并等待消息。因此这里应该使用 `BRPOP` 或者 `BLPOP` 来实现阻塞效果。
-
-优点：
-
-- 利用 Redis 存储，不受限于 JVM 内存上限
-- 基于 Redis 的持久化机制，数据安全性有保证
-- 可以满足消息的有序性
-
-缺点：
-
-- 无法避免消息丢失
-- 只支持单消费者
+需要处理中消息的恢复机制时，可以用 Redis 6.2 加入的 `LMOVE`、`BLMOVE` 将消息原子地移到处理中列表，处理成功后再移除，并自行实现超时恢复与去重。List 本身没有消费者组和确认协议。持久化与复制可以降低数据丢失风险，但不保证所有已返回成功的消息都能在故障后恢复。
 
 ### 12.2 基于 PubSub
 
-PubSub（发布订阅）是 Redis 2.0 引入的消息模型。消费者可以订阅一个或多个 channel，生产者往对应 channel 投递消息，订阅了的客户端都会收到一份。
+Pub/Sub 是发布订阅模型。消费者订阅 channel，生产者向 channel 发布消息，在线的匹配订阅者各收到一份。
 
 - `SUBSCRIBE channel [channel ...]`：订阅频道
-- `PUBLISH channel message`：向一个频道发送消息
-- `PSUBSCRIBE pattern [pattern ...]`：订阅与 `pattern` 格式匹配的所有频道
+- `PUBLISH channel message`：向频道发布消息
+- `PSUBSCRIBE pattern [pattern ...]`：按模式订阅频道
 
-优点：
-
-- 采用发布订阅模型，支持多生产、多消费
-
-缺点：
-
-- 不支持数据持久化
-- 无法避免消息丢失
-- 消息堆积有上限，超出时数据丢失
+Pub/Sub 提供至多一次投递，不保存可重放的消息，也没有确认和重试机制。断线期间的消息无法补读。慢消费者会积累输出缓冲，达到 `client-output-buffer-limit pubsub` 限制时连接可能被关闭，后续消息无法接收。需要历史回放或消费确认时应考虑 Stream。参见[官方 Pub/Sub 说明](https://redis.io/docs/latest/develop/pubsub/)。
 
 ### 12.3 基于 Stream
 
-Stream 是 Redis 5.0 引入的一种新数据类型，可以实现一个功能非常完善的消息队列。
+Stream 在 Redis 5.0 加入，以递增 ID 保存字段与值组成的消息条目，支持历史读取、阻塞等待和消费者组。
 
-特点：
-
-- 消息可回溯
-- 一个消息可以被多个消费者读取
-- 可以阻塞读取
+同一条消息可以被多个独立读取者或多个消费者组读取。可回溯的范围受裁剪、删除和持久化结果限制，故障恢复和重新投递也可能造成消息丢失或重复。
 
 #### 12.3.1 `XADD`
 
 - 语法：`XADD key [NOMKSTREAM] [KEEPREF | DELREF | ACKED] [<MAXLEN | MINID> [= | ~] threshold [LIMIT count]] <* | id> field value [field value ...]`
-- 功能：发送消息
+- 功能：向 Stream 追加条目，返回条目 ID
 - 参数：
-  - `NOMKSTREAM`：如果队列不存在是否创建队列，默认创建。使用该参数表示不创建
-  - `<MAXLEN | MINID> [= | ~] threshold [LIMIT count]`：设置消息队列的最大消息数量
-  - `<* | id>`：消息的 ID，\* 代表由 Redis 自动生成。格式是 `时间戳-递增数字`
-  - `field value`：发送到队列中的消息，称为 Entry。格式就是多个 key-value 键值对
+  - `NOMKSTREAM`：键不存在时不创建 Stream，返回空值
+  - `MAXLEN`：按条目数量裁剪。`=` 为精确裁剪，`~` 为近似裁剪，近似结果可能超过阈值
+  - `MINID`：按 ID 裁剪，删除小于阈值 ID 的条目
+  - `LIMIT`：限制近似裁剪的工作量，仅与 `~` 配合使用
+  - `KEEPREF`：默认行为，裁剪条目时保留消费者组 PEL 中的引用
+  - `DELREF`：裁剪条目时同时移除所有消费者组中相应的 PEL 引用
+  - `ACKED`：仅裁剪已被所有消费者组读取并确认的条目，可能无法达到数量或 ID 阈值
+  - `*`：自动生成 ID，格式为 `毫秒时间戳-序号`。显式 ID 必须大于 Stream 已记录的最大 ID，且不能为 `0-0`
+
+`NOMKSTREAM`、`MINID`、`LIMIT` 在 Redis 6.2 加入，`毫秒时间戳-*` 形式在 7.0 加入，`KEEPREF`、`DELREF`、`ACKED` 在 8.2 加入。后者描述的是裁剪时如何处理消费者组引用，与消息正文的字段无关。参见 [`XADD` 官方参考](https://redis.io/docs/latest/commands/xadd/)。
 
 ```bash
-## 创建名为 users 的队列，并向其中发送一个消息，并使用 Redis 自动生成 ID
+# 创建 users，并追加一条消息。下面的返回 ID 仅作示意
 XADD users * name "zhh" age 18
 # "1760774662027-0"
 ```
@@ -790,112 +782,127 @@ XADD users * name "zhh" age 18
 #### 12.3.2 `XLEN`
 
 - 语法：`XLEN key`
-- 功能：返回 Stream 中消息条目的数量
+- 功能：返回 Stream 当前保存的条目数，键不存在时返回 `0`
 
 <<< @/db/codes/redis/xlen.sh
 
 #### 12.3.3 `XREAD`
 
 - 语法：`XREAD [COUNT count] [BLOCK milliseconds] STREAMS key [key ...] id [id ...]`
-- 功能：读取消息
+- 功能：从一个或多个 Stream 读取 ID 大于指定 ID 的条目
 - 参数：
-  - `COUNT count`：每次读取消息的最大数量
-  - `BLOCK milliseconds`：当没有消息时是否阻塞
-  - `STREAMS key [key ...]`：要从哪个队列读消息，`key` 就是队列名
-  - `id [id ...]`：起始 ID，只返回大于该 ID 的消息
-    - `0`：代表从第一个消息开始
-    - `$`：代表从最新消息开始
+  - `COUNT`：每个 Stream 最多返回的条目数
+  - `BLOCK`：没有可返回条目时等待，单位毫秒，`0` 表示无限等待，超时返回空值
+  - `STREAMS`：先列出所有键，再列出与其一一对应的 ID
+  - `0`：读取当前保存的历史条目
+  - `$`：以执行命令时的最后一个 ID 为起点，只等待后续条目，不返回当时已有的最后一条
+
+连续读取时，下一次请求应使用上次返回的最后一个 ID。`$` 仅适合首次开始监听新消息，反复使用会跳过两次请求之间产生的条目。Redis 7.4 起还支持 `+`，读取对应 Stream 的最后一条，此时该 Stream 忽略 `COUNT`。参见 [`XREAD` 官方参考](https://redis.io/docs/latest/commands/xread/)。
 
 <<< @/db/codes/redis/xread.sh
 
-### 12.4 Stream-消费者组
+### 12.4 Stream 消费者组
 
-将多个消费者划分到一个组中，监听同一个队列。具备下列特点：
+消费者组把新条目分配给组内消费者，并维护最后投递 ID（`last-delivered-id`）和待确认列表（PEL）。最后投递不等于处理完成。
 
-1. 消息分流：队列中的消息会分流给组内的不同消费者，而不是重复消费，从而加快消息处理的速度
-2. 消息标识：消费者组会维护一个表示，记录最后一个被处理的消息，哪怕消费者宕机重启，还会从标识之后读取消息。确保每个消息都被消费
-3. 消息确认：消费者获取消息后，消息处于 pending 状态，并存入一个 pending-list。当处理完成后需要通过 XACK 来确认消息，标记消息为已处理，才会从 pending-list 移除
+默认情况下，投递后条目进入 PEL。业务处理成功后调用 `XACK key group id [id ...]`，从该组的 PEL 中移除引用，Stream 条目本身仍然保留。消费者故障后的 pending 消息需要显式恢复，可以用 `XPENDING` 检查，再用 `XCLAIM` 或 Redis 6.2 加入的 `XAUTOCLAIM` 接管。重新投递可能造成重复处理，业务应按消息 ID 或业务标识去重。参见[官方消费者组说明](https://redis.io/docs/latest/commands/xreadgroup/)。
 
 #### 12.4.1 `XGROUP CREATE`
 
 - 语法：`XGROUP CREATE key group <id | $> [MKSTREAM] [ENTRIESREAD entries-read]`
-- 功能：创建消费者组
+- 功能：创建消费者组，组已存在时返回错误
 - 参数：
-  - `key`：队列名称
-  - `group`：消费者组名称
-  - `<id | $>`：起始 ID 标识
-  - `MKSTREAM`：不存在时自动创建
+  - `id`：初始化最后投递 ID，`0` 表示从已保存的历史条目开始
+  - `$`：跳过创建组时已有的条目，只消费后续条目
+  - `MKSTREAM`：键不存在时创建空 Stream
+  - `ENTRIESREAD`：Redis 7.0 加入，用于初始化消费进度统计，不替代起始 ID
 
 #### 12.4.2 `XGROUP DESTROY`
 
 - 语法：`XGROUP DESTROY key group`
-- 功能：删除消费者组
+- 功能：删除消费者组及其 PEL，保留 Stream。组存在时返回 `1`，否则返回 `0`
 
-#### 12.4.3 `XREADGROUP GROUP`
+#### 12.4.3 `XREADGROUP`
 
 - 语法：`XREADGROUP GROUP group consumer [COUNT count] [BLOCK milliseconds] [NOACK] STREAMS key [key ...] id [id ...]`
-- 功能：从消费者组读取消息
+- 功能：以指定消费者身份从组内读取条目，消费者不存在时自动创建
 - 参数：
-  - `group`：消费者组名称
-  - `consumer`：消费者名称，如果不存在则自动创建
+  - `>`：获取尚未投递给该组任何消费者的新条目
+  - 数值 ID：读取属于当前消费者、ID 大于该值的 pending 条目，此时 `BLOCK`、`NOACK` 不生效
+  - `NOACK`：新条目投递后不进入 PEL，适用于允许丢失、不需要确认的场景
 
-## GEO
+```bash
+XADD jobs 1000-0 task "send-email"
+# "1000-0"
+XGROUP CREATE jobs workers 0
+# OK
+XREADGROUP GROUP workers worker-1 COUNT 1 STREAMS jobs >
+# 返回 1000-0 及其字段，此时该消息在 PEL 中
+XACK jobs workers 1000-0
+# (integer) 1
+```
+
+## 13 GEO
 
 GEO 是 Geolocation 的简写形式，代表地理坐标。Redis 在 3.2 版本中加入了对 GEO 的支持，允许存储地理坐标信息，帮助我们根据经纬度来检索数据。
 
+GEO 底层使用 ZSet，分数编码地理位置。经度范围为 `[-180, 180]`，纬度范围约为 `[-85.05112878, 85.05112878]`，单位均为度。编码会产生量化误差，距离采用球面近似，不能作为精密测绘结果。下面的地点名称和坐标用于演示查询。
+
 ### 13.1 `GEOADD`
 
-- 语法：`GEOADD key [NX | XX] longitude latitude member [longitude latitude member ...]`
-- 功能：添加一个地理空间信息
+- 语法：`GEOADD key [NX | XX] [CH] longitude latitude member [longitude latitude member ...]`
+- 功能：添加或更新位置，默认返回新增成员数，`CH` 返回新增或位置变化的成员数。`NX`、`XX`、`CH` 在 Redis 6.2 加入
 
 <<< @/db/codes/redis/geoadd.sh
 
 ### 13.2 `GEODIST`
 
-- 语法：`GEODIST key member1 member2 [M | KM]`
+- 语法：`GEODIST key member1 member2 [M | KM | FT | MI]`
 - 功能：返回两个点之间的距离
 - 参数：
-  - `M`：以米为单位
+  - `M`：以米为单位，默认值
   - `KM`：以千米为单位
+  - `FT`：以英尺为单位
+  - `MI`：以英里为单位
 
 <<< @/db/codes/redis/geodist.sh{10-15}
 
 ### 13.3 `GEOHASH`
 
-- 语法：`GEOHASH key [member [member ...]]`
+- 语法：`GEOHASH key member [member ...]`
 - 功能：返回 hash 字符串形式的 `member` 坐标
 
 <<< @/db/codes/redis/geohash.sh{5,6}
 
 ### 13.4 `GEOPOS`
 
-- 语法：`GEOPOS key [member [member ...]]`
+- 语法：`GEOPOS key member [member ...]`
 - 功能：返回 `member` 的坐标
 
 <<< @/db/codes/redis/geopos.sh{5-7}
 
 ### 13.5 `GEORADIUS`
 
-> 废弃。推荐采用 `GEOSEARCH` 和 `GEOSEARCHSTORE`
+> Redis 6.2 起不推荐用于新代码，改用 `GEOSEARCH` 和 `GEOSEARCHSTORE`。命令仍可使用。
 
-- 语法：`GEORADIUS key longitude latitude radius <M | KM | FT | MI>`
+- 常用形式：`GEORADIUS key longitude latitude radius <M | KM | FT | MI>`
 - 功能：指定圆心、半径，找到该圆内包含的所有 `member`
 
 ### 13.6 `GEOSEARCH`
 
 - 语法：`GEOSEARCH key <FROMMEMBER member | FROMLONLAT longitude latitude> <BYRADIUS radius <M | KM | FT | MI> | BYBOX width height <M | KM | FT | MI>> [ASC | DESC] [COUNT count [ANY]] [WITHCOORD] [WITHDIST] [WITHHASH]`
-- 功能：在指定范围内搜索 `member`，并按照与指定点的距离排序后返回。范围可以是圆形或矩形
+- 功能：在圆形或矩形范围内搜索成员。默认不保证结果顺序，`ASC`、`DESC` 才按距离排序。`COUNT count ANY` 可以提前结束搜索，不能保证返回最近的 `count` 个成员。Redis 6.2 加入
 
 <<< @/db/codes/redis/geosearch.sh{10-19}
 
-### 13.6 `GEOSEARCHSTORE`
+### 13.7 `GEOSEARCHSTORE`
 
 - 语法：`GEOSEARCHSTORE destination source <FROMMEMBER member | FROMLONLAT longitude latitude> <BYRADIUS radius <M | KM | FT | MI> | BYBOX width height <M | KM | FT | MI>> [ASC | DESC] [COUNT count [ANY]] [STOREDIST]`
-- 功能：与 `GEOSEARCH` 功能一致，不过可以把结果存到一个指定的 `key`
+- 功能：将搜索结果写入目标 ZSet，覆盖目标键。默认保留地理编码分数，使用 `STOREDIST` 时改为保存指定单位下的距离分数。Redis 6.2 加入
 
-## Bitmap
+## 14 Bitmap
 
-Redis 中是利用 string 类型数据结构实现 Bitmap，因此最大上限是 512 M。
+Bitmap 使用 String 的各个二进制位，不是独立的数据类型。Redis 8.2.x 默认上限为 512 MiB，对应位偏移 `0` 到 `2^32 - 1`，限制与 `proto-max-bulk-len` 相关。对很大的偏移执行 `SETBIT` 会分配并填充中间空间，可能增加内存和延迟。
 
 ### 14.1 `SETBIT`
 
@@ -907,21 +914,25 @@ Redis 中是利用 string 类型数据结构实现 Bitmap，因此最大上限�
 ### 14.2 `GETBIT`
 
 - 语法：`GETBIT key offset`
-- 功能：在 `offset` 处存入一个 `1` 或 `0`
+- 功能：读取 `offset` 处的位。键不存在或偏移超出已存储范围时返回 `0`
 
 <<< @/db/codes/redis/getbit.sh{3-6}
 
 ### 14.3 `BITFIELD`
 
-- 语法：`BITFIELD key GET encoding offset`
-- 功能：查询 Bitmap 中 bit 数组指定位置的值
+- 常用读取形式：`BITFIELD key GET encoding offset`
+- 功能：把连续的位解释为整数，也支持 `SET encoding offset value` 和 `INCRBY encoding offset increment`
+
+`encoding` 使用 `i` 或 `u` 加位宽，例如 `i8`、`u4`。有符号位宽为 1 至 64，无符号位宽为 1 至 63。`OVERFLOW WRAP | SAT | FAIL` 控制后续数值写入的溢出行为，默认 `WRAP`。只读场景还可使用 Redis 6.0 加入的 `BITFIELD_RO`。
 
 <<< @/db/codes/redis/bitfield.sh
 
 ### 14.4 `BITCOUNT`
 
-- 语法：`BITCOUNT key`
+- 语法：`BITCOUNT key [start end [BYTE | BIT]]`
 - 功能：统计 Bitmap 中值为 `1` 的 bit 位的数量
+
+范围默认按字节解释，Redis 7.0 起支持 `BIT`，范围包含两端，支持负索引。
 
 <<< @/db/codes/redis/bitcount.sh
 
@@ -930,783 +941,638 @@ Redis 中是利用 string 类型数据结构实现 Bitmap，因此最大上限�
 - 语法：`BITPOS key bit [start [end [BYTE | BIT]]]`
 - 功能：查询 bit 数组中指定范围内第一个 0 或 1 出现的位置
 
+返回相对整个字符串的位偏移，找不到时通常返回 `-1`。查找 `0` 且未指定结束位置时，可以把字符串末尾之外视为零填充，因此全为 `1` 的字符串也可能返回末尾之后的位置。`BIT` 单位选项在 Redis 7.0 加入。
+
 <<< @/db/codes/redis/bitpos.sh
 
-## Redis 持久化
+## 15 Redis 持久化
 
 ### 15.1 RDB
 
-全称 Redis Database Backup file（Redis 数据备份文件），也被叫做 Redis 数据快照。简单来说就是把内存中的所有数据都记录到磁盘中。当 Redis 实例故障重启后，从磁盘读取快照文件，恢复数据。
-
-快照文件称为 RDB 文件。
+RDB 是 Redis 的二进制快照格式，记录生成快照时的数据集。恢复只能回到已保存的状态，最近一次快照之后的写入可能丢失。
 
 <<< @/db/codes/redis/rdb.sh
 
-Redis 停机时会执行一次 RDB。
+正常关闭时是否保存 RDB 取决于持久化配置和 `SHUTDOWN SAVE | NOSAVE` 等参数。不能把正常关闭的行为推广到崩溃、断电或强制终止。
 
 Redis 内部有触发 RDB 的机制，可以在 `redis.conf` 文件中找到，格式如下：
 
 <<< @/db/codes/redis/rdb.conf
 
-`BGSAVE` 开始时会 fork 主进程得到子进程，子进程<span style="color:red;">共享</span>主进程的内存数据。完成 fork 后读取内存数据并写入 RDB 文件。
-
-fork 采用的是 copy-on-write 技术：
-
-- 当主进程执行读操作时，访问共享内存；
-- 当主进程执行写操作时，则会拷贝一份数据，执行写操作。
+`BGSAVE` 使用 `fork` 创建子进程。子进程写快照，主进程继续服务，但创建子进程本身仍可能造成暂停。父子进程最初共享物理页，写时复制（copy-on-write）在内存页被修改时复制相关页，不是每次写入都复制整个数据集。高写入负载下应为这些额外页面预留内存。
 
 ### 15.2 AOF
 
-全称 Append Only File（追加文件）。Redis 处理的每一个写命令都会记录在 AOF 文件，可以看作是命令日志文件。
+AOF（Append Only File）记录恢复数据集所需的写操作。记录形式可能经过转换，不一定与客户端提交的命令完全相同。
 
-AOF 默认时关闭的，需要修改 `redis.conf` 配置文件来开启 AOF：
+AOF 默认关闭，下面给出开启 AOF 并采用每秒同步策略的配置：
 
 <<< @/db/codes/redis/aof.conf
 
-因为是记录命令，AOF 文件会比 RDB 文件大很多。而且 AOF 会记录对同一个 key 的多次写操作，但只有最后一次写操作才有意义。通过执行 `BGREWRITEAOF` 命令，可以让 AOF 文件执行重写功能，用最少的命令达到相同的效果。
+`appendfsync` 控制文件同步策略，不是控制所有写入何时才进入 AOF 缓冲。`always` 每批写入都同步，`everysec` 通常每秒同步，故障时通常可能丢失约一秒写入，`no` 由操作系统安排同步。实际损失窗口受系统负载、存储和故障类型影响。
+
+Redis 7.0 起采用多文件 AOF，由基础文件、增量文件和 manifest 组织。默认 `aof-use-rdb-preamble yes`，基础文件可以采用 RDB 格式，因此不能直接把整个 AOF 当成一个纯文本文件读取。
+
+`BGREWRITEAOF` 按当前数据集重建基础文件，去掉不再需要的历史操作，期间新增的写入继续记录在增量文件中。文件大小取决于数据、历史写入和基础文件格式。RDB 和 AOF 都启用时，重启优先使用 AOF 恢复。参见[官方持久化说明](https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/)。
 
 Redis 也会在触发阈值时自动去重写 AOF 文件。阈值也可以在 `redis.conf` 中配置：
 
 <<< @/db/codes/redis/auto-aof.conf
 
-## Redis 主从
+## 16 Redis 主从
 
-单节点 Redis 的并发能力是有上限的，要进一步提高 Redis 的并发能力，就需要搭建主从集群，实现读写分离。
+复制将主节点的数据同步到副本。读写分离可以分担读取负载，但写入仍集中在主节点，副本读也可能读到尚未更新的数据。复制本身不提供自动故障转移。
 
-### 16.1 搭建主从集群
+### 16.1 搭建主从实例
 
-在一台机器上开三个 Redis 搭建主从集群。
+以下是在同一台机器上的本地实验，使用 Redis 8.2.x 的 `redis-server`、`redis-cli`，端口为 `7001`、`7002`、`7003`。实例仅监听本机，数据、配置和日志目录分别独立。实验关闭自动快照和 AOF，以便观察复制，不作为生产持久化配置。
 
-#### 16.1.1 配置
-
-开启 RDB，关闭 AOF。
-
-创建 3 个文件夹，把配置文件放进去，并且修改 `port` 为三个不同的端口，然后启动三个 Redis 服务：
+#### 16.1.1 配置与启动
 
 <<< @/db/codes/redis/master-slaver_conf.sh
 
-#### 16.1.2 开启
+#### 16.1.2 配置复制关系
 
-现在三个实例还没有任何关系，要配置主从可以使用 `REPLICAOF` 或者 `SLAVEOF` 命令。
+使用 `REPLICAOF host port` 把 `7002`、`7003` 配置为 `7001` 的副本。`SLAVEOF` 从 Redis 5.0 起不推荐用于新代码，但仍兼容。
 
-有临时和永久两种模式：
+<<< @/db/codes/redis/master-slaver_slaveof.sh
 
-- 修改配置文件（永久生效）
-  - 在 `redis.conf` 添加一行配置：`replicaof <masterip> <masterport>`
-- 使用 redis-cli 客户端连接到 redis 服务，执行 `SLAVEOF` 命令（重启后失效）
+命令修改运行状态，若要在重启后保留，可在配置文件中写入 `replicaof 127.0.0.1 7001`，或在配置文件可写时执行 `CONFIG REWRITE`。`INFO replication` 中部分字段仍沿用 `slave` 命名。
 
-  <<< @/db/codes/redis/master-slaver_slaveof.sh
+实验结束后逐个关闭实例：
+
+```bash
+for port in 7001 7002 7003; do
+  redis-cli -p "$port" SHUTDOWN NOSAVE
+done
+```
 
 ### 16.2 数据同步原理
 
 #### 16.2.1 全量同步
 
-主从第一次同步是全量同步。
+副本通过 `PSYNC` 请求同步。没有可用的历史复制状态，或主节点无法提供所需增量时，会全量同步：主节点生成 RDB，副本加载快照，再接收快照生成期间积累的复制流。
 
-master 判断 slave 是否首次同步数据，需依赖两个核心概念：
+复制状态主要由两个值描述：
 
-- Replication id（简称 replid）：是数据集的唯一标记，id 一致代表属于同一数据集。每个 master 有专属 replid，slave 会继承 master 的 replid。
-- offset（偏移量）：随 repl_backlog 中记录的数据增加而递增。slave 完成同步时会记录当前 offset，若 slave 的 offset 小于 master 的 offset，说明 slave 数据落后，需要更新。
+- replication ID：标识一段复制历史。副本跟随主节点继承 ID，主节点角色变化时可以保留第二个 ID，用于一定范围内的部分同步。
+- replication offset：复制流中的字节偏移，不是命令数量，也不是 backlog 当前占用大小。
 
-因此 slave 进行数据同步时，必须向 master 声明自身的 replication id 和 offset，master 才能据此判断需要同步的内容。
+相同 replication ID 下的相同 offset 对应相同的数据状态，仅比较 ID 或仅比较 offset 都不够。
 
-#### 16.2.2 增量同步
+#### 16.2.2 部分同步
 
-主从第一次同步是全量同步，但如果 slave 重启后同步，则执行增量同步。
+断线重连或重启后能否部分同步，取决于副本是否保留有效复制状态、主节点是否接受该 replication ID，以及缺失的复制流是否仍在 backlog 中。重启后不保证一定走部分同步。
 
-::: warning
-repl_backlog 的大小存在上限，当写满后会覆盖最早的数据。
+`repl-backlog-size` 控制历史复制流缓冲容量，旧内容会被覆盖。所需区间已经被覆盖时，需要全量同步。增大容量可以容忍更长的断连，但会消耗更多内存。
 
-若 slave 断开连接的时间过久，导致其未备份的数据被 repl_backlog 覆盖，此时无法基于日志进行增量同步，只能再次执行全量同步。
-:::
+Redis 8.2.x 默认启用 `repl-diskless-sync yes`，全量同步可以由子进程直接把 RDB 写入网络，减少主节点的临时磁盘写入，仍有 fork、快照生成和网络传输开销。复制规模应结合数据集大小、带宽和恢复时间评估。级联复制可以分担主节点负载，也会增加同步路径和故障依赖。
 
-可以从以下几个方面来优化 Redis 主从集群：
+复制通常是异步的，已返回成功的写入也可能在故障转移后丢失。`WAIT` 可以等待副本确认，Redis 7.2 加入的 `WAITAOF` 可以等待相应 AOF 同步，但都不能把 Redis 复制变成强一致系统。参见[官方复制说明](https://redis.io/docs/latest/operate/oss_and_stack/management/replication/)。
 
-- 在 master 节点配置 `repl-diskless-sync yes`，全量同步时无需将 RDB 文件写入磁盘，直接通过网络传输给 slave，避免磁盘 IO 开销。
-- 减少 Redis 单节点的内存使用量，降低生成 RDB 文件时的磁盘 IO 压力。
-- 适当增大 repl_backlog 的大小，同时及时恢复故障 slave 节点，尽可能避免全量同步。
-- 限制单个 master 的 slave 数量；若 slave 过多，采用 “主-从-从” 的链式结构，让部分 slave 从其他 slave 同步数据，减轻 master 的负载。
+## 17 Redis 哨兵
 
-## Redis 哨兵
-
-Redis 通过哨兵机制保障主从集群的自动故障恢复。哨兵的结构和作用如下：
-
-- **监控**：持续检查 master 和 slave 节点是否正常运行。
-- **自动故障恢复**：当 master 节点故障时，自动将一个 slave 节点提升为新的 master；待原故障 master 恢复后，会以新 master 的 slave 身份重新加入集群。
-- **通知**：作为客户端的服务发现组件，在集群发生故障转移（主从切换）时，将最新的集群节点信息推送至客户端。
+Sentinel 负责监控主从实例、协调自动故障转移，并向客户端提供当前主节点地址。客户端必须支持 Sentinel 服务发现，并在切换后重新连接。Sentinel 不代理业务请求，也不消除异步复制的数据丢失窗口。
 
 ### 17.1 服务状态监控
 
-Redis Sentinel 通过心跳机制监测集群实例状态：每隔 1 秒向集群中每个实例发送 `ping` 命令：
+Sentinel 定期检查实例。某实例超过 `down-after-milliseconds` 没有有效响应时，当前 Sentinel 判定其主观下线（SDOWN）。对于主节点，当至少 `quorum` 个 Sentinel 同意其下线，才判定为客观下线（ODOWN）。副本的主观下线不使用同样的 ODOWN 投票流程。
 
-- 主观下线：单个 Sentinel 节点发现某实例未在规定时间内响应 `ping` 命令时，则认为该实例主观下线（仅当前 Sentinel 的独立判断）。
-- 客观下线：若超过指定数量（quorum）的 Sentinel 节点都判定该实例为主观下线，则该实例客观下线。quorum 值最好超过 Sentinel 实例数量的一半。
+`quorum` 决定下线判断门槛，执行故障转移还需要 Sentinel 多数派授权。二者不能混为一谈。例如 5 个 Sentinel 配置 `quorum 2` 时，两个可以形成 ODOWN 判断，但仍至少需要三个授权故障转移。一般部署至少 3 个 Sentinel，并分布在独立故障域。
 
-### 17.2 选举新的 master
+### 17.2 选择新的主节点
 
-当 Sentinel 检测到 master 故障后，会从 slave 节点中选举新的 master，其选择依据如下：
+执行故障转移的 Sentinel 先获得选举授权，再从合格副本中选择要提升的节点。选择条件包括：
 
-- 若 slave 与原 master 的断开时间超过指定阈值（`down-after-milliseconds \* 10`），则直接排除该 slave。
-- 比较 slave 的 `replica-priority` 配置值，数值越小优先级越高；若该值为 0，该 slave 不参与选举。
-- 若 `replica-priority` 相同，比较 slave 的 offset，数值越大说明数据越新，优先级越高。
-- 最后比较 slave 的运行 ID，数值越小优先级越高。
+1. 排除不可达、状态不合格、`replica-priority 0` 的副本。
+2. 排除与主节点断连过久的副本。Redis 8.2.x 的阈值考虑 `down-after-milliseconds × 10`，还加上主节点已处于 SDOWN 的时长。
+3. 按 `replica-priority` 升序选择，数值越小越优先。
+4. 优先选择 replication offset 更大的副本。
+5. 仍相同时按 run ID 的字典序升序选择，不把它解释为普通数值。
 
-### 17.3 故障转移的实现流程
+### 17.3 故障转移流程
 
-在 Sentinel 选定新的 master（以 slave1 为例）后，通过以下步骤完成故障转移：
+Sentinel 将选中的副本提升为主节点，再让其他副本跟随新的主节点。原主节点恢复后也被重新配置为副本。
 
-1. Sentinel 向 slave1 发送 `slaveof no one` 命令，使其脱离从节点身份，成为新的 master。
-2. Sentinel 向集群中剩余的所有 slave 发送 `slaveof [新master的IP] [新master的端口]` 命令，让这些 slave 将新 master 作为主节点，开始从新 master 同步数据。
-3. Sentinel 将原故障的 master 标记为 slave，待其恢复后，会自动以 slave 身份连接新 master。
+Redis 8.2.x 的 Sentinel 内部仍发送兼容命令 `SLAVEOF NO ONE`、`SLAVEOF host port`，其效果对应 `REPLICAOF`。切换过程中客户端可能暂时失败或连接到旧主节点，需要设置合理的超时、重连和重试策略。参见[官方 Sentinel 文档](https://redis.io/docs/latest/operate/oss_and_stack/management/sentinel/)。
 
-## Redis 分片
+## 18 Redis 分片
 
-### 18.1 分片集群结构
+### 18.1 Redis Cluster
 
-主从与哨兵机制可实现集群的高可用及高并发读，但仍存在两个核心局限：
+Redis Cluster 将数据分配给多个主节点，每个主节点可配置副本，节点间使用 cluster bus 协调成员状态和故障转移。分片可以扩展总数据量和写入能力，但具体收益取决于键和请求是否均衡。
 
-- 无法承载海量数据存储
-- 无法支撑高并发写请求
+客户端请求了错误节点时，服务端通常返回 `MOVED` 或 `ASK` 重定向，由客户端访问目标节点，不会自动代理该业务命令。命令行使用 `redis-cli -c` 跟随重定向，应用使用支持 Redis Cluster 的客户端。Cluster 只支持数据库 `0`。
 
-分片集群是针对上述问题的解决方案，其核心特征如下：
+下面的实验使用 `7101` 至 `7106`，建立三个主节点及各一个副本，与前面的主从实验使用不同端口。所有节点在同一机器上仅用于演示，不能用于验证跨机器高可用。
 
-- 集群包含多个 master 节点，每个 master 负责存储不同的数据分片
-- 每个 master 可关联多个 slave 节点
-- master 节点之间通过 ping 机制互检状态
-- 客户端可访问集群任意节点，请求会被自动转发至对应数据所在的 master 节点
+<<< @/db/codes/redis/cluster-setup.sh
 
-### 18.2 散列插槽
+### 18.2 哈希槽
 
-Redis 分片集群中，所有 master 节点对应 0-16383 共 16384 个插槽，数据 Key 不与节点直接绑定，而是与插槽绑定，绑定逻辑由 Key 的有效部分计算得出。
+Redis Cluster 有 `16384` 个槽，编号 `0` 至 `16383`。槽分配给主节点，每个键映射到一个槽：
 
-根据 Key 中是否包含 `{}`，分为两种情况：
+```text
+slot = CRC16_XMODEM(key 的有效部分) mod 16384
+```
 
-1. **包含 `{}` 且内部有字符**：以 `{}` 中的内容作为有效部分（例如 Key 为 `{seee}num`，有效部分是 `seee`）；
-2. **不包含 `{}`**：以整个 Key 作为有效部分。
+hash tag 的规则是找到键中第一个 `{`，再找其后的第一个 `}`。两者之间非空时，只对其中内容计算，否则对整个键计算。不会在遇到空花括号后继续寻找下一组。
 
-插槽值的计算方式：
+- `{user:101}:name` 与 `{user:101}:email` 使用相同有效部分 `user:101`。
+- `foo{bar}{baz}` 使用 `bar`。
+- `foo{}{bar}` 按整个键计算。
 
-1. 基于 Key 的有效部分，通过 CRC16 算法生成哈希值；
-2. 将哈希值对 16384 取余，结果即为该 Key 对应的插槽（Slot）值。
+多键命令、事务和 Lua 脚本通常要求所涉及的键在同一槽。hash tag 可以实现这一点，过度集中也可能造成热点。参见[官方 Cluster 规范](https://redis.io/docs/latest/operate/oss_and_stack/reference/cluster-spec/)。
 
 ### 18.3 集群伸缩
 
-添加节点的命令：`add-node new_host:new_port existing_host:existing_port`
+新实例须启用 `cluster-enabled yes`，使用独立目录和 `cluster-config-file`，不能直接把前面普通主从实例当作 Cluster 节点加入。
 
-默认为 master 节点，通过参数 `--cluster-slave --cluster-master-id <arg>` 可指定为 slave 节点。
+下面在同一个实验 shell 中继续使用 `labdir`，启动 `7107` 并加入集群：
 
 <<< @/db/codes/redis/add-node.sh
 
-此时 `7004` 节点上没有插槽。需要通过 `reshard <host:port> or <host> <port>` 命令分配。
+`redis-cli --cluster add-node new_host:new_port existing_host:existing_port` 默认添加主节点。添加副本可以使用 `--cluster-slave --cluster-master-id <id>`，这是 `redis-cli` 的参数名。
+
+新主节点最初没有槽，需要用 `redis-cli --cluster reshard host:port` 迁移槽。交互中指定槽数、目标节点 ID 和源节点 ID，检查迁移计划后确认：
 
 <<< @/db/codes/redis/reshard.sh
 
+实验结束后关闭本次启动的节点：
+
+```bash
+for port in 7101 7102 7103 7104 7105 7106 7107; do
+  redis-cli -p "$port" SHUTDOWN NOSAVE
+done
+```
+
 ### 18.4 故障转移
 
-当集群中有一个 master 宕机会发生什么：
+主节点被足够多的主节点判断为故障后，合格副本可发起选举，获得持有槽的主节点多数派授权后接管槽。是否能够恢复服务取决于多数派是否可达、有无合格副本以及槽覆盖配置。
 
-1. 首先是该实例与其它实例失去连接
-2. 然后是疑似宕机
-3. 最后是确认下线，自动提升一个 slave 为新的 master
+`cluster-require-full-coverage yes` 是默认配置，槽覆盖不完整时集群停止提供普通数据服务。自动切换不保证零中断，也不保证异步复制的最后一批写入不会丢失。
 
-#### 18.4.1 数据迁移
-
-利用 `CLUSTER FAILOVER` 命令可以手动让集群中的某个 master 宕机，切换到执行 `CLUSTER FAILOVER` 命令的这个 slave 节点，实现无感知的数据迁移。
+#### 18.4.1 手动故障转移
 
 - 语法：`CLUSTER FAILOVER [FORCE | TAKEOVER]`
-- 时间复杂度：`O(1)`
-- 可选项：
-  - `FORCE`：省略对 offset 的一致性校验
-  - `TAKEOVER`：忽略数据一致性、忽略 master 状态和其他 master 的意见
+- 执行位置：准备提升的副本节点
 
-### 18.5 Go Redis 访问分片集群
+普通 `CLUSTER FAILOVER` 先与主节点协调暂停写入，等待副本追平复制偏移，再请求选举授权并接管槽。它不会让主节点宕机，也不是槽的 reshard 操作。
 
-Ring 分片客户端，是采用了一致性 HASH 算法在多个 redis 服务器之间分发 key，每个节点承担一部分 key 的存储。
+`FORCE` 跳过与主节点的协调，可在主节点不可达时使用，但仍需要多数派授权，可能丢失尚未复制的写入。`TAKEOVER` 进一步跳过正常的多数派授权，自行接管，可能造成配置冲突，应明确理解分区和数据风险后使用。参见 [`CLUSTER FAILOVER` 官方参考](https://redis.io/docs/latest/commands/cluster-failover/)。
 
-Ring 客户端会监控每个节点的健康状况，并从 Ring 中移除掉宕机的节点，当节点恢复时，会再加入到 Ring 中。
+### 18.5 Go 访问 Redis Cluster
+
+本文的 go-redis 示例使用 v9.12.1 核对，两个文件各有自己的 `main`，应在独立 Go 模块中分别运行。先执行 `go mod init example/redis-demo` 和 `go get github.com/redis/go-redis/v9@v9.12.1`，再用 `go run 文件名.go` 运行所选示例。
+
+go-redis v9 使用 `ClusterClient` 根据槽分配路由，处理 `MOVED`、`ASK` 等响应。示例连接上面的本地 Cluster，未设置认证，实际部署应按服务端配置传入凭据和 TLS 参数。
 
 <<< @/db/codes/redis/go-redis_shard.go
 
-## 最佳实践
+`Ring` 是另一种客户端：它在多个独立 Redis 实例间按一致性哈希分配键，不使用 Redis Cluster 的槽协议。节点增减时映射会变化，Ring 不负责把已有数据迁移到新位置，不能替代 `ClusterClient`。参见 [go-redis 官方客户端说明](https://github.com/redis/go-redis)。
+
+## 19 最佳实践
 
 ### 19.1 键值设计
 
-Redis 的 Key 虽然可以自定义，但遵循以下最佳实践约定，可提升可读性、维护性与性能：
+通常采用 `[业务名]:[对象名]:[ID]`，例如 `login:user:101`，方便辨认业务范围并减少命名冲突。控制键名长度有助于降低内存和传输开销，但不应为缩短键名牺牲必要的含义。
 
-- 遵循基本格式：`[业务名]:[数据名]:[ID]`
-- 长度不超过 44 字节
-- 不包括特殊字符
+键没有“必须小于 44 字节”或“不能含特殊字符”的通用要求。44 字节是普通字符串对象采用 `embstr` 的一个阈值，8.2.x 中键空间对象还要考虑键名和过期元数据，不能直接套到键名上。涉及 Cluster 多键操作时，单独设计 hash tag。
 
-例如，我们的登录业务，保存用户信息，其 Key 是这样的：`login:user:101`
+### 19.2 批处理
 
-优点：
+小命令频繁往返时，网络延迟可能占主要成本。批处理可以减少等待响应的次数，但复杂命令、脚本或大型集合操作也可能由服务端 CPU 主导，应通过测量判断瓶颈。
 
-1. 可读性强
-2. 避免 Key 冲突
-3. 方便管理
-4. 更节省内存：Key 是 string 类型，底层编码包含 int、embstr 和 raw 三种。embstr 在小于 44 字节使用，采用连续内存空间，内存占用更小
+#### 19.2.1 多参数命令
 
-### 19.2 批处理优化
+可以优先使用 `MSET`、多字段 `HSET`、多成员 `SADD` 等命令。`HMSET` 已不推荐用于新代码。
 
-网络传输耗时远大于 Redis 执行命令的耗时。
-
-多个命令可以在一次网络请求中发送，而不是每次请求发送一个命令。
-
-#### 19.2.1 MSET
-
-Redis 提供了很多以 `Mxxx` 命名的命令，可实现数据的批量插入操作，常见的包括：
-
-- `MSET`
-- `HMSET`
-
-::: warning
-也不要在一次批处理中传输太多命令，否则单次命令占用带宽过多，会导致网络阻塞。
-:::
+单条命令的原子性不代表批量越大越好。过大的命令会长时间占用执行线程，并增加网络和内存压力，应根据值大小及延迟目标限制批量。
 
 #### 19.2.2 Pipeline
 
-`MSET` 虽然可以批处理，但只能操作部分数据类型，因此如果有对复杂数据类型的批处理需要，建议使用 Pipeline 功能：
+Pipeline 将多个命令连续写入连接，再读取对应响应，减少逐条等待往返的开销。它不要求命令属于同一种数据类型。
+
+下面的 Go 示例默认连接 `127.0.0.1:6379`，可用 `REDIS_ADDR` 调整地址，在实验实例执行，每次运行会增加 `pipeline-demo:counter` 并设置一小时 TTL。
 
 <<< @/db/codes/redis/go-redis_pipe.go
 
-::: warning
-Pipeline 的多个命令之间不具备原子性。
-:::
+Pipeline 不保证多个命令整体原子执行。应检查执行错误及各命令结果，连接中断时可能已有部分命令执行。对 `INCR` 等非幂等命令盲目重试可能重复修改数据。参见[官方流水线说明](https://redis.io/docs/latest/develop/using-commands/pipelining/)。
 
-#### 19.2.3 集群下的批处理
+#### 19.2.3 Cluster 中的批处理
 
-在 Redis 集群环境中，MSET、Pipeline 这类批处理命令需要在一次请求中携带多条命令，但存在一个核心约束：批处理涉及的多个 key 必须被映射到同一个插槽。
+| 操作                                      | 槽要求                     | 行为                                     |
+| ----------------------------------------- | -------------------------- | ---------------------------------------- |
+| 单条 `MSET` 等多键命令                    | 所有键在同一槽             | 不同槽时返回 `CROSSSLOT`                 |
+| `ClusterClient` Pipeline 中的多个独立命令 | 各命令分别满足自身的槽要求 | 客户端按目标节点组织请求，可以跨节点发送 |
+| 使用相同 hash tag                         | 相关键位于同一槽           | 方便事务和多键操作，但可能造成热点       |
 
-若多个 key 分散在不同插槽，批处理命令会执行失败。
+跨节点 Pipeline 不能保证全局顺序或原子性，也不会让一条跨槽 `MSET` 自动合法化。耗时由节点负载、网络延迟和批量共同决定，不能固定简化为一次网络往返。
 
-|          | 串行命令                       | 串行 slot                                                                                                | 并行 slot                                                                                                | hash_tag                                                    |
-| -------- | ------------------------------ | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| 实现思路 | for 循环遍历，依次执行每个命令 | 在客户端计算每个 key 的 slot，将 slot 一致分为一组，每组都利用 Pipeline 批处理。<br>**串行执行各组命令** | 在客户端计算每个 key 的 slot，将 slot 一致分为一组，每组都利用 Pipeline 批处理。<br>**并行执行各组命令** | 将所有 key 设置相同的 hash_tag，则所有 key 的 slot 一定相同 |
-| 耗时     | N 次网络耗时 + N 次命令耗时    | m 次网络耗时 + N 次命令耗时<br>m = key 的 slot 个数                                                      | 1 次网络耗时 + N 次命令耗时                                                                              | 1 次网络耗时 + N 次命令耗时                                 |
-| 优点     | 实现简单                       | 耗时较短                                                                                                 | 耗时非常短                                                                                               | 耗时非常短、实现简单                                        |
-| 缺点     | 耗时非常久                     | 实现稍复杂<br>slot 越多，耗时越久                                                                        | 实现复杂                                                                                                 | 容易出现数据倾斜                                            |
+### 19.3 服务端配置
 
-### 19.3 服务端优化
+#### 19.3.1 持久化与部署
 
-#### 19.3.1 持久化配置
+持久化配置取决于允许丢失的数据量和恢复时间。可完全重建的缓存可以关闭持久化，但需要评估重启后的预热与回源压力。重要状态应根据需求选择 RDB、AOF 或同时启用，并保留独立备份、验证恢复流程。副本会同步误删和错误写入，不能替代备份。
 
-Redis 持久化可保障数据安全，但会增加额外开销，建议遵循以下配置规则：
+重写阈值要结合磁盘空间和写入速率设置。`no-appendfsync-on-rewrite yes` 只是暂停后台保存或重写期间的 AOF fsync，写入仍会追加，代价是可能扩大故障丢失窗口，不能理解为“禁止做 AOF”。默认 `no`。
 
-1. 用来做缓存的 Redis 实例尽量不要开启持久化功能
-2. 建议关闭 RDB 持久化功能，使用 AOF 持久化
-3. 利用脚本定期在 slave 节点做 RDB，实现数据备份
-4. 设置合理的 rewrite 阈值，避免频繁的 bgrewrite
-5. 配置 `no-appendfsync-on-rewrite = yes`，禁止在 rewrite 期间做 aof，避免因 AOF 引起的阻塞
-
-部署有关建议：
-
-1. Redis 实例的物理机要预留足够内存，应对 fork 和 rewrite
-2. 单个 Redis 实例内存上限不要太大，例如 4G 或 8G。可以加快 fork 的速度、减少主从同步、数据迁移压力
-3. 不要与 CPU 密集型应用部署在一起
-4. 不要与高硬盘负载应用一起部署。例如：数据库、消息队列
+为数据集、复制缓冲、内存碎片、持久化期间的写时复制和操作系统预留容量。单实例大小应结合 fork 延迟、迁移时间和恢复目标确定，没有统一的 4 GiB 或 8 GiB 上限。避免与其他服务争抢关键 CPU、内存和磁盘资源。
 
 #### 19.3.2 慢查询
 
-在 Redis 执行时耗时超过某个阈值的命令，称为慢查询。
+SLOWLOG 记录命令执行耗时，不包含客户端网络传输等时间，不能用来代表请求的完整延迟。
 
-慢查询的阈值可以通过配置指定：
+- `slowlog-log-slower-than`：阈值，单位微秒，Redis 8.2.x 默认 `10000`。`0` 记录所有命令，负值关闭记录。
+- `slowlog-max-len`：最多保留的记录数，默认 `128`。
 
-- `slowlog-log-slower-than`：慢查询阈值，单位是微秒。默认是 10000，建议 1000。
+根据观测需求调整阈值和容量，不必一律改为 `1000`。命令参数可能出现在日志中，应按实际数据内容管理访问权限。
 
-慢查询会被放入慢查询日志中，日志的长度有上限，可以通过配置指定：
+- `SLOWLOG LEN`：查看记录数
+- `SLOWLOG GET [count]`：读取最近记录，未指定数量时默认 `10` 条
+- `SLOWLOG RESET`：清空记录
 
-- `slowlog-max-len`：慢查询日志（本质是一个队列）长度。默认是 128，建议 1000。
+## 20 数据结构
 
-查看慢查询日志列表：
-
-- `SLOWLOG LEN`：查询慢查询日志长度
-- `SLOWLOG GET [count]`：读取 `count` 条慢查询日志
-- `SLOWLOG RESET`：清空慢查询列表
-
-## 数据结构
+以下实现以 Redis 8.2.3 为准。内部布局和阈值是实现细节，不能只根据逻辑数据类型推断实际编码，可用 `OBJECT ENCODING key` 检查。
 
 ### 20.1 动态字符串 SDS
 
-Redis 中保存的 key 是字符串，value 往往是字符串或者字符串的集合。可见字符串是 Redis 中最常用的一种数据结构。
-
-不过 Redis 没有使用 C 语言中的字符串，因为 C 语言字符串存在很多问题：
-
-- 获取字符串的长度需要通过运算
-- 非二进制安全
-- 不可修改
+C 的普通字符串约定以 `\0` 结尾，`strlen` 需要遍历。数组本身可以保存二进制数据，也可以修改，但基于终止符的字符串函数不能把嵌入的 `\0` 当成普通内容，字符串字面量也不能修改。
 
 <<< @/db/codes/redis/string.c
 
-Redis 构建了一种新的字符串结构，称为**简单动态字符串**（Simple Dynamic String），简称 SDS。
-
-例如，我们执行命令：`SET name zhh`
-
-那么 Redis 底层就创建了两个 SDS，其中一个是包含 `name` 的 SDS，另一个是包含 `zhh` 的 SDS。
-
-Redis 是 C 语言实现的，其中 SDS 是一个结构体，源码如下：
+SDS（Simple Dynamic String）通过头部记录长度和容量，再保存字节内容。结尾仍保留 `\0` 以兼容部分 C API，但判断内容长度不依赖它。
 
 <<< @/db/codes/redis/sSDS.c
 
-SDS 被称为动态字符串，核心特性是具备动态扩容能力。
+`sdshdr5` 用 flags 的高 5 位记录短字符串长度，不单独保存容量。Redis 8.2.x 仍使用这种布局，只是代码通常直接访问 flags，不把它解释为该结构体，不能据此认为该编码已弃用。
 
-内存预分配规则：
+SDS 长度查询为 `O(1)`，内容二进制安全，扩容时可以预留空间。Redis 8.2.3 的贪心扩容按所需长度计算：小于 1 MiB 时通常扩大到两倍，达到或超过 1 MiB 时通常额外预留 1 MiB。头部、终止符及分配器取整另计，也有不预分配的扩容路径，不能把公式当成所有 SDS 分配的固定大小。参见 [Redis 8.2.3 的 SDS 实现](https://github.com/redis/redis/blob/8.2.3/src/sds.c)。
 
-- 若新字符串长度 < 1M：`新空间 = 扩展后长度 × 2 + 1`
-- 若新字符串长度 > 1M：`新空间 = 扩展后长度 + 1M + 1`
-
-优点：
-
-1. 获取字符串长度的时间复杂度为 `O(1)`
-2. 支持动态扩容
-3. 减少内存分配次数
-4. 二进制安全（可存储任意二进制数据，不依赖 `\0` 标识结尾）
+键名通常以 SDS 布局保存，字符串值也可能使用 SDS。`int` 编码值则直接保存整数，Redis 8.2.x 还使用带键布局的 `kvobj`，不能从一条 `SET` 推断固定创建两个独立 SDS 分配块。
 
 ### 20.2 IntSet
 
-IntSet 是 Redis 中 set 集合的一种实现方式，基于整数数组来实现，并且具备长度可变、有序等特征。
-
-结构如下：
+IntSet 是 Set 的一种紧凑编码，把整数按升序保存在连续数组中。查找采用二分搜索，时间复杂度为 `O(log N)`，插入和删除可能移动后续元素，最坏为 `O(N)`。
 
 <<< @/db/codes/redis/sIntSet.c
 
-其中的 `encoding` 包含三种模式，表示存储的整数大小不同：
+整数宽度有三种，`encoding` 记录每个元素占用的字节数：
 
 <<< @/db/codes/redis/dIntSet.c
 
-为了方便查找， Redis 会将 intset 中所有整数按照升序依次保存在 `contents` 数组中。
-
-IntSet 升级流程（例如从 `INTSET_ENC_INT16` 升到 `INTSET_ENC_INT32`）：
-
-1. 升级编码为 `INTSET_ENC_INT32`，每个整数占 4 字节，并按照新的编码方式及元素个数扩容数组
-2. 倒序依次将数组中的元素拷贝到扩容后的正确位置
-3. 将待添加的元素放入数组末尾
-4. 最后，将 intset 的 `encoding` 改为 `INTSET_ENC_INT32`。
-
-添加元素的函数源码：
+加入超出当前宽度范围的整数时会升级。例如从 16 位升级到 32 位，先设置新编码并扩容，再从后向前按旧宽度读取、按新宽度写入，避免覆盖未搬移的数据。触发升级的负数放在最前面，正数放在最后面。删除元素不会自动降低整数宽度。
 
 <<< @/db/codes/redis/fIntsetAdd.c
 
+参见 [Redis 8.2.3 的 IntSet 实现](https://github.com/redis/redis/blob/8.2.3/src/intset.c)。
+
 ### 20.3 Dict
 
-Redis 是一个键值型（Key-Value Pair）的数据库，可以根据键实现快速的增删改查。而键与值的映射关系正是通过 Dict 来实现的。
-
-Dict 由三个部分组成，分别是：哈希表（DictHashTable）、哈希节点（DictEntry）、字典（Dict）
+Dict 使用哈希桶与冲突链保存映射。Redis 8.2.x 的 `dict` 直接维护两张表的指针、已用元素数和容量指数，旧版独立 `dictht` 的字段布局不再适用。
 
 <<< @/db/codes/redis/sDictht.c
 
+下面是普通的带值 entry。某些只需要键的字典使用更紧凑的无值 entry，不能把它推广为所有节点的固定布局。
+
 <<< @/db/codes/redis/sDictEntry.c
 
-当我们向 Dict 添加键值对时，Redis 首先根据 key 计算出 hash 值 `h`，然后利用 `h & sizemask` 来计算元素应该存储到数组中的哪个索引位置。
+容量为 `2^ht_size_exp`，桶索引由哈希值与容量掩码计算。冲突较多时查找成本会上升，需要扩容或调整负载。
 
-Dict 中的 HashTable 就是数组结合单向链表的实现，当集合中元素较多时，必然导致哈希冲突增多，链表过长，则查询效率会大大降低。
+Redis 8.2.3 的一般扩容条件如下，还受字典类型回调和暂停自动调整等条件影响：
 
-Dict 在每次新增键值对时都会检查**负载因子**（`LoadFactor = used / size`），满足以下两种情况时就会触发**哈希表扩容**：
+- 允许调整容量（`DICT_RESIZE_ENABLE`）时，负载因子达到 `1` 触发扩容。
+- 避免调整（`DICT_RESIZE_AVOID`）时，负载因子达到强制阈值 `4` 仍可扩容。
+- 禁止调整（`DICT_RESIZE_FORBID`）时，不按这些条件扩容。
 
-- 哈希表的 `LoadFactor >= 1`，并且服务器没有执行 `BGSAVE` 或者 `BGREWRITEAOF` 等后台进程；
-- 哈希表的 `LoadFactor > 5`
+后台持久化期间通常避免调整，以降低写时复制开销。阈值 `4` 属于本版实现细节。
 
 <<< @/db/codes/redis/fDictExpandIfNeeded.c
 
-不管是扩容还是收缩，必定会创建新的哈希表，导致哈希表的 `size` 和 `sizemask` 变化，而 `key` 的查询与 `sizemask` 有关。因此必须对哈希表中的每一个 `key` 重新计算索引，插入新的哈希表，这个过程称为 **rehash**。过程是这样的：
+扩容或收缩时建立第二张表，逐步把旧表中的桶迁移过去，再释放旧表。迁移期间读操作需要考虑两张表，新插入元素进入新表。迁移由字典操作和后台维护分批推进，不保证每次操作恰好迁移一个桶，也可能被安全迭代等条件暂停。
 
-1. 计算新 hash 表的 `realSize`，值取决于当前要做的是扩容还是收缩：
-   - 如果是扩容，则新 `size` 为第一个大于等于 `used + 1` 的 $2^n$
-   - 如果是收缩，则新 `size` 为第一个大于等于 `used` 的 $2^n$（不得小于 4）
-2. 按照新的 `realSize` 申请空间，创建 `dictht`，并复制给 `dict.ht_table[1]`
-3. 设置 `dict.rehashidx = 0`，表示开始 rehash
-4. ~~将 `dict.ht_table[0]` 中的每一个 `dictEntry` 都 rehash 到 `dict.ht_table[1]`~~
-5. 将 `dict.ht_table[1]` 赋值给 `dict.ht_table[0]`，给 `dict.ht_table[1]`初始化为空哈希表，释放原来 `dict.ht_table[0]` 的内存
+这种渐进式 rehash 分摊了搬移成本，但分配新表等操作仍可能造成延迟。参见 [Redis 8.2.3 的字典实现](https://github.com/redis/redis/blob/8.2.3/src/dict.c)。
 
-Dict 的 rehash 并不是一次性完成的。试想一下，如果 Dict 中包含数百万的 entry，要在一次 rehash 完成，极有可能导致主线程阻塞。因此 Dict 的 rehash 是分多次、渐进式的完成，因此称为**渐进式 rehash**。上面的流程第 4 点应为：
+### 20.4 ZipList 与 Listpack
 
-1. 每次执行增删改查操作时，都检查一下 `dict.rehashidx` 是否大于 `-1`，如果是则将 `dict.ht_table[0].table[rehashidx]` 的 entry 链表 rehash 到 `dict.ht_table[1]`，并且将 `rehashidx++`。直至 `dict.ht_table[0]` 的所有数据都 rehash 到 `dict.ht_table[1]`
+ZipList 是 Redis 6.2.x 等旧版常见的紧凑容器。Redis 7.0 起，List、Hash、ZSet 的相关编码改用 listpack。8.2.x 中不应再用 ziplist 描述这些类型的现行存储方式。
 
-### 20.4 ZipList
+ZipList 的条目可概括为：
 
-ZipList 是一种特殊的“双端列表”，由一系列特殊编码的连续内存块组成。可以在任意一端进行压入/弹出操作，并且该操作的时间复杂度为 `O(1)`。
+| prevlen            | encoding     | content          |
+| ------------------ | ------------ | ---------------- |
+| 前一条目的字节长度 | 当前内容编码 | 字符串或整数内容 |
 
-ZipList 中的 Entry 并不像普通链表那样记录前后节点的指针，因为记录两个指针要占用 16 个字节，浪费内存。而是采用了下面的结构：
+`prevlen` 在前一条目长度小于 254 字节时占 1 字节，否则占 5 字节。前一条目变长可能让后续 `prevlen` 也变长，引发连锁更新。容器使用连续内存，插入、删除可能发生搬移或重新分配，两端操作也可能达到 `O(N)`。
 
-| prevrawlen | encoding | content |
-| ---------- | -------- | ------- |
-
-- `prevrawlen`：前一节点的长度，占 1 或 5 个字节
-  - 如果前一字节的长度小于 254 字节，则采用 1 个字节保存这个长度值
-  - 如果前一字节的长度大于等于 254 字节，则采用 5 个字节保存这个长度值，第一个字节为 `0xfe`，后四个字节才是真实长度数据
-- `encoding`：编码属性，记录 `content` 的数据类型（字符串还是整数）以及长度，占用 1、2、5 个字节
-- `content`：负责保存节点的数据，可以是字符串或整数
+Listpack 同样紧凑存储，条目保存自身的编码和内容，并在末尾记录用于反向遍历的长度信息（backlen）。后续条目不依赖前一条目的长度，避免了 ziplist 的这类连锁更新。它仍可能在修改时移动连续内存，并非所有操作都为常数时间。参见 [Redis 8.2.3 的 Listpack 实现](https://github.com/redis/redis/blob/8.2.3/src/listpack.c)。
 
 ### 20.5 QuickList
 
-问题 1：ZipList 虽然节省内存，但申请内存必须是连续空间，如果内存占用过多，申请内存效率很低。怎么办？
+QuickList 在 Redis 3.2 加入，是由紧凑容器节点组成的双向链表。早期节点使用 ziplist，Redis 7.0 起使用 listpack。Redis 8.2.x 的节点可以保存打包的 listpack，也可以用 plain 节点保存单个大元素。
 
-- 为了缓解这个问题，我们必须限制 ZipList 的长度和 entry 大小。
+`list-max-listpack-size` 控制打包节点的大小。正值按元素数量限制，负值对应以下字节大小目标：
 
-问题 2：但是我们要存储大量数据，超过了 ZipList 最佳的上限该怎么办？
+| 配置值 | 大小目标      |
+| ------ | ------------- |
+| `-1`   | 4 KiB         |
+| `-2`   | 8 KiB，默认值 |
+| `-3`   | 16 KiB        |
+| `-4`   | 32 KiB        |
+| `-5`   | 64 KiB        |
 
-- 我们可以创建多个 ZipList 来分片存储数据。
+这不是整个 List 的容量上限，也不表示单个大元素绝不能超过该大小。旧配置名 `list-max-ziplist-size` 在 8.2.x 仍作为兼容别名，正文使用现行名称。
 
-问题 3：数据拆分后比较分散，不方便管理和查找，这多个 ZipList 怎么建立联系？
+<<< @/db/codes/redis/list-max-listpack-size.sh
 
-- Redis 在 3.2 版本引入了新的数据结构 QuickList，它是一个双端链表，只不过链表中的每个节点都是一个 ZipList。
-
-为了避免 QuickList 中的每个 ZipList 中 entry 过多，Redis 提供了一个配置项：`list-max-ziplist-size` 来限制。
-
-- 如果值为正，则代表 ZipList 的允许的 entry 个数的最大值
-- 如果值为负，则代表 ZipList 的最大内存大小，分 5 种情况：
-  1. `-1`：每个 ZipList 的内存占用不能超过 4kb
-  2. `-2`：每个 ZipList 的内存占用不能超过 8kb
-  3. `-3`：每个 ZipList 的内存占用不能超过 16kb
-  4. `-4`：每个 ZipList 的内存占用不能超过 32kb
-  5. `-5`：每个 ZipList 的内存占用不能超过 64kb
-
-其默认值为 `-2`：
-
-<<< @/db/codes/redis/list-max-ziplist-size.sh
-
-除了控制 ZipList 的大小，QuickList 还可以对节点的 ZipList 做压缩。通过配置项 `list-compress-depth` 来控制。因为链表一般都是从首尾访问较多，所以首尾是不压缩的。这个参数是控制首尾不压缩的节点个数：
-
-- `0`：特殊值，代表不压缩
-- `1`：标示 QuickList 的首尾各有 1 个节点不压缩，中间节点压缩
-- `2`：标示 QuickList 的首尾各有 2 个节点不压缩，中间节点压缩
-- 以此内推
-
-默认值：
+`list-compress-depth` 控制首尾各保留多少个不压缩节点，`0` 表示关闭压缩，`1` 表示首尾各保留一个，依此类推。中间符合条件的打包节点使用 LZF，过小或压缩收益不足等节点不一定被压缩。
 
 <<< @/db/codes/redis/list-compress-depth.sh
-
-以下是 QuickList 和 QuickListNode 的结构源码：
 
 <<< @/db/codes/redis/sQuickList.c
 
 <<< @/db/codes/redis/sQuickListNode.c
 
+参见 [Redis 8.2.3 的 QuickList 定义](https://github.com/redis/redis/blob/8.2.3/src/quicklist.h)和[配置文件](https://github.com/redis/redis/blob/8.2.3/redis.conf)。
+
 ### 20.6 SkipList
 
-SkipList（跳表）首先是链表，但是与传统链表相比有几点差异：
+跳表用随机层高建立多级前向指针。Redis 的 ZSet 跳表先按分数排序，同分数时按成员字典序排序，还用 backward 支持反向遍历，用 span 支持排名计算。
 
-- 元素按照升序排序存储
-- 节点可能包含多个指针，指针跨度不同
+查找、插入和删除的期望时间复杂度为 `O(log N)`，不是严格的最坏情况保证。范围查询还与返回的元素数有关。
 
 <<< @/db/codes/redis/sZSkipList.c
 
 <<< @/db/codes/redis/sZSkipListNode.c
 
+参见 [Redis 8.2.3 的跳表实现](https://github.com/redis/redis/blob/8.2.3/src/t_zset.c)。
+
 ### 20.7 RedisObject
 
-Redis 中的任意数据类型的键和值都会被封装为一个 RedisObject，也叫做 Redis 对象，源码如下：
+`redisObject`（`robj`）记录值的逻辑类型、内部编码、引用计数和淘汰元信息。不能把每个键都描述为单独封装在普通 robj 中。Redis 8.2.x 使用 `kvobj` 布局组织键和值，并以 `iskvobj`、`expirable` 等标志表示相关属性。
 
 <<< @/db/codes/redis/sRedisObject.c
 
-Redis 种会根据存储的数据类型不同，选择不同的编码方式，共包含 11 种不同类型：
+编码常量保留了旧格式的编号。下面列出正文涉及的现行编码：
 
 <<< @/db/codes/redis/sRedisObjEncoding.c
 
-每种数据类型的使用的编码方式如下：
+| 逻辑类型 | Redis 8.2.x 的编码                       |
+| -------- | ---------------------------------------- |
+| String   | `int`、`embstr`、`raw`                   |
+| List     | `listpack`、`quicklist`                  |
+| Set      | `intset`、`listpack`、`hashtable`        |
+| ZSet     | `listpack`、`skiplist`，后者同时维护字典 |
+| Hash     | `listpack`、`listpackex`、`hashtable`    |
+| Stream   | `stream`，基于 radix tree 与 listpack    |
 
-| 数据类型     | 编码方式                                                                    |
-| ------------ | --------------------------------------------------------------------------- |
-| `OBJ_STRING` | `OBJ_ENCODING_INT`、`OBJ_ENCODING_EMBSTR`、`OBJ_ENCODING_RAW`               |
-| `OBJ_LIST`   | `OBJ_ENCODING_LINKEDLIST`、`OBJ_ENCODING_ZIPLIST`、`OBJ_ENCODING_QUICKLIST` |
-| `OBJ_SET`    | `OBJ_ENCODING_INTSET`、`OBJ_ENCODING_HT`                                    |
-| `OBJ_ZSET`   | `OBJ_ENCODING_ZIPLIST`、`OBJ_ENCODING_HT`、`OBJ_ENCODING_SKIPLIST`          |
-| `OBJ_HASH`   | `OBJ_ENCODING_ZIPLIST`、`OBJ_ENCODING_HT`                                   |
+Bitmap 使用 String，GEO 使用 ZSet，没有独立对象编码。参见 [Redis 8.2.3 的对象定义](https://github.com/redis/redis/blob/8.2.3/src/server.h)和[对象操作](https://github.com/redis/redis/blob/8.2.3/src/object.c)。
 
-### 20.8 五种数据类型
+### 20.8 常见类型的编码选择
 
 #### 20.8.1 String
 
-String 是 Redis 中最常见的数据存储类型：
+Redis 8.2.x 常见选择如下，实际编码还受写入命令和对象转换路径影响：
 
-- 其基本编码方式是 **RAW**，基于简单动态字符串（SDS）实现，存储上限为 512mb。
-- 如果存储的 SDS 长度小于 44 字节，则会采用 **EMBSTR** 编码，此时 object head 与 SDS 是一段连续空间。申请内存时只需要调用一次内存分配函数，效率更高。
-- 如果存储的字符串是整数值，并且大小在 `LONG_MAX` 范围内，则会采用 **INT** 编码：直接将数据保存在 RedisObject 的 `ptr` 指针位置（刚好 8 字节），不再需要 SDS 了。
+- 能解析为本机 `long` 范围内整数的值，可用 `int` 编码，把整数存入 `ptr` 字段，而不是指向一份整数 SDS。64 位环境下通常对应有符号 64 位范围。
+- 普通独立字符串对象的 `embstr` 长度阈值为 44 字节，对象头和 SDS 一次分配。
+- 写入键空间时，Redis 8.2.x 会创建 `kvobj`。是否继续嵌入字符串，还取决于键名和过期元数据能否满足 `kvobjSet` 的 64 字节大小判断。常见 64 位构建下，短键且没有附加过期时间时，判断式约为 `键长 + 值长 <= 41`，附加过期时间时还需减去 8 字节。因此不能仅按值长预测 `OBJECT ENCODING`。
+- 较长字符串或需要转换的值使用 `raw`，对象头与 SDS 分开分配。
+
+例如单字节键 `a` 写入 40 字节值时可保持 `embstr`，41 字节值则为 `raw`。这与普通对象的 44 字节阈值并不矛盾，前者还包含了键的布局。`APPEND` 等修改也可能将 `embstr` 转为 `raw`。长度均按字节计算。
 
 <<< @/db/codes/redis/obj_encoding_string.sh
 
 #### 20.8.2 List
 
-Redis 的 List 类型可以从首、尾操作列表中的元素。
+Redis 3.2 至 6.2.x 的 List 使用带 ziplist 节点的 quicklist，Redis 7.0 改用带 listpack 节点的 quicklist。Redis 7.4 起，小型 List 可以直接使用单个 listpack，较大时转换为 quicklist。Redis 8.2.x 延续这两种编码，也会在满足条件时把缩小后的 quicklist 转回 listpack。
 
-哪一个数据结构能满足上述特征？
-
-- LinkedList：普通链表，可以从双端访问，内存占用较高，内存碎片较多
-- ZipList：压缩列表，可以从双端访问，内存占用低，存储上限低
-- QuickList：LinkedList + ZipList，可以从双端访问，内存占用较低，包含多个 ZipList，存储上限高
-
-在 3.2 版本之后，Redis 统一采用 QuickList 来实现 List。
+编码选择与 `list-max-listpack-size` 及元素大小有关。
 
 #### 20.8.3 Set
 
-Set 是 Redis 中的单列集合，满足以下特点：
+全部成员是合适的整数且数量不超过 `set-max-intset-entries` 时，通常使用 intset，默认阈值 `512`。Redis 7.2 起还支持 listpack，8.2.x 默认限制为 `set-max-listpack-entries 128` 和 `set-max-listpack-value 64`，分别约束成员数和成员字节长度。
 
-- 不保证有序性
-- 保证元素唯一（可以判断元素是否存在）
-- 求交集、差集、并集
-
-为了查询效率和唯一性，set 采用了 HT 编码（Dict）。Dict 中的 key 用来存储元素，value 统一为 null。
-
-当存储的所有数据都是整数，并且元素数量不超过 `set-max-intset-entries` 时，Set 会采用 IntSet 编码，以节省内存。
+超过相应条件后可转换为 hashtable。字典保存成员，不需要一般映射中的值，但实现可以使用紧凑无值节点，不能按完整 `key + null value` 估算所有内存开销。编码转换路径也受已有编码影响，不是每次修改都重新选择最小容器。
 
 #### 20.8.4 ZSet
 
-ZSet 也就是 SortedSet，其中每一个元素都需要指定一个 score 值和 member 值：
+小型 ZSet 使用 listpack，成员和分数相邻保存。Redis 8.2.x 默认限制为 `zset-max-listpack-entries 128` 和 `zset-max-listpack-value 64`，后者约束成员字节长度。
 
-- 可以根据 score 值排序
-- member 必须唯一
-- 可以根据 member 查询分数
-
-因此，zset 底层数据结构必须满足**键值存储、键必须唯一、可排序**这几个需求。哪种编码结构可以满足？
-
-- SkipList：可以排序，并且可以同时存储 score 和 member
-- HT（Dict）：可以键值存储，并且可以根据 key 找 value
+较大时转换为 skiplist 编码，其 `zset` 同时维护字典和跳表：字典按成员查询分数，跳表按分数或排名查询。不是 `hashtable` 与 `skiplist` 两种独立的 ZSet 对象编码。
 
 <<< @/db/codes/redis/sZset.c
+
+下面的函数创建 skiplist 编码对象，不代表所有 ZSet 初始都采用该编码：
 
 <<< @/db/codes/redis/fCreateZsetObject.c
 
 #### 20.8.5 Hash
 
-Hash 结构与 Redis 中的 Zset 非常类似：
+普通小型 Hash 使用 listpack，字段与值相邻保存。默认 `hash-max-listpack-entries 512` 限制字段与值的对数，`hash-max-listpack-value 64` 限制单个字段或值的字节长度，超过条件时转换为 hashtable。
 
-- 都是键值存储
-- 都需根据键获得值
-- 键必须唯一
+<<< @/db/codes/redis/hash-max-listpack.sh
 
-区别如下：
+Redis 7.4 加入字段级过期。Redis 8.2.x 中，为 listpack Hash 的字段设置过期时间时，会使用带过期元数据的 `listpackex`，hashtable Hash 也支持字段过期。字段 TTL 与整个键的 TTL 是不同层次，不能混用。参见 [`HEXPIRE` 官方参考](https://redis.io/docs/latest/commands/hexpire/)和 [Redis 8.2.3 的 Hash 实现](https://github.com/redis/redis/blob/8.2.3/src/t_hash.c)。
 
-- zset 的键是 member，值是 score；hash 的键和值都是任意值
-- zset 要根据 score 排序；hash 则无需排序
+## 21 网络模型
 
-因此，hash 底层采用的编码与 Zset 也基本一致，只需要把排序 SkipList 去掉即可：
+### 21.1 用户态与内核态
 
-- Hash 结构默认采用 ZipList 编码，用以节省内存。ZipList 中相邻的两个 entry 分别保存 field 和 value
-- 当数据量较大时，Hash 结构会转为 HT 编码，也就是 Dict，触发条件有两个：
-  1. ZipList 中的元素数量超过了 `hash-max-ziplist-entries`（默认 512）
-  2. ZipList 中的任意 entry 大小超过了 `hash-max-ziplist-value`（默认 64 字节）
+用户态和内核态区分执行权限。应用通常通过系统调用请求内核管理的网络、文件和内存资源，不能把地址空间简单理解为固定切成两半。x86 常用 Ring 3、Ring 0 表示相应特权级，其他体系结构的机制不同。
 
-<<< @/db/codes/redis/hash-max-ziplist.sh
+普通 socket 读写通常涉及用户缓冲区与内核缓冲区之间的数据复制。内核报告“可读”或“可写”，表示此时相应操作可以推进，不表示一个完整应用消息已经到达，也不表示所有待发送数据都能一次写完。
 
-## 网络模型
+下面区分阻塞、非阻塞、多路复用、信号驱动和异步 IO。Redis 的客户端连接主要使用非阻塞 socket 与事件循环，多路复用负责发现就绪连接。
 
-### 用户态与内核态
+### 21.2 阻塞 IO
 
-Linux 把进程的地址空间切成两半，分别落在 CPU 的 Ring 3 与 Ring 0：
+阻塞 socket 上的 `recv` 可以等待数据到达后才返回。若事件循环直接在一个尚无数据的连接上阻塞，就不能及时处理其他连接。连接关闭和错误也会让调用返回，不是只在读到数据时返回。
 
-- **用户空间**（Ring 3）：跑应用代码，不能直接碰硬件，需要的资源得通过系统调用穿过去；
-- **内核空间**（Ring 0）：握有所有特权指令，决定谁能用 CPU、内存、磁盘、网卡。
+### 21.3 非阻塞 IO
 
-IO 路径两端都挂了缓冲区，这是 Linux 为了攒批和减少陷入次数做的优化：
+非阻塞 socket 上，暂时没有可读取数据时，`recv` 返回 `-1` 并设置 `EAGAIN` 或 `EWOULDBLOCK`。应用可以配合多路复用等待下一次就绪通知，不必持续轮询。非阻塞只改变等待行为，普通 `recv` 的数据复制仍在调用中完成。
 
-- 写：用户缓冲区 → 内核缓冲区 → 设备；
-- 读：设备 → 内核缓冲区 → 用户缓冲区。
+### 21.4 IO 多路复用
 
-Stevens《UNIX 网络编程》把 IO 行为归纳成 5 种模型：阻塞、非阻塞、多路复用、信号驱动、异步。Redis 真正用到的是其中第三种。
+文件描述符（FD）标识进程打开的资源，socket 也使用 FD。多路复用让一个线程等待多个 FD 的就绪事件，再对相应连接执行读写。
 
-### 阻塞 IO
-
-`recvfrom` 调下去后，等数据到达、再等数据从内核拷回用户空间，这两步都让出 CPU。简单直白，但单线程下一旦阻塞，整个服务全停。
-
-### 非阻塞 IO
-
-`recvfrom` 立刻返回，没数据就返回 `EWOULDBLOCK`。听上去更高级，但实际上需要应用自己轮询，CPU 跑空圈，吞吐反而不如阻塞 IO。第二阶段（拷贝）仍然是阻塞的。
-
-### IO 多路复用
-
-阻塞和非阻塞的痛点都在于应用自己不知道哪个 socket 现在能读。多路复用换个思路：让内核盯着一堆 FD，谁就绪通知谁。
-
-先约定一个名词：**文件描述符**（File Descriptor，FD）是 Linux 里指向打开文件的小整数；socket 在 Linux 也是文件，所以照样有 FD。一条 epoll 线程同时盯几万个 socket 就靠这个。
-
-Linux 上有三种主流实现，按出现时间排：
-
-| 实现 | FD 上限 | 数据拷贝 | 就绪通知 |
-| --- | --- | --- | --- |
-| select | 1024（`fd_set` 位图） | 每次调用整集合来回拷贝 | 只告诉有就绪，得自己遍历整集合查 |
-| poll | 无（链表存储） | 同样来回拷贝 | 同样需要遍历 |
-| epoll | 无 | 注册一次即可，事件就绪时再回传 | 直接把就绪的 FD 列表给你 |
+| 接口     | 描述符限制                                                    | 传入方式             | 返回后处理                 |
+| -------- | ------------------------------------------------------------- | -------------------- | -------------------------- |
+| `select` | Linux/glibc 常见 `FD_SETSIZE` 为 1024，描述符数值必须小于该值 | 每次传入 fd_set      | 检查返回集合中的置位描述符 |
+| `poll`   | 没有 fd_set 的固定上限，仍受资源限制                          | 每次传入 pollfd 数组 | 遍历数组检查 revents       |
+| `epoll`  | 没有 fd_set 的固定上限，仍受描述符、内存及监听限制            | 维护已注册的监听集合 | 遍历返回的就绪事件         |
 
 #### select
 
-最早的方案，三大短板：`fd_set` 上限只有 1024、需要把整集合搬两趟、回来还得遍历一遍才知道是谁就绪。现在基本只在兼容老代码时还会见到。
+`select` 会修改传入集合，下次调用通常需要重新准备。固定大小的 fd_set 和扫描成本限制了其扩展性。1024 是常见库实现的限制，不是所有平台的统一连接数上限。参见 [`select(2)`](https://man7.org/linux/man-pages/man2/select.2.html)。
 
 #### poll
 
-poll 把位图换成了 `pollfd` 数组，进了内核之后再转成链表，因此不再有 1024 的硬上限。但拷贝和遍历的成本结构没变，盯的 FD 越多每次循环越慢，5k+ 连接以上性能就下来了。
-
-关键调用：
+`poll` 使用 `pollfd` 数组，每个元素指定 FD 与关注事件，返回时在 `revents` 中给出状态。调用和返回处理都涉及整个数组，连接数量增加时扫描开销也随之增加。
 
 <<< @/db/codes/redis/poll.c
 
-典型流程：
-
-1. 用户态备一个 `pollfd[]`，写好要关注哪些 FD、关注什么事件；
-2. 调 `poll()`，整个数组拷进内核转链表；
-3. 内核遍历这条链表，标记就绪状态；
-4. 数据就绪或者超时，数组拷回用户态，返回值 `n` 是就绪个数；
-5. `n > 0` 时用户态再扫一遍数组挑出真正就绪的 FD。
+返回值是有事件的数组元素数，`0` 表示超时，`-1` 表示错误。应用还要检查挂断和错误等事件，不应只处理 `POLLIN`。参见 [`poll(2)`](https://man7.org/linux/man-pages/man2/poll.2.html)。
 
 #### epoll
 
-Linux 2.6 引入，是现在网络服务的事实标准。三个核心系统调用：
+`epoll_create1` 创建实例，`epoll_ctl` 增删改监听，`epoll_wait` 等待并返回就绪事件。监听集合保存在内核，不需要每次传入完整集合。事件交付仍有内核与用户态之间的复制和处理成本。
 
 <<< @/db/codes/redis/epoll.c
 
-`epoll_create` 创建一个 epoll 实例（内核里是红黑树 + 就绪链表）；`epoll_ctl` 把感兴趣的 FD 注册进去，注册一次后续不需要重复拷贝；`epoll_wait` 阻塞等待就绪事件，返回的就是就绪的 FD 列表本身，省去了遍历整个监听集合的开销。
-
 #### LT 与 ET
 
-`epoll_wait` 拿到就绪通知后还有两种语义：
+- LT（Level Triggered）：默认模式，只要相应就绪条件持续满足，后续等待仍可以报告该事件。例如缓冲区有未读数据时可以继续报告可读。
+- ET（Edge Triggered）：关注状态变化，不能依赖未处理完的就绪状态被反复报告。通常使用非阻塞 socket，循环读写直到 `EAGAIN`，并正确处理短读、短写及断连。
 
-- **LT**（LevelTriggered，水平触发）：只要 FD 还有数据没读完，下一次 `epoll_wait` 会继续通知。默认就是它，编程友好；
-- **ET**（EdgeTriggered，边沿触发）：只在状态从不可读变到可读的那一刻通知一次。后续要么一次读干净，要么这条数据就丢在那里了。性能更高，但 socket 必须设成非阻塞 + 循环读到 `EAGAIN`，不然容易卡死。
+ET 不保证总是比 LT 快，也不等同于某连接只通知一次。Redis 8.2.x 的 epoll 后端未设置 `EPOLLET`，使用 LT。参见 [`epoll(7)`](https://man7.org/linux/man-pages/man7/epoll.7.html)和 [Redis 8.2.3 的 epoll 后端](https://github.com/redis/redis/blob/8.2.3/src/ae_epoll.c)。
 
-Redis 默认走 LT，编码相对宽松。
+### 21.5 信号驱动 IO
 
-### 信号驱动 IO
+通过异步通知配置，可以让就绪事件产生 `SIGIO` 等信号，应用再进行读写。普通信号可能合并，信号处理函数也受异步信号安全约束，实现复杂度不能简单归因于“信号种类不够”。参见 [`signal(7)`](https://man7.org/linux/man-pages/man7/signal.7.html)。
 
-注册 `SIGIO` 处理函数，内核数据就绪时给进程发信号，进程在信号里再去 `recvfrom`。听上去很美，但信号种类有限，连接一多容易丢，工程上很少用。
+### 21.6 异步 IO
 
-### 异步 IO
+异步 IO 先提交操作，再通过完成通知或结果队列获取结果。就绪通知表示“现在可以尝试读写”，完成通知表示“提交的操作已经完成”，这是它与多路复用的区别。
 
-`aio_read` 这类接口，整个读写过程都不阻塞，连第二阶段（内核 → 用户的拷贝）也由内核搞定，搞完再通知。Linux 上原生 AIO 长期残缺，io_uring 之前一直没法和 epoll 抗衡，Redis 也没用。
+Linux 的 POSIX AIO、原生 AIO 和 io_uring 是不同接口，能力与实现也不同。glibc 的 POSIX AIO 通常使用用户态线程实现。Redis 8.2.x 的常规客户端事件循环在 Linux 上使用 epoll，并非改用 io_uring。参见 [`aio(7)`](https://man7.org/linux/man-pages/man7/aio.7.html)。
 
-### Redis 的网络模型
+### 21.7 Redis 的线程与进程
 
-经常有人问 Redis 是单线程还是多线程，得分场景看：
+Redis 8.2.x 的常规数据命令主要由主线程串行执行，但网络读写、协议解析和后台工作可以分配给其他线程。不同客户端之间的执行顺序不能简单等同于请求在网络中的到达顺序。
 
-- 命令解析与执行的核心路径，从始至终都是单线程；
-- 周边的事情早就交给别的线程了：Redis 4.0 起，`UNLINK`、`FLUSHALL ASYNC`、AOF 重写、RDB 子进程相关的回收工作交给后台线程；Redis 6.0 进一步把网络层的 read/write 与 RESP 解析放到了 IO 线程池，命令执行仍由主线程串行处理。
+需要区分：
 
-为什么核心路径不直接多线程？三个角度：
+- IO 线程处理连接读写和部分协议解析，常规数据结构操作仍在主线程。
+- 后台线程承担部分 AOF fsync、关闭文件和延迟释放对象等工作。
+- `BGSAVE`、`BGREWRITEAOF` 使用子进程，不是后台线程。
 
-1. 操作发生在内存里，单条命令本来就在亚微秒级，瓶颈早就是网卡和系统调用，不是 CPU；
-2. 多线程意味着锁，所有数据结构都要做并发保护，写起来易错且自带性能税；
-3. 用户对 Redis 的心智模型是按到达顺序原子执行，一旦多线程并行执行命令，事务、Lua、Watch 等语义都要重新设计。
+Redis 6.0 引入可配置的多线程 IO，旧版可用 `io-threads-do-reads yes` 开启读取处理。Redis 8.0 起重构了 IO 线程机制，8.2.x 启用 `io-threads N` 后同时处理读、写及协议解析，`io-threads-do-reads` 已不再生效。默认 `io-threads 1`，相当于不启用额外 IO 线程。
 
-6.0 的多线程 IO 默认是关的，需要在 `redis.conf` 打开 `io-threads N` 才生效，写场景额外配 `io-threads-do-reads yes`。
+是否增加线程应依据 CPU 与网络测量。大型集合操作、长 Lua 脚本等可能占用主线程较长时间，此时 CPU 也会成为瓶颈。参见 [Redis 8.2.3 的 IO 线程实现](https://github.com/redis/redis/blob/8.2.3/src/iothread.c)和[配置说明](https://github.com/redis/redis/blob/8.2.3/redis.conf)。
 
-## Redis 通信协议
+## 22 Redis 通信协议
 
-### RESP
+### 22.1 RESP
 
-Redis 客户端与服务端走 CS 模型，一来一回。客户端发送的命令、服务端回的响应，都要有一份共同的语法，这就是 **RESP**（REdis Serialization Protocol）：
+RESP（REdis Serialization Protocol）是 Redis 客户端与服务端之间的序列化协议，常见传输是 TCP，也支持 Unix socket。协议头使用 ASCII 控制字符，bulk string 按字节长度传输，可以包含任意二进制数据，不能简单称为纯文本协议。
 
-- Redis 1.2 引入；
-- Redis 2.0 正式定型，后来追溯命名为 RESP2；
-- Redis 6.0 提供了 RESP3，新增 Map、Set、Double、Big number 等类型，并支持 6.0 引入的服务端协助的客户端缓存（client-side caching）。客户端默认还是 RESP2，需要发送 `HELLO 3` 主动升级。
+Redis 2.0 起使用 RESP2，Redis 6.0 加入 RESP3 和 `HELLO` 协商。Redis 8.2.x 的新连接初始使用 RESP2，客户端可以发送 `HELLO 3` 切换，部分驱动会主动协商 RESP3，因此应用实际使用的版本取决于驱动配置。
 
-RESP 走 TCP，文本协议，分隔符固定是 CRLF（`\r\n`）。
+### 22.2 RESP2 数据类型
 
-### 数据类型
+RESP2 用首字节区分五类数据，头部以 CRLF（`\r\n`）终止：
 
-RESP2 靠首字节区分类型，共 5 种：
+| 首字节 | 类型             | 示例                           |
+| ------ | ---------------- | ------------------------------ |
+| `+`    | 简单字符串       | `+OK\r\n`                      |
+| `-`    | 错误             | `-ERR message\r\n`             |
+| `:`    | 有符号 64 位整数 | `:1024\r\n`                    |
+| `$`    | bulk string      | `$5\r\nhello\r\n`              |
+| `*`    | 数组             | `*2\r\n$1\r\na\r\n$1\r\nb\r\n` |
 
-| 首字节 | 类型 | 例子 |
-| --- | --- | --- |
-| `+` | 简单字符串 | `+OK\r\n` |
-| `-` | 错误 | `-WRONGTYPE Operation ...\r\n` |
-| `:` | 整数 | `:1024\r\n` |
-| `$` | 批量字符串（二进制安全，最大 512 MB） | `$5\r\nhello\r\n` |
-| `*` | 数组 | 见下方 |
+`$0\r\n\r\n` 是空字符串，`$-1\r\n` 是空 bulk string，`*-1\r\n` 是空数组，与 `*0\r\n` 的零元素数组不同。空值不只表示键不存在，也可能表示阻塞读取超时等结果。数组元素可以嵌套，也可以是错误。
 
-两个特殊取值要记一下：
+Redis 请求通常是 bulk string 数组。`SET name zhh` 可以表示为下面的字节序列，展示中的转义符表示实际 CR、LF 字节，长度按字节计算：
 
-- `$0\r\n\r\n` 表示空串；
-- `$-1\r\n` 表示 `nil`（key 不存在）。
-
-数组里每个元素可以是上面任意一种，按顺序拼起来即可。`SET name zhh` 这条命令在 wire 上长这样：
-
-```txt
-*3\r\n
-$3\r\n
-SET\r\n
-$4\r\n
-name\r\n
-$3\r\n
-zhh\r\n
+```text
+*3\r\n$3\r\nSET\r\n$4\r\nname\r\n$3\r\nzhh\r\n
 ```
 
-不缩进、不分行，全部用 `\r\n` 串起来。`redis-cli --no-raw` 或者直接用 `nc` 连 6379 端口就能看到原文。
+`redis-cli --no-raw` 输出的是供人阅读的格式，不是线上的 RESP 原文。需要观察原始响应时可用 TCP 工具或抓包，例如本地未启用 TLS 的实例：
 
-### 用 Go 模拟客户端
+```bash
+printf '*1\r\n$4\r\nPING\r\n' | nc -N 127.0.0.1 6379
+# 响应字节为 +PONG\r\n。-N 是 OpenBSD netcat 的选项
+```
 
-下面这份 demo 用裸 TCP 拼一条 RESP 报文并解析响应，跑通后对协议会有手感：
+RESP3 增加映射、集合、布尔值、浮点数和 push 等类型。解析器必须按已协商的版本处理响应。参见[官方 RESP 规范](https://redis.io/docs/latest/develop/reference/protocol-spec/)。
+
+### 22.3 用 Go 模拟客户端
+
+下面的教学示例只实现 RESP2，处理简单字符串、错误、整数、bulk string 和递归数组。它区分空值与空字符串，按长度读取二进制内容，并在数组中保留错误元素，避免未消费完响应而破坏后续读取。
+
+运行 `go run docs/db/codes/redis/resp.go`，默认连接本地 `127.0.0.1:6379`，也可通过 `REDIS_ADDR` 指定地址。示例使用 `resp-demo:*` 键，需在实验实例执行，未实现认证、TLS、连接池或重试。
 
 <<< @/db/codes/redis/resp.go
 
-## Redis 内存回收
+## 23 Redis 内存回收
 
-Redis 强就强在数据全在内存里。代价是单节点的容量上限不大，超出物理内存就只能等被 OOM Killer 干掉。配置上限：
+64 位 Redis 默认 `maxmemory 0`，表示不设置数据内存上限。可以配置：
 
 ```conf
 maxmemory 4gb
 ```
 
-到达上限时，Redis 不会自己掉数据，而是按过期策略 + 淘汰策略两条路一起清理。
+这个值只是示例，应按可用内存与额外开销选择。`maxmemory` 不是进程 RSS 的硬上限，复制和 AOF 缓冲、内存碎片、写时复制等仍会占用内存，不能直接设置成机器全部内存。
 
-### 过期策略
+过期删除与内存淘汰是不同机制。过期删除根据到期时间运行，并不要求先达到 `maxmemory`。内存淘汰则在超出相应内存限额时按 `maxmemory-policy` 处理，可能删除尚未过期甚至没有 TTL 的键。
 
-业务用 `EXPIRE` / `PEXPIRE` / `SET ... EX/PX` 给 key 挂上 TTL。两个问题要弄清楚：Redis 拿什么记 TTL？到点的 key 怎么删？
+### 23.1 过期删除
 
-#### DB 结构
+#### DB 与到期时间
 
-每个 `redisDb` 维护两份 Dict：`dict` 存所有 key→value，`expires` 存有 TTL 的 key→到期时间戳。两份 Dict 共享 key 对象，所以 `expires` 只多记一份 long 整数：
+Redis 8.2.x 的 `redisDb` 通过 `kvstore *keys` 管理键空间，通过 `kvstore *expires` 索引带键级过期时间的对象。到期时间以绝对毫秒时间戳附在 `kvobj` 的相应布局中，不是单独保存一个剩余 TTL。`hexpires` 用于组织 Hash 字段过期的维护。
 
 <<< @/db/codes/redis/sRedisDb.c
 
+这些索引、对象及元数据都有内存开销，不能断言 TTL 只额外占用一个 8 字节整数。普通实例默认有 16 个数据库，可通过 `databases` 配置，Cluster 只使用数据库 `0`。参见 [Redis 8.2.3 的键空间实现](https://github.com/redis/redis/blob/8.2.3/src/db.c)。
+
 #### 惰性删除
 
-并不在 TTL 到点的瞬间删掉。下一次有人去碰这个 key 的时候，Redis 才检查 `expires` 里的时间戳，过期了就当场清掉再走 key 不存在的分支。优点是几乎零额外开销，缺点是冷数据躺在内存里晒太阳。
+访问键时检查到期时间，已经过期的键按不存在处理，再按实例角色和删除策略完成相应清理。它避免给每个键单独设置定时器，但不访问的过期键仍需要主动清理，否则可能继续占用内存。
 
-#### 周期删除
+#### 主动删除
 
-为了不让冷过期 key 永远占着内存，Redis 主动扫一遍，但只扫**采样**，不全扫。分两种节奏：
+Redis 主动扫描过期索引，用时间预算限制单次工作量。Redis 8.2.3 默认 `active-expire-effort 1` 时：
 
-- **SLOW**：`serverCron()` 里跑，频率受 `server.hz` 控制（默认 10，每秒 10 次，每轮 100 ms 窗口）；
-- **FAST**：每次事件循环之前的 `beforeSleep()` 里跑，间隔下限 2 ms。
+- SLOW 周期由 `serverCron` 触发，基础时间预算是调度周期的 25%。当实际 `hz` 为 10 时，约为 25 ms。动态 hz 及负载会影响调度，不能认为每轮固定占用这些时间。
+- 每轮数据库扫描以约 20 个带 TTL 的键为目标，也限制扫描的桶数，不是每个桶抽 20 个键。
+- 估计过期占比超过 10% 时可继续扫描，直到扫描完成或时间预算耗尽。
+- FAST 周期在事件循环的 `beforeSleep` 中按条件触发，基础预算 1 ms，间隔至少为该预算的两倍，并非每轮都执行。
 
-SLOW 的算法：
+`active-expire-effort` 可调整扫描力度和预算。Hash 字段还有独立的过期维护，不能把所有过期行为都套入键级扫描步骤。参见 [Redis 8.2.3 的过期实现](https://github.com/redis/redis/blob/8.2.3/src/expire.c)。
 
-1. 单次清理时长不超过窗口的 25%（默认 25 ms）；
-2. 在每个 db 的每个 bucket 里抽 20 个带 TTL 的 key；
-3. 把已过期的清掉；
-4. 如果这批里过期占比超 10%，继续抽下一批，直到时间用完或者占比降下来。
+### 23.2 内存淘汰
 
-FAST 的算法基本一样，只是时间预算缩到 1 ms。两种模式叠加，既不会让前台延迟暴涨，又能让长期不被访问的过期 key 慢慢清完。
+判断淘汰时，Redis 会从分配器统计的内存中扣除部分不计入淘汰的复制、AOF 缓冲等开销，`INFO memory` 的 `mem_not_counted_for_evict` 可用于观察，因此不是直接按 RSS 或完整 `used_memory` 比较上限。
 
-### 淘汰策略
-
-当 `used_memory > maxmemory` 时，光靠过期机制不够（很多 key 根本没设 TTL），就轮到淘汰登场。入口在 `processCommand()` 里：
+下面是 `processCommand` 中的相关片段，省略其他命令检查：
 
 <<< @/db/codes/redis/fProcessCommand.c
 
-Redis 提供 8 种策略，对应挑哪类 key 和按什么标准排：
+Redis 8.2.x 有以下八种策略。候选不足、无法释放足够内存时，仍可能拒绝受内存限制的命令。
 
-| 策略 | 候选范围 | 排序依据 |
-| --- | --- | --- |
-| `noeviction` | 不淘汰 | 写入直接报错（默认） |
-| `volatile-lru` | 有 TTL 的 key | LRU |
-| `allkeys-lru` | 所有 key | LRU |
-| `volatile-lfu` | 有 TTL 的 key | LFU |
-| `allkeys-lfu` | 所有 key | LFU |
-| `volatile-random` | 有 TTL 的 key | 随机 |
-| `allkeys-random` | 所有 key | 随机 |
-| `volatile-ttl` | 有 TTL 的 key | 剩余 TTL 升序，越快到期越先淘汰 |
+| 策略              | 候选范围    | 选择依据                                                    |
+| ----------------- | ----------- | ----------------------------------------------------------- |
+| `noeviction`      | 不主动淘汰  | 默认策略，超过限额后拒绝可能增加内存且受 OOM 检查约束的命令 |
+| `volatile-lru`    | 有 TTL 的键 | 近似 LRU                                                    |
+| `allkeys-lru`     | 所有键      | 近似 LRU                                                    |
+| `volatile-lfu`    | 有 TTL 的键 | 近似 LFU                                                    |
+| `allkeys-lfu`     | 所有键      | 近似 LFU                                                    |
+| `volatile-random` | 有 TTL 的键 | 随机                                                        |
+| `allkeys-random`  | 所有键      | 随机                                                        |
+| `volatile-ttl`    | 有 TTL 的键 | 优先选择采样中更早到期的键                                  |
 
-容易混的两个：
+没有带 TTL 的键时，`volatile-*` 没有可淘汰候选，行为接近 `noeviction`。读取及部分删除等减少内存的操作通常仍能执行。参见[官方淘汰说明](https://redis.io/docs/latest/develop/reference/eviction/)。
 
-- **LRU**（Least Recently Used）按距上次访问的时间排，时间越长越靠前；
-- **LFU**（Least Frequently Used）按访问频率排，频率越低越靠前。
+#### LRU 与 LFU
 
-Redis 不会维护完整的 LRU 链表，而是在每个 `redisObject` 头部塞了一段 24 bit 元信息：
+LRU（Least Recently Used）考虑最近访问时间，LFU（Least Frequently Used）考虑近期访问频率。Redis 使用采样和候选池近似选择，并不维护完整的全局 LRU 链表或精确频次排序。`maxmemory-samples` 默认 `5`，影响采样精度与开销。
+
+对象头中的 `lru` 字段占 24 bit：LRU 模式保存秒级时钟信息，LFU 模式把高 16 bit 用于分钟级时间，低 8 bit 用于概率计数。
 
 <<< @/db/codes/redis/tRobj.c
 
-LFU 用到的访问次数叫**逻辑访问次数**，不是每访问一次就 +1，而是带概率衰减地加，避免 8 bit 计数器很快爆掉：
+Redis 8.2.3 的 LFU 计数初值为 `5`，增加概率为：
 
-1. 取 0~1 之间的随机数 R；
-2. 算 `P = 1 / (旧计数 × lfu_log_factor + 1)`，`lfu_log_factor` 默认 10；
-3. 若 R < P，计数 +1，上限 255；
-4. 时间维度上同样要衰减：距上次访问每过 `lfu_decay_time` 分钟（默认 1），计数减 1。
+```text
+base = max(counter - 5, 0)
+P = 1 / (base × lfu-log-factor + 1)
+```
 
-这套设计的结果是：访问越频繁的 key，计数器涨得越慢；冷下来后又会随时间往下掉。LFU 排出来的就是真正的长期低频。
+`lfu-log-factor` 默认 `10`。访问时以概率 `P` 增加计数，计数最大为 `255`，不是每访问一次就加一。
+
+`lfu-decay-time` 默认 `1` 分钟。访问或评估淘汰候选时，根据经过的衰减周期减少计数，最低为 `0`，不是后台定时器逐分钟遍历所有对象减一。配置为 `0` 时不衰减。LFU 只是对近期频率的近似估计，不是累计访问次数，也不保证选出严格的全局最低频键。参见 [Redis 8.2.3 的淘汰与 LFU 实现](https://github.com/redis/redis/blob/8.2.3/src/evict.c)。

@@ -17,8 +17,8 @@ int dictExpandIfNeeded(dict *d) {
         return DICT_OK;
     }
 
-    // 当负载因子达到 1 以上，并且当前没有进行 BEREWRITE 等子进程操作
-    // 或者负载因子超过 5，则进行 dictExpand，也就是扩容
+    // 允许调整时负载因子达到 1，或未禁止调整时达到强制阈值 4
+    // dict_force_resize_ratio 在 Redis 8.2.3 中为 4
     if ((dict_can_resize == DICT_RESIZE_ENABLE &&
          d->ht_used[0] >= DICTHT_SIZE(d->ht_size_exp[0])) ||
         (dict_can_resize != DICT_RESIZE_FORBID &&

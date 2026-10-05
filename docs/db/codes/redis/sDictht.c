@@ -1,9 +1,9 @@
-typedef struct dict {
-    // entry 数组
-    dictEntry **table; // 数组中保存的是指向 entry 的指针
+// Redis 8.2.3，省略暂停标志和 metadata 等字段
+struct dict {
     dictType *type;
-    unsigned long size; // 哈希表大小
-    unsigned long sizemask; // 哈希表大小的掩码，总等于 size-1
-    unsigned long used; // entry 个数
-    void *privdata;
-} dict;
+    dictEntry **ht_table[2];      // 两张桶数组，第二张在 rehash 时使用
+    unsigned long ht_used[2];   // 两张表的元素数
+    long rehashidx;              // -1 表示不在 rehash
+    // 其他字段省略
+    signed char ht_size_exp[2];  // 容量为 2^exp，-1 表示未分配
+};

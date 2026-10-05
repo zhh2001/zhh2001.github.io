@@ -1,3 +1,6 @@
-// C 语言，声明字符串
-char *s = "hello";
-// 本质上是字符数组 {'h','e','l','l','o','\0'}
+int main(void) {
+    const char *s = "hello"; // 字符串字面量不能修改
+    char editable[] = "hello";
+    editable[0] = 'H';       // 字符数组可以修改
+    return 0;
+}

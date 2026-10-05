@@ -1,4 +1,7 @@
-SAVE  # 由 Redis 主进程来执行 RDB，会阻塞所有命令
+# 同步生成快照，主线程会阻塞
+SAVE
 # OK
-BGSAVE  # 开启子进程执行 RDB，避免主进程受到影响
+
+# 子进程生成快照，fork 仍可能造成短暂停顿
+BGSAVE
 # Background saving started
