@@ -2,7 +2,30 @@
 layout: page
 sidebar: false
 aside: false
-titleTemplate: 友情链接
+title: 友情链接
+description: 张恒华的友情链接，收录个人博客和朋友、同学、老师的网站，并提供友链申请条件与留言方式。
+head:
+  - - link
+    - rel: canonical
+      href: https://zhh2001.github.io/links
+  - - meta
+    - property: og:title
+      content: 友情链接 | 张恒华
+  - - meta
+    - property: og:description
+      content: 张恒华的友情链接，收录个人博客和朋友、同学、老师的网站，并提供友链申请条件与留言方式。
+  - - meta
+    - property: og:url
+      content: https://zhh2001.github.io/links
+  - - meta
+    - property: og:type
+      content: website
+  - - meta
+    - name: twitter:title
+      content: 友情链接 | 张恒华
+  - - meta
+    - name: twitter:description
+      content: 张恒华的友情链接，收录个人博客和朋友、同学、老师的网站，并提供友链申请条件与留言方式。
 ---
 
 <script setup>
