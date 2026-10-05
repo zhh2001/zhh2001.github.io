@@ -14,7 +14,7 @@ outline: deep
 \usepackage{siunitx}
 ```
 
-`siunitx` 3 的三个基础命令分别处理数值、单位和物理量：
+本文使用 `siunitx` 3 的接口，其中 `\duration` 要求 3.5.0 或以上版本。三个基础命令分别处理数值、单位和物理量：
 
 ```latex
 \num{12345.678}
@@ -66,6 +66,8 @@ outline: deep
 \qty{12.30(12)}{\milli\second}
 ```
 
+例如，`1.234(5)` 表示数值 1.234、不确定度 0.005，`12.30(12)` 表示数值 12.30、不确定度 0.12。宏包只负责排版，不会推断这是标准差、标准误还是置信区间，正文应说明不确定度的来源和含义。
+
 需要输出为正负形式时，可以局部设置：
 
 ```latex
@@ -104,7 +106,7 @@ outline: deep
 \qty{25}{\kilo\bit\per\second}
 ```
 
-`\per` 只作用于它后面的单位。平方和立方可以使用 `\square`、`\cubic`，也可以把 `\squared`、`\cubed` 写在单位后面。
+默认情况下，`\per` 只作用于它后面的单位，启用 `sticky-per` 后规则会变化。平方和立方可以使用 `\square`、`\cubic`，也可以把 `\squared`、`\cubed` 写在单位后面。
 
 ### 3.3 除号形式
 
@@ -147,7 +149,7 @@ outline: deep
 \duration{1;20;30}
 ```
 
-`\ang{30;15;20}` 依次表示度、分、秒，`\duration{1;20;30}` 依次表示小时、分钟、秒。
+`\ang{30;15;20}` 依次表示度、分、秒，`\duration{1;20;30}` 依次表示小时、分钟、秒。`\duration` 从 [3.5.0](https://github.com/josephwright/siunitx/blob/3b5a5e9e92bf520b626678a730c96e3e2aacb743/CHANGELOG.md#v350---2026-03-14) 开始提供。旧版宏包可以写成 `\qty{1}{\hour} \qty{20}{\minute} \qty{30}{\second}`。
 
 ## 5 网络相关单位
 
@@ -160,7 +162,7 @@ outline: deep
 \qty{850}{\micro\second}
 ```
 
-bit 和 byte 的符号不同，不能只靠大小写习惯在正文中手工输入。使用 `\bit` 和 `\byte` 可以避免同一篇文档中出现多套写法。
+bit 和 byte 的含义不同，1 byte = 8 bit。`siunitx` 默认将 `\bit` 排为 `bit`，将 `\byte` 排为 `B`。例如，100 Mbit/s 与 12.5 MB/s 在同一十进制前缀下数值等价，但应用层吞吐还会受到协议开销等因素影响。
 
 ### 5.2 十进制与二进制前缀
 
@@ -169,7 +171,7 @@ bit 和 byte 的符号不同，不能只靠大小写习惯在正文中手工输�
 \qty{1}{\gibi\byte}
 ```
 
-`\giga` 表示十进制前缀 G，`\gibi` 表示二进制前缀 Gi。链路速率通常使用十进制前缀，内存或文件大小则应根据数据来源明确选择，不能把 GB 和 GiB 混用。
+`\giga` 表示十进制前缀 G，`\gibi` 表示二进制前缀 Gi。1 GB = $10^9$ byte，1 GiB = $2^{30}$ byte。链路速率通常使用十进制前缀，内存或文件大小则应根据数据来源明确选择，不能把 GB 和 GiB 混用。
 
 ### 5.3 自定义 packet 单位
 
@@ -216,9 +218,14 @@ bit 和 byte 的符号不同，不能只靠大小写习惯在正文中手工输�
 
 ## 7 表格中的数值
 
-`siunitx` 提供 `S` 列，用于按小数点对齐：
+`siunitx` 提供 `S` 列，用于按小数点等数值部分对齐。下面的横线命令还需要加载 `booktabs`：
 
 ```latex
+% 导言区
+\usepackage{booktabs}
+\usepackage{siunitx}
+
+% 正文
 \begin{tabular}{l S[table-format = 4.2]}
 \toprule
 Method & {Delay (\unit{\micro\second})} \\
@@ -230,9 +237,11 @@ C & 1024.00 \\
 \end{tabular}
 ```
 
-表头不是纯数值，需要用花括号保护。`table-format = 4.2` 表示整数部分最多四位、小数部分两位，合理声明格式可以让列宽更稳定。
+表头不是纯数值，需要用花括号保护。`table-format = 4.2` 为四位整数和两位小数预留对齐空间，它不会自动把数据舍入到两位小数，也不会禁止更长的数值。需要控制输出精度时，应另设舍入选项。
 
 ## 8 完整示例
+
+下面的数据仅用于演示单位和数值列，不对应真实的性能测试。
 
 ```latex
 \documentclass[UTF8]{ctexart}
@@ -297,7 +306,7 @@ C & 1024.00 \\
 
 ### 9.4 单位写进数值参数
 
-下面的写法会绕过 `siunitx` 对单位的处理：
+`\num` 的参数应是数值，直接混入单位可能产生解析错误：
 
 ```latex
 % 不推荐
@@ -310,3 +319,8 @@ C & 1024.00 \\
 ### 9.5 模板兼容
 
 投稿模板可能预设数值格式或使用旧版 `siunitx`。出现未知选项时，先确认编译环境中的宏包版本，不要同时加载多个提供相似单位命令的宏包。
+
+## 10 参考资料
+
+- [siunitx 3.5.5 用户手册](https://github.com/josephwright/siunitx/blob/3b5a5e9e92bf520b626678a730c96e3e2aacb743/siunitx.tex)，文档源码。
+- [国际单位制手册第 9 版](https://doi.org/10.59161/AUEZ1291)，数值与单位的书写规则见第 5 章。

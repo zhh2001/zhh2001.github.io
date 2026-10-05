@@ -47,31 +47,35 @@ LaTeX 中的算法排版通常分为两层：`algorithm` 负责浮动体、标�
 \end{algorithm}
 ```
 
-`algorithmic` 后面的 `[1]` 表示每行都编号。数字改为 `2` 时，每两行显示一次行号；省略该参数则不显示行号。
+示例假定端口集合有限且非空，`First(P)` 表示按遍历顺序选取第一个端口，负载函数在一次遍历中保持不变。负载相同的候选不会替换当前结果。
+
+`algorithmic` 后面的 `[1]` 表示每行都编号。数字改为 `2` 时，每两行显示一次行号，省略该参数则不显示行号。`\Require`、`\Ensure` 和 `\Statex` 不参与普通语句编号。
 
 ### 2.2 常用命令
 
-| 命令                              | 功能                     |
-| --------------------------------- | ------------------------ |
-| `\Require`                        | 输入或前置条件           |
-| `\Ensure`                         | 输出或后置条件           |
-| `\State`                          | 普通语句                 |
-| `\Statex`                         | 不编号的普通语句         |
-| `\If{条件}`                       | 条件判断                 |
-| `\ElsIf{条件}`                    | 追加条件分支             |
-| `\Else`                           | 否则分支                 |
-| `\EndIf`                          | 结束条件判断             |
-| `\For{循环条件}`                  | `for` 循环               |
-| `\ForAll{循环条件}`               | `for all` 循环           |
-| `\EndFor`                         | 结束 `for` 循环          |
-| `\While{条件}`                    | `while` 循环             |
-| `\EndWhile`                       | 结束 `while` 循环        |
-| `\Repeat`、`\Until{条件}`         | 先执行、后判断的循环     |
-| `\Procedure{名称}{参数}`          | 定义过程                 |
-| `\Function{名称}{参数}`           | 定义函数                 |
-| `\Call{名称}{参数}`               | 调用过程或函数           |
-| `\Comment{注释}`                  | 添加行尾注释             |
-| `\State \Return 返回值`           | 返回结果                 |
+| 命令                      | 功能                 |
+| ------------------------- | -------------------- |
+| `\Require`                | 输入或前置条件       |
+| `\Ensure`                 | 输出或后置条件       |
+| `\State`                  | 普通语句             |
+| `\Statex`                 | 不编号的普通语句     |
+| `\If{条件}`               | 条件判断             |
+| `\ElsIf{条件}`            | 追加条件分支         |
+| `\Else`                   | 否则分支             |
+| `\EndIf`                  | 结束条件判断         |
+| `\For{循环条件}`          | `for` 循环           |
+| `\ForAll{循环条件}`       | `for all` 循环       |
+| `\EndFor`                 | 结束 `for` 循环      |
+| `\While{条件}`            | `while` 循环         |
+| `\EndWhile`               | 结束 `while` 循环    |
+| `\Repeat`、`\Until{条件}` | 先执行、后判断的循环 |
+| `\Procedure{名称}{参数}`  | 定义过程             |
+| `\EndProcedure`           | 结束过程             |
+| `\Function{名称}{参数}`   | 定义函数             |
+| `\EndFunction`            | 结束函数             |
+| `\Call{名称}{参数}`       | 调用过程或函数       |
+| `\Comment{注释}`          | 添加行尾注释         |
+| `\State \Return 返回值`   | 返回结果             |
 
 ## 3 完整示例
 
@@ -144,7 +148,31 @@ See Algorithm~\ref{alg:least-loaded-port}.
 \usepackage[noend]{algpseudocode}
 ```
 
-### 4.4 使用 `algorithm2e`
+### 4.4 长算法与分页
+
+`algorithm` 是浮动体，整个内容不能跨页。长算法可以直接使用 `algorithmic`，让正文自然分页，但它本身不提供浮动体标题和算法编号。若模板要求保留标题，应使用模板认可的非浮动标题方案，或把算法分段。
+
+需要分段并继续行号、缩进和未结束的代码块时，`algorithmicx` 提供 `\algstore` 和 `\algrestore`：
+
+```latex
+\begin{algorithmic}[1]
+    \State $i \gets 0$
+    \While{$i < n$}
+        \State Process item $i$
+        \algstore{loop-state}
+\end{algorithmic}
+
+% 后续段落中继续，也可以放入另一个 algorithm 浮动体
+\begin{algorithmic}[1]
+    \algrestore{loop-state}
+        \State $i \gets i + 1$
+    \EndWhile
+\end{algorithmic}
+```
+
+`\algstore` 必须是前一段结束前的最后一条命令，`\algrestore` 必须是后一段的第一条命令。它们不管理外层 `algorithm` 的标题和编号，分段浮动体的标题仍需另行设置。
+
+### 4.5 使用 `algorithm2e`
 
 `algorithm2e` 是另一套完整方案，不要与前面的 `algorithm`、`algpseudocode` 同时加载。
 

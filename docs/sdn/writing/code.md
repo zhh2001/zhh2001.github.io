@@ -4,20 +4,20 @@ outline: deep
 
 # LaTeX 代码排版
 
-LaTeX 中常用 `listings` 或 `minted` 排版源代码。前者完全由 TeX 处理，配置简单。后者调用 Pygments，支持更多语言和更细致的语法高亮。
+LaTeX 中常用 `listings` 或 `minted` 排版源代码。前者完全由 TeX 处理，配置简单。后者通过外部程序调用 Pygments，支持更多语言和更细致的语法高亮。本文的 `minted` 示例与环境说明以 3.x 为准。
 
 ## 1 选择宏包
 
-| 对比项       | `listings`                 | `minted`                         |
-| ------------ | -------------------------- | -------------------------------- |
-| 外部程序     | 不需要                     | 需要 `latexminted` 和 Pygments   |
-| 语言支持     | 常见语言                   | Pygments 支持的语言              |
-| 高亮效果     | 基于关键词规则             | 基于词法分析器                   |
-| UTF-8 代码   | 多字节字符支持有限         | 默认使用 UTF-8                   |
-| 投稿兼容性   | 通常更稳妥                 | 取决于编译环境是否允许外部程序   |
-| 配置复杂度   | 较低                       | 较低，但依赖编译环境             |
+| 对比项     | `listings`         | `minted`                       |
+| ---------- | ------------------ | ------------------------------ |
+| 外部程序   | 不需要             | 需要 `latexminted` 和 Pygments |
+| 语言支持   | 常见语言           | Pygments 支持的语言            |
+| 高亮效果   | 基于关键词规则     | 基于词法分析器                 |
+| UTF-8 代码 | 多字节字符支持有限 | 默认使用 UTF-8                 |
+| 投稿兼容性 | 通常更稳妥         | 取决于编译环境是否允许外部程序 |
+| 配置复杂度 | 较低               | 较低，但依赖编译环境           |
 
-期刊模板没有特殊要求时，两者选一个即可。同一份文档不建议同时加载，以免代码清单名称和相关命令冲突。
+期刊模板没有特殊要求时，选一种统一使用即可。两者可以共存，但环境名称、参数和代码清单目录命令并不通用，混用时需分别配置。是否采用 `minted` 还应确认投稿系统允许执行它需要的外部程序。
 
 ## 2 使用 `listings`
 
@@ -98,19 +98,19 @@ Use \lstinline[language=Go]|make(chan int)| to create a channel.
 
 ### 2.4 常用参数
 
-| 参数                       | 作用                         |
-| -------------------------- | ---------------------------- |
-| `language=Go`              | 指定语言                     |
-| `numbers=left`             | 在左侧显示行号               |
-| `firstnumber=10`           | 设置起始行号                 |
-| `breaklines=true`          | 自动折行                     |
-| `showstringspaces=false`   | 不标记字符串中的空格         |
-| `keepspaces=true`          | 保留代码中的空格             |
-| `columns=fullflexible`     | 按等宽字体的自然宽度排版     |
-| `frame=single`             | 添加边框                     |
-| `caption={标题}`           | 添加标题                     |
-| `label={lst:key}`          | 设置交叉引用标签             |
-| `float=tbp`                | 把代码块作为浮动体           |
+| 参数                     | 作用                         |
+| ------------------------ | ---------------------------- |
+| `language=Go`            | 指定语言                     |
+| `numbers=left`           | 在左侧显示行号               |
+| `firstnumber=10`         | 设置起始行号                 |
+| `breaklines=true`        | 自动折行                     |
+| `showstringspaces=false` | 不标记字符串中的空格         |
+| `keepspaces=true`        | 保留代码中的空格             |
+| `columns=fullflexible`   | 按当前字体的自然字符宽度排版 |
+| `frame=single`           | 添加边框                     |
+| `caption={标题}`         | 添加标题                     |
+| `label={lst:key}`        | 设置交叉引用标签             |
+| `float=tbp`              | 把代码块作为浮动体           |
 
 较长代码不宜设置 `float`，否则代码块不能自然跨页。
 
@@ -198,19 +198,21 @@ func add(a, b int) int {
 
 ### 3.5 编译权限
 
-minted 3 使用 `latexminted` 生成高亮结果。TeX Live 2024 及以上版本已将它加入受信任程序列表，通常可以直接编译：
+minted 3 使用 `latexminted` 生成高亮结果，不再直接调用 `pygmentize`。通过 TeX 发行版的包管理器安装时，会一并提供 Pygments 等 Python 库，但运行环境仍需能找到 Python 3.8 或以上版本。
+
+更新到相应版本的 TeX Live 2024 及以上环境已将 `latexminted` 加入受信任程序列表。在启用受限 shell escape 的默认配置下，通常可以直接编译：
 
 ```sh
 xelatex main.tex
 ```
 
-旧版 TeX Live 或部分 MiKTeX 环境可能仍需显式授权：
+minted 2.x、未加入该受信任程序的旧版 TeX Live，以及未授权 `latexminted` 的 MiKTeX 环境仍需额外配置。TeX Live 必要时使用：
 
 ```sh
 xelatex -shell-escape main.tex
 ```
 
-`-shell-escape` 允许 LaTeX 执行外部命令，只应对可信文档启用。
+MiKTeX 官方对应选项为 `-enable-write18`。这些选项允许 LaTeX 执行不受受信任程序列表限制的外部命令，只应在确有需要时对可信文档启用。
 
 ## 4 排版细节
 
@@ -224,7 +226,7 @@ xelatex -shell-escape main.tex
 
 ### 4.3 中文注释
 
-`listings` 对多字节 UTF-8 源文件支持有限，中文注释可能需要额外转换或转义。需要直接排版含中文的 UTF-8 源代码时，优先使用 minted，并用 XeLaTeX 或 LuaLaTeX 编译。
+`listings` 对多字节 UTF-8 源文件支持有限，中文注释可能需要额外转换或转义。需要直接排版含中文的 UTF-8 源代码时，可以使用 minted，并配置支持中文的文档类和等宽字体。只把编译器换成 XeLaTeX 或 LuaLaTeX，还不能保证字体含有所需字形，例如可以使用 `ctexart` 并设置合适的 `\setmonofont`。
 
 ### 4.4 在代码中插入 LaTeX
 
@@ -246,7 +248,7 @@ x := 1 // |\textit{initialize}|
 
 ### 5.1 找不到语言
 
-先确认语言名称是否被当前宏包支持。`listings` 与 Pygments 的语言名称不完全相同，例如同一种语言可能使用不同的别名。
+先确认语言名称是否被当前宏包版本支持。`listings` 中本例使用 `Go`，minted 中使用 Pygments 的 `go` 别名。两套语言名称不完全相同，旧版 `listings` 也可能尚未提供对应语言。
 
 ### 5.2 minted 无法执行
 
@@ -262,4 +264,4 @@ x := 1 // |\textit{initialize}|
 
 ### 5.5 特殊字符报错
 
-代码必须放在 `lstlisting`、`minted`、`\lstinline` 或 `\mintinline` 中。直接写进普通正文时，`#`、`%`、`_`、`{`、`}` 等字符仍会按 LaTeX 语法解析。
+代码中的特殊字符可由 `lstlisting`、`minted`、`\lstinline` 或 `\mintinline` 原样处理，也可以在普通正文中逐个转义。直接写进正文时，`#`、`%`、`_`、`{`、`}` 等字符仍会按 LaTeX 语法解析。

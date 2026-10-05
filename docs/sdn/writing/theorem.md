@@ -28,7 +28,7 @@ outline: deep
 
 ```latex
 \begin{theorem}
-Every finite tree has at least one leaf.
+Every finite tree with at least two vertices has at least two leaves.
 \end{theorem}
 ```
 
@@ -79,11 +79,11 @@ Every finite tree has at least one leaf.
 
 `amsthm` 提供三种默认样式：
 
-| 样式         | 常见用途                       | 正文字体             |
-| ------------ | ------------------------------ | -------------------- |
-| `plain`      | 定理、引理、命题、推论         | 通常为斜体           |
-| `definition` | 定义、条件、例子、问题         | 通常为正体           |
-| `remark`     | 备注、注释、结论               | 正体且间距较紧       |
+| 样式         | 常见用途               | 正文字体       |
+| ------------ | ---------------------- | -------------- |
+| `plain`      | 定理、引理、命题、推论 | 通常为斜体     |
+| `definition` | 定义、条件、例子、问题 | 通常为正体     |
+| `remark`     | 备注、注释、结论       | 正体且间距较紧 |
 
 `\theoremstyle` 只影响它后面定义的环境：
 
@@ -140,7 +140,8 @@ between any connected pair of vertices.
 
 ```latex
 \begin{theorem}[Shortest Path Existence]\label{thm:shortest-path}
-Every finite graph with nonnegative edge weights has a shortest path.
+For any pair of vertices connected by a path in a finite graph with
+nonnegative edge weights, a shortest path exists.
 \end{theorem}
 
 By Theorem~\ref{thm:shortest-path}, the minimum is attained.
@@ -154,7 +155,8 @@ By Theorem~\ref{thm:shortest-path}, the minimum is attained.
 
 ```latex
 \begin{proof}
-The result follows from the finiteness of the graph.
+Removing cycles cannot increase the cost. The nonempty set of simple
+paths is finite, so one of them attains the minimum cost.
 \end{proof}
 ```
 
@@ -164,7 +166,8 @@ The result follows from the finiteness of the graph.
 
 ```latex
 \begin{proof}[Proof of Theorem~\ref{thm:shortest-path}]
-The result follows from the finiteness of the graph.
+Removing cycles cannot increase the cost. The nonempty set of simple
+paths is finite, so one of them attains the minimum cost.
 \end{proof}
 ```
 
@@ -213,7 +216,7 @@ C(P') = C(P) - C(Q) \leq C(P). \qedhere
 \section{图上的路径}
 
 \begin{definition}[路径代价]\label{def:path-cost}
-设 $P=(v_0,v_1,\ldots,v_k)$ 是一条游走，其代价定义为
+设 $P=(v_0,v_1,\ldots,v_k)$ 是一条游走，允许重复访问顶点。其代价定义为
 \[
 C(P)=\sum_{i=1}^{k} w(v_{i-1},v_i).
 \]
@@ -242,7 +245,8 @@ C(P')=C(P)-C(Q)\leq C(P). \qedhere
 \end{proof}
 
 \begin{remark}
-若允许负权环，上述删除环的论证不再成立。
+若 $s$ 到 $t$ 的游走可以经过负权环，重复该环可使游走代价任意降低。
+最短简单路径与最小代价游走在这种情形下是不同的问题。
 \end{remark}
 
 \end{document}

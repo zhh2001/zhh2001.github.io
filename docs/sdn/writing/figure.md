@@ -4,7 +4,7 @@ outline: deep
 
 # LaTeX 图片
 
-`graphicx` 负责插入、缩放、裁剪和旋转图片，`figure` 环境负责标题、编号和浮动位置。只需要显示图片时可以直接使用 `\includegraphics`。需要标题或交叉引用时，再把它放进 `figure`。
+`graphicx` 负责插入、缩放、裁剪和旋转图片，`figure` 环境负责标题、编号和浮动位置。只需要显示图片时可以直接使用 `\includegraphics`。通常把需要标题或交叉引用的图片放进 `figure`。也可用 `caption` 的 `\captionof` 创建非浮动标题，具体方式应服从文档模板。
 
 ## 1 插入图片
 
@@ -207,19 +207,19 @@ The result in Figure~\ref{fig:proposed} has lower latency.
 ]{figures/result.pdf}
 ```
 
-`trim` 的顺序为左、下、右、上。只有同时加入 `clip`，超出裁剪区域的内容才会被隐藏。
+`trim` 的顺序为左、下、右、上。省略单位时按 `bp`（1/72 英寸）解释，也可以明确写成 `20bp 10bp 20bp 10bp`。只有同时加入 `clip`，超出裁剪区域的内容才会被隐藏。
 
 ### 5.2 旋转图片
 
 ```latex
 \includegraphics[
-  width=0.6\linewidth,
+  origin=c,
   angle=90,
-  origin=c
+  width=0.6\linewidth
 ]{figures/result.pdf}
 ```
 
-`origin=c` 表示围绕图片中心旋转。整页横向图片较多时，使用专门的横向页面环境通常比逐张旋转更容易维护。
+`origin=c` 表示围绕图片中心旋转。选项从左到右处理，示例先旋转再限制最终宽度。若把 `width` 放在 `angle` 前面，限制的就是旋转前的宽度。整页横向图片较多时，使用专门的横向页面环境通常比逐张旋转更容易维护。
 
 ## 6 双栏与环绕图片
 
@@ -236,7 +236,7 @@ The result in Figure~\ref{fig:proposed} has lower latency.
 \end{figure*}
 ```
 
-双栏浮动体通常只能出现在页顶或页底，位置限制比单栏图片更严格。
+标准双栏模式下，`figure*` 通常放在页顶或浮动体专页，不能仅凭 `[b]` 要求页底放置。页底双栏浮动需要文档类或额外宏包支持，应先核对投稿模板的要求。
 
 ### 6.2 文字环绕
 
@@ -267,7 +267,7 @@ The result in Figure~\ref{fig:proposed} has lower latency.
 
 ## 8 完整示例
 
-下面的 `example-image-a` 和 `example-image-b` 来自 `mwe` 宏包，实际使用时替换为自己的图片路径。
+下面的 `example-image-a` 和 `example-image-b` 来自 `mwe` 宏包，是排版占位图。实际使用时替换为自己的图片路径，示例标题不表示真实实验结论。
 
 ```latex
 \documentclass[UTF8]{ctexart}

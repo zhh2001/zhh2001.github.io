@@ -22,3 +22,18 @@ outline: false
 ## 文献管理
 
 - [参考文献](/sdn/writing/bibliography)：BibTeX、biblatex、引用命令和条目维护。
+
+## 编译与阅读
+
+公式页的效果由本站的 MathJax 渲染。图片、表格、算法等页面中的代码则用于独立的 `.tex` 文档，不会在网页中执行。只有带 `\documentclass` 和 `\begin{document}` 的示例才是完整文档，其余片段需要放到对应的导言区或正文中。
+
+含中文的完整示例采用 `ctexart`，可保存为 `main.tex` 后用 XeLaTeX 编译。交叉引用通常需要编译两遍：
+
+```sh
+xelatex main.tex
+xelatex main.tex
+```
+
+参考文献还需运行 BibTeX 或 Biber，具体顺序见参考文献页。本文示例已在 TeX Live 2026 下核验，`siunitx` 为 3.5.5，`minted` 为 3.8.0。较新的命令在各页注明了版本要求。
+
+表格中的数值和图片中的方法名称用于演示排版，不代表本仓库的实验结果。投稿时以目标期刊、会议或学校模板为准，先确认宏包和编译方式是否受支持。

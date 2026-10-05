@@ -4,7 +4,7 @@ outline: deep
 
 # LaTeX 表格
 
-`tabular` 负责表格内容和列格式，外层的 `table` 环境负责标题、编号和浮动位置。简单表格只用 `tabular` 即可。需要引用时，再把它放进 `table`。
+`tabular` 负责表格内容和列格式，外层的 `table` 环境负责标题、编号和浮动位置。简单表格只用 `tabular` 即可。通常把需要标题和引用的表格放进 `table`。跨页表格使用 `longtable`，由它直接提供标题和编号。
 
 ## 1 基本表格结构
 
@@ -67,7 +67,7 @@ D & E & F \\ \hline
 \end{tabular}
 ```
 
-上面的例子只在首尾添加水平线。
+上面的例子在表头上下和表尾添加水平线，数据行之间不画横线。
 
 ### 2.3 更精细的边框控制
 
@@ -135,14 +135,15 @@ A & B & C \\ \hline
 ```latex
 \usepackage{tabularx}
 % ...
-\begin{tabularx}{\textwidth}{|X|X|X|}
+\noindent
+\begin{tabularx}{\linewidth}{|X|X|X|}
 \hline
 自动调整宽度 & 自动调整宽度 & 自动调整宽度 \\ \hline
 A & B & C \\ \hline
 \end{tabularx}
 ```
 
-`X` 表示自动分配剩余宽度的列。
+`X` 是按指定总宽度分配空间的段落列，会自动换行。多个普通 `X` 列默认等宽，总宽度包含列间距和表格线。使用 `\linewidth` 可以适应当前单栏或局部环境。
 
 ## 5 长表格处理
 
@@ -171,7 +172,7 @@ D & E & F \\ \hline
 \end{longtable}
 ```
 
-`longtable` 本身会分页，不要再套在 `table` 浮动体中。
+`longtable` 本身会分页，不要再套在 `table` 浮动体中，也不能放进 `minipage` 或可分页性受限的盒子。它要求单栏排版，不能直接在标准双栏或 `multicols` 环境中使用。
 
 ## 6 表格样式美化
 
@@ -186,13 +187,13 @@ D & E & F \\ \hline
 \midrule
 A & B & C \\
 D & E & F \\
-\botrule
+\bottomrule
 \end{tabular}
 ```
 
 - `\toprule`：顶部横线
 - `\midrule`：表头与数据之间的横线
-- `\botrule`：底部横线
+- `\bottomrule`：底部横线
 
 `booktabs` 表格通常不使用竖线，也不需要在每一行后重复画横线。
 
@@ -263,7 +264,7 @@ C & D \\ \hline
 
 ### 9.1 表格浮动
 
-`tabular` 不是浮动体；把它放进 `table` 后，LaTeX 才会根据可用空间调整位置。常用的位置参数如下：
+`tabular` 不是浮动体。把它放进 `table` 后，LaTeX 才会根据可用空间调整位置。常用的位置参数如下：
 
 ```latex
 \begin{table}[htbp]
@@ -304,7 +305,7 @@ C & D \\ \hline
 
 ### 10.2 单元格内容过长
 
-单列内容过长时使用 `p{宽度}`；需要表格适应版心宽度时使用 `tabularx`。不建议一开始就用 `\resizebox` 缩放整张表，因为文字也会一起变小。
+单列内容过长时使用 `p{宽度}`，需要表格适应版心宽度时使用 `tabularx`。双栏文档中的跨栏表格可使用 `table*`，再按跨栏宽度设计列格式。`tabularx` 只分配列宽，不会分页。不建议一开始就用 `\resizebox` 缩放整张表，因为文字也会一起变小。
 
 ### 10.3 表格跨页
 
@@ -354,7 +355,7 @@ X & Y \\ \hline
 \caption{环绕表格}
 \label{tab:wrapped-example}
 \end{wraptable}
-环绕表格应放在相关段落之前。正文足够长时，文字会沿着表格另一侧继续排版；段落太短则可能出现较大的空白。
+环绕表格应放在相关段落之前。正文足够长时，文字会沿着表格另一侧继续排版。段落太短则可能出现较大的空白。
 
 \end{document}
 ```
