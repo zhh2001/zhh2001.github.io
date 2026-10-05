@@ -1,5 +1,29 @@
 ---
 layout: home
+title: 张恒华 | 科研与开发笔记
+titleTemplate: false
+head:
+  - - link
+    - rel: canonical
+      href: https://zhh2001.github.io/
+  - - meta
+    - property: og:title
+      content: 张恒华 | 科研与开发笔记
+  - - meta
+    - property: og:description
+      content: 张恒华的个人网站，记录软件定义网络、P4、带内网络遥测和软件开发的学习笔记，收录个人简历与科研成果。
+  - - meta
+    - property: og:url
+      content: https://zhh2001.github.io/
+  - - meta
+    - property: og:type
+      content: website
+  - - meta
+    - name: twitter:title
+      content: 张恒华 | 科研与开发笔记
+  - - meta
+    - name: twitter:description
+      content: 张恒华的个人网站，记录软件定义网络、P4、带内网络遥测和软件开发的学习笔记，收录个人简历与科研成果。
 hero:
   name: 张恒华
   text: 技术爱好者
