@@ -1,6 +1,9 @@
 import { defineConfig } from 'vitepress'
 import { SITE_URL, transformPageData } from './seo.js'
 
+const SITE_IMAGE_URL = `${SITE_URL}/avatar.jpg`
+const GA4_ID = 'G-414XCQ3MDV'
+
 const SDNNoteItems = [
   { text: 'P4 Language', link: '/sdn/p4' },
   { text: 'P4Runtime', link: '/sdn/p4runtime' },
@@ -91,15 +94,15 @@ export default defineConfig({
     ['link', { href: 'https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap', rel: 'stylesheet' }],
     ['meta', { property: 'og:title', content: '张恒华 | 个人学习笔记' }],
     ['meta', { property: 'og:description', content: description_cn }],
-    ['meta', { property: 'og:image', content: 'https://zhh2001.github.io/avatar.jpg' }],
-    ['meta', { property: 'og:url', content: 'https://zhh2001.github.io' }],
+    ['meta', { property: 'og:image', content: SITE_IMAGE_URL }],
+    ['meta', { property: 'og:url', content: SITE_URL }],
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:locale', content: 'zh_CN' }],
     ['meta', { name: 'twitter:card', content: 'summary' }],
     ['meta', { name: 'twitter:title', content: '张恒华 | 个人学习笔记' }],
     ['meta', { name: 'twitter:description', content: description_cn }],
-    ['meta', { name: 'twitter:image', content: 'https://zhh2001.github.io/avatar.jpg' }],
-    ['script', { async: '', src: 'https://www.googletagmanager.com/gtag/js?id=G-414XCQ3MDV' }],
+    ['meta', { name: 'twitter:image', content: SITE_IMAGE_URL }],
+    ['script', { async: '', src: `https://www.googletagmanager.com/gtag/js?id=${GA4_ID}` }],
     ['script', {},
       `
       window.dataLayer = window.dataLayer || [];
@@ -107,7 +110,7 @@ export default defineConfig({
         dataLayer.push(arguments);
       }
       gtag('js', new Date());
-      gtag('config', 'G-414XCQ3MDV');
+      gtag('config', '${GA4_ID}');
       `
     ]
   ],
