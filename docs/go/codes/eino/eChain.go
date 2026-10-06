@@ -3,50 +3,53 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
-
 	"github.com/cloudwego/eino-ext/components/model/ark"
+	"github.com/cloudwego/eino/components/prompt"
 	"github.com/cloudwego/eino/compose"
 	"github.com/cloudwego/eino/schema"
-	"github.com/joho/godotenv"
+	"log"
+	"os"
+	"time"
 )
 
 func main() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		panic(err)
+	if err := run(); err != nil {
+		log.Fatal(err)
 	}
+}
 
-	ctx := context.Background()
-	model, err := ark.NewChatModel(ctx, &ark.ChatModelConfig{
-		APIKey: os.Getenv("ARK_API_KEY"),
-		Model:  os.Getenv("MODEL"),
+func run() error {
+	apiKey, modelID := os.Getenv("ARK_API_KEY"), os.Getenv("MODEL")
+	if apiKey == "" || modelID == "" {
+		return fmt.Errorf("请设置 ARK_API_KEY 和 MODEL")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	chatModel, err := ark.NewChatModel(ctx, &ark.ChatModelConfig{
+		APIKey:  apiKey,
+		Model:   modelID,
+		BaseURL: os.Getenv("ARK_BASE_URL"),
 	})
 	if err != nil {
-		panic(err)
+		return err
 	}
-
-	lambda := compose.InvokableLambda(func(ctx context.Context, input string) (output []*schema.Message, err error) {
-		meow := input + "回答结尾加上‘喵’"
-		output = []*schema.Message{
-			{
-				Role:    schema.User,
-				Content: meow,
-			},
-		}
-		return output, nil
+	template := prompt.FromMessages(schema.FString,
+		schema.SystemMessage("你是一名{role}，请用中文回答。"),
+		schema.MessagesPlaceholder("history", true),
+		schema.UserMessage("请解释{topic}。"),
+	)
+	chain := compose.NewChain[map[string]any, *schema.Message]()
+	chain.AppendChatTemplate(template).AppendChatModel(chatModel)
+	runnable, err := chain.Compile(ctx)
+	if err != nil {
+		return err
+	}
+	output, err := runnable.Invoke(ctx, map[string]any{
+		"role": "网络技术助理", "topic": "软件定义网络",
 	})
-
-	chain := compose.NewChain[string, *schema.Message]()
-	chain.AppendLambda(lambda).AppendChatModel(model)
-	r, err := chain.Compile(ctx)
 	if err != nil {
-		panic(err)
+		return err
 	}
-
-	answer, err := r.Invoke(ctx, "你好，可以告诉我你的名字吗")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(answer.Content)
+	fmt.Println(output.Content)
+	return nil
 }

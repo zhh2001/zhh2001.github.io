@@ -2,50 +2,60 @@ package main
 
 import (
 	"context"
-	"strings"
-
+	"fmt"
 	"github.com/cloudwego/eino/components/tool"
 	"github.com/cloudwego/eino/components/tool/utils"
 	"github.com/cloudwego/eino/schema"
+	"log"
+	"strings"
 )
 
-type Note struct {
-	Name string `json:"name"`
-	Url  string `json:"url"`
+func main() {
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func run() error {
+	noteTool := CreateTool()
+	result, err := noteTool.InvokableRun(context.Background(), `{"name":"P4"}`)
+	if err != nil {
+		return err
+	}
+	fmt.Println(result)
+	return nil
 }
 
 type InputParams struct {
-	Name string `json:"name" jsonschema:"description=技术名"`
+	Name string `json:"name" jsonschema:"description=技术名称"`
 }
 
 func GetNote(ctx context.Context, params *InputParams) (string, error) {
-	NoteSet := []Note{
-		{Name: "P4", Url: "https://zhh2001.github.io/sdn/p4"},
-		{Name: "INT", Url: "https://zhh2001.github.io/sdn/int"},
-		{Name: "Mininet", Url: "https://zhh2001.github.io/sdn/mininet"},
-		{Name: "iPerf", Url: "https://zhh2001.github.io/sdn/iperf"},
+	if err := ctx.Err(); err != nil {
+		return "", err
 	}
-	for _, note := range NoteSet {
-		if strings.ToLower(params.Name) == strings.ToLower(note.Name) {
-			return note.Url, nil
-		}
+	if params == nil || strings.TrimSpace(params.Name) == "" {
+		return "", fmt.Errorf("技术名称不能为空")
 	}
-	return "", nil
+	notes := map[string]string{
+		"p4":      "https://zhh2001.github.io/sdn/p4",
+		"int":     "https://zhh2001.github.io/sdn/int",
+		"mininet": "https://zhh2001.github.io/sdn/mininet",
+		"iperf":   "https://zhh2001.github.io/sdn/iperf",
+	}
+	url, ok := notes[strings.ToLower(strings.TrimSpace(params.Name))]
+	if !ok {
+		return "", fmt.Errorf("未找到对应笔记")
+	}
+	return url, nil
 }
 
 func CreateTool() tool.InvokableTool {
-	GetNoteTool := utils.NewTool(&schema.ToolInfo{
+	return utils.NewTool(&schema.ToolInfo{
 		Name: "get_note",
-		Desc: "获取笔记的链接",
-		ParamsOneOf: schema.NewParamsOneOfByParams(
-			map[string]*schema.ParameterInfo{
-				"name": {
-					Type:     schema.String,
-					Desc:     "技术名",
-					Required: true,
-				},
-			},
-		),
+		Desc: "根据技术名称获取学习笔记链接",
+		ParamsOneOf: schema.NewParamsOneOfByParams(map[string]*schema.ParameterInfo{
+			"name": {Type: schema.String, Desc: "技术名称", Required: true},
+		}),
 	}, GetNote)
-	return GetNoteTool
 }

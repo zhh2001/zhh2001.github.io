@@ -3,51 +3,38 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
-
-	"github.com/cloudwego/eino-ext/components/model/ark"
 	"github.com/cloudwego/eino/components/prompt"
 	"github.com/cloudwego/eino/schema"
-	"github.com/joho/godotenv"
+	"log"
 )
 
 func main() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		panic(err)
+	if err := run(); err != nil {
+		log.Fatal(err)
 	}
+}
 
+func run() error {
 	ctx := context.Background()
-	chatModel, err := ark.NewChatModel(ctx, &ark.ChatModelConfig{
-		APIKey: os.Getenv("ARK_API_KEY"),
-		Model:  os.Getenv("MODEL"),
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	template := prompt.FromMessages(
-		schema.FString,
-		schema.SystemMessage("你是一个{role}"),
-		&schema.Message{
-			Role:    schema.User,
-			Content: "请帮帮我，史瓦罗先生，帮我解决{task}",
-		},
+	template := prompt.FromMessages(schema.FString,
+		schema.SystemMessage("你是一名{role}，请用中文回答。"),
+		schema.MessagesPlaceholder("history", true),
+		schema.UserMessage("请解释{topic}。"),
 	)
-
 	params := map[string]any{
-		"role": "机器人史瓦罗先生",
-		"task": "帮我刷星琼",
+		"role":  "网络技术助理",
+		"topic": "软件定义网络",
+		"history": []*schema.Message{
+			schema.UserMessage("我了解基本的 TCP/IP 协议。"),
+			schema.AssistantMessage("接下来可以学习控制平面和数据平面的分工。", nil),
+		},
 	}
-
-	msg, err := template.Format(ctx, params)
+	messages, err := template.Format(ctx, params)
 	if err != nil {
-		panic(err)
+		return err
 	}
-
-	response, err := chatModel.Generate(ctx, msg)
-	if err != nil {
-		panic(err)
+	for _, message := range messages {
+		fmt.Printf("%s: %s\n", message.Role, message.Content)
 	}
-	fmt.Println(response.Content)
+	return nil
 }

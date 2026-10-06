@@ -3,60 +3,73 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
-
 	"github.com/cloudwego/eino-ext/components/embedding/ark"
 	rr "github.com/cloudwego/eino-ext/components/retriever/redis"
-	"github.com/joho/godotenv"
 	goredis "github.com/redis/go-redis/v9"
+	"log"
+	"os"
+	"time"
 )
 
-var redisClient *goredis.Client
-
-func initRedis() {
-	redisClient = goredis.NewClient(&goredis.Options{
-		Addr:          os.Getenv("REDIS_ADDR"),
-		Protocol:      2,
-		UnstableResp3: true,
-	})
+func main() {
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
 }
 
-func main() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		panic(err)
+func run() error {
+	apiKey, modelID := os.Getenv("ARK_API_KEY"), os.Getenv("EMBEDDER")
+	if apiKey == "" || modelID == "" {
+		return fmt.Errorf("请设置 ARK_API_KEY 和 EMBEDDER")
 	}
-
-	initRedis()
-
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	apiType := ark.APITypeText
+	if value := os.Getenv("EMBEDDER_API_TYPE"); value != "" {
+		apiType = ark.APIType(value)
+		if apiType != ark.APITypeText && apiType != ark.APITypeMultiModal {
+			return fmt.Errorf("EMBEDDER_API_TYPE 应为 text_api 或 multi_modal_api")
+		}
+	}
 	embedder, err := ark.NewEmbedder(ctx, &ark.EmbeddingConfig{
-		APIKey: os.Getenv("ARK_API_KEY"),
-		Model:  os.Getenv("EMBEDDER"),
+		APIKey:  apiKey,
+		Model:   modelID,
+		BaseURL: os.Getenv("ARK_BASE_URL"),
+		APIType: &apiType,
 	})
 	if err != nil {
-		panic(err)
+		return err
 	}
-
+	address := os.Getenv("REDIS_ADDR")
+	if address == "" {
+		return fmt.Errorf("请设置 REDIS_ADDR")
+	}
+	client := goredis.NewClient(&goredis.Options{
+		Addr:     address,
+		Password: os.Getenv("REDIS_PASSWORD"),
+		Protocol: 2,
+	})
+	defer client.Close()
+	if err := client.Ping(ctx).Err(); err != nil {
+		return err
+	}
 	retriever, err := rr.NewRetriever(ctx, &rr.RetrieverConfig{
-		Client:       redisClient,
-		Index:        "my_index",
+		Client:       client,
+		Index:        "eino_notes",
 		VectorField:  "vector_content",
-		ReturnFields: []string{"content", "vector_content"},
+		ReturnFields: []string{"content"},
 		TopK:         2,
 		Embedding:    embedder,
 	})
 	if err != nil {
-		panic(err)
+		return err
 	}
-
-	docs, err := retriever.Retrieve(ctx, "张恒华")
+	docs, err := retriever.Retrieve(ctx, "什么是可编程数据平面？")
 	if err != nil {
-		panic(err)
+		return err
 	}
-
-	for index, doc := range docs {
-		fmt.Println(index, doc)
+	for _, doc := range docs {
+		fmt.Printf("%s: %s\n", doc.ID, doc.Content)
 	}
-
+	return nil
 }

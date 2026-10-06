@@ -2,45 +2,38 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	req "github.com/cloudwego/eino-ext/components/tool/httprequest/get"
+	"log"
 	"net/http"
 	"time"
-
-	"github.com/bytedance/sonic"
-	req "github.com/cloudwego/eino-ext/components/tool/httprequest/get"
 )
 
 func main() {
-	ctx := context.Background()
-
-	config := &req.Config{
-		Headers: map[string]string{
-			"User-Agent": "MyCustomAgent",
-		},
-		HttpClient: &http.Client{
-			Timeout:   30 * time.Second,
-			Transport: &http.Transport{},
-		},
+	if err := run(); err != nil {
+		log.Fatal(err)
 	}
+}
 
-	tool, err := req.NewTool(ctx, config)
+func run() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	getTool, err := req.NewTool(ctx, &req.Config{
+		Headers:    map[string]string{"User-Agent": "EinoNotesExample"},
+		HttpClient: &http.Client{Timeout: 10 * time.Second},
+	})
 	if err != nil {
-		panic(err)
+		return err
 	}
-
-	request := &req.GetRequest{
-		URL: "https://zhh2001.github.io/sitemap",
-	}
-
-	jsonReq, err := sonic.Marshal(request)
+	arguments, err := json.Marshal(&req.GetRequest{URL: "https://zhh2001.github.io/sitemap.xml"})
 	if err != nil {
-		panic(err)
+		return err
 	}
-
-	resp, err := tool.InvokableRun(ctx, string(jsonReq))
+	result, err := getTool.InvokableRun(ctx, string(arguments))
 	if err != nil {
-		panic(err)
+		return err
 	}
-
-	fmt.Println(resp)
+	fmt.Println(result)
+	return nil
 }

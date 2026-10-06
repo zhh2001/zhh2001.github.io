@@ -3,139 +3,79 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
-
 	"github.com/cloudwego/eino-ext/components/model/ark"
 	"github.com/cloudwego/eino/compose"
 	"github.com/cloudwego/eino/schema"
-	"github.com/joho/godotenv"
+	"log"
+	"os"
+	"time"
 )
 
 func main() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		panic(err)
+	if err := run(); err != nil {
+		log.Fatal(err)
 	}
+}
 
-	ctx := context.Background()
-	model, err := ark.NewChatModel(ctx, &ark.ChatModelConfig{
-		APIKey: os.Getenv("ARK_API_KEY"),
-		Model:  os.Getenv("MODEL"),
+func run() error {
+	apiKey, modelID := os.Getenv("ARK_API_KEY"), os.Getenv("MODEL")
+	if apiKey == "" || modelID == "" {
+		return fmt.Errorf("请设置 ARK_API_KEY 和 MODEL")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	chatModel, err := ark.NewChatModel(ctx, &ark.ChatModelConfig{
+		APIKey:  apiKey,
+		Model:   modelID,
+		BaseURL: os.Getenv("ARK_BASE_URL"),
 	})
 	if err != nil {
-		panic(err)
+		return err
 	}
-
 	graph := compose.NewGraph[map[string]string, *schema.Message]()
-	err = graph.AddChatModelNode("model", model)
-	if err != nil {
-		panic(err)
-	}
-
-	lambda := compose.InvokableLambda(func(ctx context.Context, input map[string]string) (output map[string]string, err error) {
-		switch input["role"] {
-		case "tsundere":
-			return map[string]string{
-				"role":    "傲娇",
-				"content": input["content"],
-			}, nil
-		case "cute":
-			return map[string]string{
-				"role":    "可爱",
-				"content": input["content"],
-			}, nil
-		default:
-			return map[string]string{
-				"role":    "user",
-				"content": input["content"],
-			}, nil
+	choose := compose.InvokableLambda(func(ctx context.Context, input map[string]string) (map[string]string, error) {
+		if input["style"] != "brief" && input["style"] != "detail" {
+			return nil, fmt.Errorf("style 应为 brief 或 detail")
 		}
+		return input, nil
 	})
-
-	tsundereLambda := compose.InvokableLambda(func(ctx context.Context, input map[string]string) (output []*schema.Message, err error) {
-		return []*schema.Message{
-			{
-				Role:    schema.System,
-				Content: "你是一个高冷傲娇的大小姐",
-			},
-			{
-				Role:    schema.System,
-				Content: input["content"],
-			},
-		}, nil
-	})
-
-	cuteLambda := compose.InvokableLambda(func(ctx context.Context, input map[string]string) (output []*schema.Message, err error) {
-		return []*schema.Message{
-			{
-				Role:    schema.System,
-				Content: "你是一个可爱的女高中生",
-			},
-			{
-				Role:    schema.System,
-				Content: input["content"],
-			},
-		}, nil
-	})
-
-	err = graph.AddLambdaNode("lambda", lambda)
-	if err != nil {
-		panic(err)
+	if err := graph.AddLambdaNode("choose", choose); err != nil {
+		return err
 	}
-	err = graph.AddLambdaNode("tsundereLambda", tsundereLambda)
-	if err != nil {
-		panic(err)
-	}
-	err = graph.AddLambdaNode("cuteLambda", cuteLambda)
-	if err != nil {
-		panic(err)
-	}
-
-	graphBranch := compose.NewGraphBranch(func(ctx context.Context, in map[string]string) (endNode string, err error) {
-		switch in["role"] {
-		case "傲娇":
-			return "tsundereLambda", nil
-		case "可爱":
-			return "cuteLambda", nil
-		default:
-			return "tsundereLambda", nil
+	for _, style := range []string{"brief", "detail"} {
+		prepare := compose.InvokableLambda(func(ctx context.Context, input map[string]string) ([]*schema.Message, error) {
+			instruction := "请简要解释技术概念。"
+			if input["style"] == "detail" {
+				instruction = "请分步骤解释技术概念，并给出一个例子。"
+			}
+			return []*schema.Message{schema.SystemMessage(instruction), schema.UserMessage(input["content"])}, nil
+		})
+		if err := graph.AddLambdaNode(style, prepare); err != nil {
+			return err
 		}
-	}, map[string]bool{
-		"tsundereLambda": true,
-		"cuteLambda":     true,
-	})
-
-	err = graph.AddBranch("lambda", graphBranch)
-	if err != nil {
-		panic(err)
 	}
-	err = graph.AddEdge(compose.START, "lambda")
-	if err != nil {
-		panic(err)
+	if err := graph.AddChatModelNode("model", chatModel); err != nil {
+		return err
 	}
-	err = graph.AddEdge("tsundereLambda", "model")
-	if err != nil {
-		panic(err)
+	branch := compose.NewGraphBranch(func(ctx context.Context, input map[string]string) (string, error) {
+		return input["style"], nil
+	}, map[string]bool{"brief": true, "detail": true})
+	if err := graph.AddBranch("choose", branch); err != nil {
+		return err
 	}
-	err = graph.AddEdge("cuteLambda", "model")
-	if err != nil {
-		panic(err)
+	for _, edge := range [][2]string{{compose.START, "choose"}, {"brief", "model"}, {"detail", "model"}, {"model", compose.END}} {
+		if err := graph.AddEdge(edge[0], edge[1]); err != nil {
+			return err
+		}
 	}
-	err = graph.AddEdge("model", compose.END)
+	runnable, err := graph.Compile(ctx)
 	if err != nil {
-		panic(err)
+		return err
 	}
-
-	r, err := graph.Compile(ctx)
+	output, err := runnable.Invoke(ctx, map[string]string{"style": "brief", "content": "什么是 P4？"})
 	if err != nil {
-		panic(err)
-	}
-	output, err := r.Invoke(ctx, map[string]string{
-		"role":    "tsundere",
-		"content": "你好啊",
-	})
-	if err != nil {
-		panic(err)
+		return err
 	}
 	fmt.Println(output.Content)
+	return nil
 }

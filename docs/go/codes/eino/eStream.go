@@ -1,37 +1,55 @@
-func main() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		panic(err)
-	}
+package main
 
-	ctx := context.Background()
+import (
+	"context"
+	"fmt"
+	"github.com/cloudwego/eino-ext/components/model/ark"
+	"github.com/cloudwego/eino/schema"
+	"io"
+	"log"
+	"os"
+	"time"
+)
+
+func main() {
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func run() error {
+	apiKey, modelID := os.Getenv("ARK_API_KEY"), os.Getenv("MODEL")
+	if apiKey == "" || modelID == "" {
+		return fmt.Errorf("请设置 ARK_API_KEY 和 MODEL")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 	chatModel, err := ark.NewChatModel(ctx, &ark.ChatModelConfig{
-		APIKey: os.Getenv("ARK_API_KEY"),
-		Model:  os.Getenv("MODEL"),
+		APIKey:  apiKey,
+		Model:   modelID,
+		BaseURL: os.Getenv("ARK_BASE_URL"),
 	})
 	if err != nil {
-		panic(err)
+		return err
 	}
-
 	input := []*schema.Message{
-		schema.SystemMessage("你是一个可爱的高中美少女"),
-		schema.UserMessage("你好"),
+		schema.SystemMessage("你是一名技术助理，请用中文简要回答。"),
+		schema.UserMessage("什么是软件定义网络？"),
 	}
-
-	streamReader, err := chatModel.Stream(ctx, input)
+	reader, err := chatModel.Stream(ctx, input)
 	if err != nil {
-		panic(err)
+		return err
 	}
-	defer streamReader.Close()
-
+	defer reader.Close()
 	for {
-		chunk, err := streamReader.Recv()
+		chunk, err := reader.Recv()
 		if err == io.EOF {
-			break
+			fmt.Println()
+			return nil
 		}
 		if err != nil {
-			panic(err)
+			return err
 		}
-		fmt.Println(chunk.Content)
+		fmt.Print(chunk.Content)
 	}
 }

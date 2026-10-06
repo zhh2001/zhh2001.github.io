@@ -3,39 +3,51 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
-
 	"github.com/cloudwego/eino-ext/components/embedding/ark"
-	"github.com/joho/godotenv"
+	"log"
+	"os"
+	"time"
 )
 
 func main() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		panic(err)
+	if err := run(); err != nil {
+		log.Fatal(err)
 	}
+}
 
-	ctx := context.Background()
-
-	// 初始化嵌入器
+func run() error {
+	apiKey, modelID := os.Getenv("ARK_API_KEY"), os.Getenv("EMBEDDER")
+	if apiKey == "" || modelID == "" {
+		return fmt.Errorf("请设置 ARK_API_KEY 和 EMBEDDER")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	apiType := ark.APITypeText
+	if value := os.Getenv("EMBEDDER_API_TYPE"); value != "" {
+		apiType = ark.APIType(value)
+		if apiType != ark.APITypeText && apiType != ark.APITypeMultiModal {
+			return fmt.Errorf("EMBEDDER_API_TYPE 应为 text_api 或 multi_modal_api")
+		}
+	}
 	embedder, err := ark.NewEmbedder(ctx, &ark.EmbeddingConfig{
-		APIKey: os.Getenv("ARK_API_KEY"),
-		Model:  os.Getenv("EMBEDDER"),
+		APIKey:  apiKey,
+		Model:   modelID,
+		BaseURL: os.Getenv("ARK_BASE_URL"),
+		APIType: &apiType,
 	})
 	if err != nil {
-		panic(err)
+		return err
 	}
-
-	input := []string{
-		"你好，泥嚎",
-		"微服务",
-		"大模型",
-	}
-	embeddings, err := embedder.EmbedStrings(ctx, input)
+	texts := []string{"软件定义网络", "可编程数据平面", "向量检索"}
+	vectors, err := embedder.EmbedStrings(ctx, texts)
 	if err != nil {
-		panic(err)
+		return err
 	}
-	for i, embedding := range embeddings {
-		fmt.Printf("文本 (%d) 的向量维度是 %d\n", i+1, len(embedding))
+	if len(vectors) != len(texts) {
+		return fmt.Errorf("向量数量与输入文本数量不一致")
 	}
+	for i, vector := range vectors {
+		fmt.Printf("文本 %d 的向量维度：%d\n", i+1, len(vector))
+	}
+	return nil
 }

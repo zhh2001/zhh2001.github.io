@@ -3,105 +3,62 @@ package main
 import (
 	"context"
 	"fmt"
-
 	"github.com/cloudwego/eino/compose"
+	"log"
 )
 
 func main() {
-	ctx := context.Background()
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
+}
 
-	lambda0 := compose.InvokableLambda(func(ctx context.Context, input string) (output string, err error) {
+func run() error {
+	ctx := context.Background()
+	graph := compose.NewGraph[string, string]()
+	classify := compose.InvokableLambda(func(ctx context.Context, input string) (string, error) {
 		switch input {
 		case "1":
-			return "猫", nil
+			return "cat", nil
 		case "2":
-			return "狗", nil
+			return "dog", nil
 		default:
-			return "人", nil
+			return "other", nil
 		}
 	})
-
-	lambda1 := compose.InvokableLambda(func(ctx context.Context, input string) (output string, err error) {
-		return "喵喵喵", nil
-	})
-
-	lambda2 := compose.InvokableLambda(func(ctx context.Context, input string) (output string, err error) {
-		return "汪汪汪", nil
-	})
-
-	lambda3 := compose.InvokableLambda(func(ctx context.Context, input string) (output string, err error) {
-		return "嘤嘤嘤", nil
-	})
-
-	graph := compose.NewGraph[string, string]()
-	err := graph.AddLambdaNode("lambda0", lambda0)
-	if err != nil {
-		panic(err)
+	if err := graph.AddLambdaNode("classify", classify); err != nil {
+		return err
 	}
-
-	err = graph.AddLambdaNode("lambda1", lambda1)
-	if err != nil {
-		panic(err)
-	}
-
-	err = graph.AddLambdaNode("lambda2", lambda2)
-	if err != nil {
-		panic(err)
-	}
-
-	err = graph.AddLambdaNode("lambda3", lambda3)
-	if err != nil {
-		panic(err)
-	}
-
-	err = graph.AddBranch("lambda0", compose.NewGraphBranch(func(ctx context.Context, in string) (endNode string, err error) {
-		switch in {
-		case "猫":
-			return "lambda1", nil
-		case "狗":
-			return "lambda2", nil
-		case "人":
-			return "lambda3", nil
-		default:
-			return compose.END, nil
+	for _, name := range []string{"cat", "dog", "other"} {
+		lambda := compose.InvokableLambda(func(ctx context.Context, input string) (string, error) {
+			return map[string]string{"cat": "喵喵喵", "dog": "汪汪汪", "other": "你好"}[input], nil
+		})
+		if err := graph.AddLambdaNode(name, lambda); err != nil {
+			return err
 		}
-	}, map[string]bool{
-		"lambda1": true,
-		"lambda2": true,
-		"lambda3": true,
-	}))
-	if err != nil {
-		panic(err)
+		if err := graph.AddEdge(name, compose.END); err != nil {
+			return err
+		}
 	}
-
-	err = graph.AddEdge(compose.START, "lambda0")
-	if err != nil {
-		panic(err)
+	branch := compose.NewGraphBranch(func(ctx context.Context, input string) (string, error) {
+		return input, nil
+	}, map[string]bool{"cat": true, "dog": true, "other": true})
+	if err := graph.AddBranch("classify", branch); err != nil {
+		return err
 	}
-
-	err = graph.AddEdge("lambda1", compose.END)
-	if err != nil {
-		panic(err)
+	if err := graph.AddEdge(compose.START, "classify"); err != nil {
+		return err
 	}
-
-	err = graph.AddEdge("lambda2", compose.END)
+	runnable, err := graph.Compile(ctx)
 	if err != nil {
-		panic(err)
+		return err
 	}
-
-	err = graph.AddEdge("lambda3", compose.END)
-	if err != nil {
-		panic(err)
+	for _, input := range []string{"1", "2", "3"} {
+		output, err := runnable.Invoke(ctx, input)
+		if err != nil {
+			return err
+		}
+		fmt.Println(output)
 	}
-
-	r, err := graph.Compile(ctx)
-	if err != nil {
-		panic(err)
-	}
-
-	output, err := r.Invoke(ctx, "3")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(output)
+	return nil
 }
