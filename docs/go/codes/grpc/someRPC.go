@@ -1,11 +1,11 @@
-func (s *server) SomeRPC(ctx context.Context, in *pb.SomeRequest) (*pb.SomeResponse, error) {
-	header := metadata.Pairs("header-key", "val")
-	if err := grpc.SetHeader(ctx, header); err != nil {
+func (s *Server) SayHello(ctx context.Context, req *pb.HelloRequest) (*pb.HelloResponse, error) {
+	md, _ := metadata.FromIncomingContext(ctx)
+	fmt.Println("request-id:", md.Get("request-id"))
+	if err := grpc.SetHeader(ctx, metadata.Pairs("server", "grpcdemo")); err != nil {
 		return nil, err
 	}
-	trailer := metadata.Pairs("trailer-key", "val")
-	if err := grpc.SetTrailer(ctx, trailer); err != nil {
+	if err := grpc.SetTrailer(ctx, metadata.Pairs("result", "done")); err != nil {
 		return nil, err
 	}
-	return &pb.SomeResponse{}, nil
+	return &pb.HelloResponse{Msg: "Hello " + req.GetName()}, nil
 }

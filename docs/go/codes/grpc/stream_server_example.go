@@ -1,40 +1,44 @@
+package main
+
+import (
+	"fmt"
+	"io"
+	"log"
+	"net"
+
+	pb "example.com/grpcdemo/proto"
+	"google.golang.org/grpc"
+)
+
 type Server struct {
-	proto.UnimplementedStreamServiceServer
+	pb.UnimplementedStreamServiceServer
 }
 
-func (s *Server) GetStream(req *proto.StreamReqData, stream grpc.ServerStreamingServer[proto.StreamResData]) error {
-	fmt.Println("====== 服务端 流模式 ======")
-	fmt.Println(req.GetData())
-	for i := 0; i < 10; i++ {
-		if err := stream.Send(&proto.StreamResData{
-			Data: "Server: " + time.Now().Format("2006-01-02 15:04:05"),
-		}); err != nil {
+func (s *Server) GetStream(req *pb.StreamReqData, stream grpc.ServerStreamingServer[pb.StreamResData]) error {
+	for i := 1; i <= 3; i++ {
+		reply := &pb.StreamResData{Data: fmt.Sprintf("%s #%d", req.GetData(), i)}
+		if err := stream.Send(reply); err != nil {
 			return err
 		}
-		time.Sleep(1 * time.Second)
 	}
 	return nil
 }
 
-func (s *Server) PutStream(stream grpc.ClientStreamingServer[proto.StreamReqData, proto.StreamResData]) error {
-	fmt.Println("====== 客户端 流模式 ======")
+func (s *Server) PutStream(stream grpc.ClientStreamingServer[pb.StreamReqData, pb.StreamResData]) error {
 	count := 0
 	for {
-		if req, err := stream.Recv(); err == io.EOF {
-			return stream.SendAndClose(&proto.StreamResData{
-				Data: fmt.Sprintf("received %d messages", count),
-			})
-		} else if err != nil {
-			return err
-		} else {
-			fmt.Println(req.GetData())
-			count++
+		_, err := stream.Recv()
+		if err == io.EOF {
+			return stream.SendAndClose(&pb.StreamResData{Data: fmt.Sprintf("received %d messages", count)})
 		}
+		if err != nil {
+			return err
+		}
+		count++
 	}
 }
 
-func (s *Server) AllStream(stream grpc.BidiStreamingServer[proto.StreamReqData, proto.StreamResData]) error {
-	fmt.Println("======  双向  流模式 ======")
+func (s *Server) AllStream(stream grpc.BidiStreamingServer[pb.StreamReqData, pb.StreamResData]) error {
 	for {
 		req, err := stream.Recv()
 		if err == io.EOF {
@@ -43,28 +47,20 @@ func (s *Server) AllStream(stream grpc.BidiStreamingServer[proto.StreamReqData, 
 		if err != nil {
 			return err
 		}
-		fmt.Println(req.GetData())
-		if err := stream.Send(&proto.StreamResData{
-			Data: "Server: " + time.Now().Format("2006-01-02 15:04:05"),
-		}); err != nil {
+		if err := stream.Send(&pb.StreamResData{Data: "echo: " + req.GetData()}); err != nil {
 			return err
 		}
 	}
 }
 
 func main() {
-	server := grpc.NewServer()
-	proto.RegisterStreamServiceServer(server, &Server{})
-	lis, err := net.Listen("tcp", ":8080")
+	listener, err := net.Listen("tcp", "127.0.0.1:8080")
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-	defer func() {
-		if err = lis.Close(); err != nil {
-			panic(err)
-		}
-	}()
-	if err = server.Serve(lis); err != nil {
-		panic(err)
+	server := grpc.NewServer()
+	pb.RegisterStreamServiceServer(server, &Server{})
+	if err := server.Serve(listener); err != nil {
+		log.Fatal(err)
 	}
 }

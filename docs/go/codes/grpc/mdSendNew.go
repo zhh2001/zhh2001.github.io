@@ -1,14 +1,8 @@
-// 创建新上下文，并添加一些元数据
-md := metadata.Pairs("k1", "v1", "k1", "v2", "k2", "v3")
-ctx := metadata.NewOutgoingContext(context.Background(), md)
+ctx := metadata.AppendToOutgoingContext(context.Background(), "tag", "old")
+ctx = metadata.NewOutgoingContext(ctx, metadata.Pairs("tag", "new"))
+md, _ := metadata.FromOutgoingContext(ctx)
+fmt.Println(md.Get("tag")) // [new]
 
-// 向上下文中添加更多元数据
-send, _ := metadata.FromOutgoingContext(ctx)
-newMD := metadata.Pairs("k3", "v3")
-ctx = metadata.NewOutgoingContext(ctx, metadata.Join(send, newMD))
-
-// 一元RPC
-response, err := client.SomeRPC(ctx, someRequest)
-
-// 流式RPC
-stream, err := client.SomeStreamingRPC(ctx)
+// 需要保留已有值时，先合并，再创建新的 outgoing context。
+md = metadata.Join(md, metadata.Pairs("tag", "extra"))
+ctx = metadata.NewOutgoingContext(ctx, md)

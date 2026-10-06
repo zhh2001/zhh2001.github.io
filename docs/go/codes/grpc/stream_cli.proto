@@ -1,3 +1,17 @@
-service Uploader{
-	rpc UploadFile(stream FileChunk) returns (FileSummary);
+syntax = "proto3";
+
+package grpcdemo;
+
+option go_package = "example.com/grpcdemo/proto";
+
+service Uploader {
+  rpc UploadFile(stream FileChunk) returns (FileSummary);
+}
+
+message FileChunk {
+  bytes data = 1;
+}
+
+message FileSummary {
+  uint64 size = 1;
 }

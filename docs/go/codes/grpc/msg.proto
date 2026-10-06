@@ -4,7 +4,7 @@ package grpcdemo;
 
 option go_package = "example.com/grpcdemo/proto";
 
-message HelloRequest {
-  string name = 1;  // 1 是编号，不是值
-  uint32 age  = 2;
+message Person {
+  string name = 1;
+  uint32 age = 2;
 }

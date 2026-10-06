@@ -1,3 +1,17 @@
-service Logger{
-	rpc StreamLogs(LogRequest) returns (stream LogResponse);
+syntax = "proto3";
+
+package grpcdemo;
+
+option go_package = "example.com/grpcdemo/proto";
+
+service Logger {
+  rpc StreamLogs(LogRequest) returns (stream LogResponse);
+}
+
+message LogRequest {
+  string query = 1;
+}
+
+message LogResponse {
+  string line = 1;
 }

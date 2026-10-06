@@ -1,11 +1,5 @@
-// 创建新上下文，并添加一些元数据
-ctx := metadata.AppendToOutgoingContext(ctx, "k1", "v1", "k1", "v2", "k2", "v3")
-
-// 向上下文中添加更多元数据
-ctx := metadata.AppendToOutgoingContext(ctx, "k3", "v4")
-
-// 一元RPC
-response, err := client.SomeRPC(ctx, someRequest)
-
-// 流式RPC
-stream, err := client.SomeStreamingRPC(ctx)
+ctx := metadata.AppendToOutgoingContext(context.Background(), "request-id", "req-001")
+ctx = metadata.AppendToOutgoingContext(ctx, "tag", "a", "tag", "b")
+md, _ := metadata.FromOutgoingContext(ctx)
+fmt.Println(md.Get("request-id"), md.Get("tag")) // [req-001] [a b]
+// 将 ctx 传给 client.SayHello 或流式方法，元数据才会随 RPC 发出。

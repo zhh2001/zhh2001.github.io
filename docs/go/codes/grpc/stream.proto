@@ -1,3 +1,13 @@
-service Chatter{
-	rpc Chat(stream ChatMessage) returns (stream ChatMessage);
+syntax = "proto3";
+
+package grpcdemo;
+
+option go_package = "example.com/grpcdemo/proto";
+
+service Chat {
+  rpc Chat(stream ChatMessage) returns (stream ChatMessage);
+}
+
+message ChatMessage {
+  string text = 1;
 }

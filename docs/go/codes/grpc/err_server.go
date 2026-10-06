@@ -1,4 +1,3 @@
-func (s *Server) SayHello(ctx context.Context, in *proto.HelloRequest) (*proto.HelloResponse, error) {
-	err := status.New(codes.NotFound, "Not Found").Err()
-	return nil, err
+func (s *Server) SayHello(ctx context.Context, req *pb.HelloRequest) (*pb.HelloResponse, error) {
+	return nil, status.Error(codes.NotFound, "user not found")
 }

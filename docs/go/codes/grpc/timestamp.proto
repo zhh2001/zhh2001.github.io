@@ -1,10 +1,11 @@
+// google/protobuf/timestamp.proto 的主要字段，省略其他选项与注释。
 syntax = "proto3";
 
 package google.protobuf;
 
-option go_package = "github.com/golang/protobuf/ptypes/timestamp";
+option go_package = "google.golang.org/protobuf/types/known/timestamppb";
 
 message Timestamp {
   int64 seconds = 1;
-  int32 nanos   = 2;
+  int32 nanos = 2;
 }

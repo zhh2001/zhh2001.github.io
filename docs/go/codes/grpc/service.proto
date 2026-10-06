@@ -1,3 +1,17 @@
-service Greeter{
-	rpc GetUser(UserRequest) returns (UserResponse);
+syntax = "proto3";
+
+package grpcdemo;
+
+option go_package = "example.com/grpcdemo/proto";
+
+service UserService {
+  rpc GetUser(UserRequest) returns (UserResponse);
+}
+
+message UserRequest {
+  string id = 1;
+}
+
+message UserResponse {
+  string name = 1;
 }
