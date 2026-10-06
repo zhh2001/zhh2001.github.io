@@ -2,59 +2,78 @@ package main
 
 import (
 	"errors"
-	"fmt"
+	"log"
 	"net/http"
+	"reflect"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/zh"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
-	en_translations "github.com/go-playground/validator/v10/translations/en"
-	zh_translations "github.com/go-playground/validator/v10/translations/zh"
+	zhtranslations "github.com/go-playground/validator/v10/translations/zh"
 )
 
-func InitTrans(locale string) (err error) {
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		zhT := zh.New()
-		enT := en.New()
-		uni := ut.New(zhT, zhT, enT)
-		trans, ok = uni.GetTranslator(locale)
-		if !ok {
-			return errors.New("translator not found")
-		}
-		switch locale {
-		case "zh":
-			if err := zh_translations.RegisterDefaultTranslations(v, trans); err != nil {
-				return err
-			}
-		case "en":
-			if err := en_translations.RegisterDefaultTranslations(v, trans); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
+type SignUpInfo struct {
+	Username   string `json:"username" binding:"required,min=3,max=20"`
+	Password   string `json:"password" binding:"required,min=8,max=20"`
+	RePassword string `json:"rePassword" binding:"required,eqfield=Password"`
+	Email      string `json:"email" binding:"required,email"`
+	Age        uint   `json:"age" binding:"lte=120"`
 }
 
-var trans ut.Translator
+func initTranslator() (ut.Translator, error) {
+	v, ok := binding.Validator.Engine().(*validator.Validate)
+	if !ok {
+		return nil, errors.New("unexpected validator engine")
+	}
+	v.RegisterTagNameFunc(func(field reflect.StructField) string {
+		name := strings.SplitN(field.Tag.Get("json"), ",", 2)[0]
+		if name == "-" {
+			return ""
+		}
+		return name
+	})
+	locale := zh.New()
+	trans, ok := ut.New(locale, locale).GetTranslator("zh")
+	if !ok {
+		return nil, errors.New("Chinese translator not found")
+	}
+	if err := zhtranslations.RegisterDefaultTranslations(v, trans); err != nil {
+		return nil, err
+	}
+	return trans, nil
+}
 
 func main() {
-	if err := InitTrans("zh"); err != nil {
-		fmt.Println(err)
+	trans, err := initTranslator()
+	if err != nil {
+		log.Fatal(err)
 	}
 	router := gin.Default()
-	router.POST("/signUp", signUp)
-	router.Run("localhost:8000")
+	router.POST("/signUp", signUp(trans))
+	if err := router.Run("127.0.0.1:8000"); err != nil {
+		log.Fatal(err)
+	}
 }
 
-func signUp(context *gin.Context) {
-	var info SignUpInfo
-	if err := context.ShouldBindJSON(&info); err != nil {
-		errs, _ := err.(validator.ValidationErrors)
-		context.JSON(http.StatusBadRequest, gin.H{"error": errs.Translate(trans)})
-		return
+func signUp(trans ut.Translator) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var info SignUpInfo
+		if err := c.ShouldBindJSON(&info); err != nil {
+			var validationErrors validator.ValidationErrors
+			if errors.As(err, &validationErrors) {
+				messages := make(map[string]string, len(validationErrors))
+				for _, fieldError := range validationErrors {
+					messages[fieldError.Field()] = fieldError.Translate(trans)
+				}
+				c.JSON(http.StatusBadRequest, gin.H{"error": messages})
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "JSON 格式或字段类型不正确"})
+			}
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"msg": "验证通过"})
 	}
-	context.JSON(http.StatusOK, gin.H{"msg": "注册成功"})
 }

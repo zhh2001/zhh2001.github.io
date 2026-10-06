@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -14,38 +15,55 @@ import (
 )
 
 func main() {
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func run() error {
+	stopCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
 	router := gin.Default()
 	router.GET("/", func(c *gin.Context) {
-		time.Sleep(5 * time.Second)
-		c.String(http.StatusOK, "Welcome Gin Server")
+		log.Println("Request started")
+		// 模拟耗时请求，连接关闭时停止等待。
+		timer := time.NewTimer(2 * time.Second)
+		defer timer.Stop()
+		select {
+		case <-timer.C:
+			c.String(http.StatusOK, "Welcome Gin Server")
+		case <-c.Request.Context().Done():
+			return
+		}
 	})
 
 	srv := &http.Server{
-		Addr:    ":8080",
-		Handler: router.Handler(),
+		Addr:              "127.0.0.1:8000",
+		Handler:           router,
+		ReadHeaderTimeout: 5 * time.Second,
 	}
-
+	serverErr := make(chan error, 1)
 	go func() {
-		// service connections
-		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("listen: %s\n", err)
-		}
+		serverErr <- srv.ListenAndServe()
 	}()
 
-	// Wait for interrupt signal to gracefully shutdown the server with
-	// a timeout of 5 seconds.
-	quit := make(chan os.Signal, 1)
-	// kill (no params) by default sends syscall.SIGTERM
-	// kill -2 is syscall.SIGINT
-	// kill -9 is syscall.SIGKILL but can't be caught, so don't need add it
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-	log.Println("Shutdown Server ...")
+	select {
+	case err := <-serverErr:
+		return err
+	case <-stopCtx.Done():
+		stop() // 恢复默认信号行为，允许再次发送信号结束进程。
+	}
+	log.Println("Shutdown started")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Println("Server Shutdown:", err)
+		return errors.Join(fmt.Errorf("shutdown: %w", err), srv.Close())
+	}
+	if err := <-serverErr; err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return err
 	}
 	log.Println("Server exiting")
+	return nil
 }

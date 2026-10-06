@@ -1,18 +1,20 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
-func helloWorld(context *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "world",
-	})
+func helloWorld(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"message": "world"})
 }
 
 func main() {
 	router := gin.Default()
 	router.GET("/hello", helloWorld)
-	router.Run("localhost:8000")
+	if err := router.Run("127.0.0.1:8000"); err != nil {
+		log.Fatal(err)
+	}
 }

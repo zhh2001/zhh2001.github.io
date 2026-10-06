@@ -1,20 +1,28 @@
+package main
+
+import (
+	"log"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
+
 type Goods struct {
-	Id   int    `uri:"id"   binding:"required"`
+	ID   int    `uri:"id" binding:"required"`
 	Name string `uri:"name" binding:"required"`
 }
 
 func main() {
 	router := gin.Default()
-	router.GET("/goods/:id/:name", func(context *gin.Context) {
+	router.GET("/goods/:id/:name", func(c *gin.Context) {
 		var goods Goods
-		if err := context.ShouldBindUri(&goods); err != nil {
-			context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		if err := c.ShouldBindUri(&goods); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		context.JSON(http.StatusOK, gin.H{
-			"id":   goods.Id,
-			"name": goods.Name,
-		})
+		c.JSON(http.StatusOK, gin.H{"id": goods.ID, "name": goods.Name})
 	})
-	router.Run("localhost:8000")
+	if err := router.Run("127.0.0.1:8000"); err != nil {
+		log.Fatal(err)
+	}
 }

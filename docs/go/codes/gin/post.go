@@ -1,17 +1,22 @@
+package main
+
+import (
+	"log"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
+
 func main() {
 	router := gin.Default()
-	router.GET("/hello", hello)   // [!code --]
-	router.POST("/hello", hello)  // [!code ++]
-	router.Run("localhost:8000")
+	router.POST("/hello", hello)
+	if err := router.Run("127.0.0.1:8000"); err != nil {
+		log.Fatal(err)
+	}
 }
 
-func hello(context *gin.Context) {
-	lang := context.Query("lang")                             // [!code --]
-	lang := context.PostForm("lang")                          // [!code ++]
-	framework := context.DefaultQuery("framework", "Gin")     // [!code --]
-	framework := context.DefaultPostForm("framework", "Gin")  // [!code ++]
-	context.JSON(http.StatusOK, gin.H{
-		"lang":      lang,
-		"framework": framework,
-	})
+func hello(c *gin.Context) {
+	lang := c.PostForm("lang")
+	framework := c.DefaultPostForm("framework", "Gin")
+	c.JSON(http.StatusOK, gin.H{"lang": lang, "framework": framework})
 }

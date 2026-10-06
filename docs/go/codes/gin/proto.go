@@ -1,13 +1,25 @@
+package main
+
+import (
+	"log"
+	"net/http"
+
+	"example.com/gin-notes/pb"
+	"github.com/gin-gonic/gin"
+)
+
 func main() {
 	router := gin.Default()
 	router.GET("/hello", hello)
-	router.Run("localhost:8000")
+	if err := router.Run("127.0.0.1:8000"); err != nil {
+		log.Fatal(err)
+	}
 }
 
-func hello(context *gin.Context) {
-	user := &proto.Teacher{
+func hello(c *gin.Context) {
+	teacher := &pb.Teacher{
 		Name:    "zhang",
 		Courses: []string{"Gin", "GoLang"},
 	}
-	context.ProtoBuf(http.StatusOK, user)
+	c.ProtoBuf(http.StatusOK, teacher)
 }

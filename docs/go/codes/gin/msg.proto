@@ -1,6 +1,8 @@
 syntax = "proto3";
 
-option go_package = '.;proto';
+package example;
+
+option go_package = "example.com/gin-notes/pb;pb";
 
 message Teacher {
   string name = 1;
