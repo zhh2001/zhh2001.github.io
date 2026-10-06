@@ -1,4 +1,6 @@
 ---
+title: MySQL 查询、索引与事务机制
+description: 整理 MySQL 的 SQL 语句、约束、多表查询和事务，介绍 InnoDB 索引、锁与日志机制，说明执行计划、查询优化、主从复制及数据库管理的使用条件。
 outline: [2, 3]
 ---
 

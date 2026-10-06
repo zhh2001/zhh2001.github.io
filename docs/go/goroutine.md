@@ -1,4 +1,6 @@
 ---
+title: Go Goroutine 调度、同步与并发控制
+description: 介绍 Go goroutine 与 GMP 调度器，结合示例说明 WaitGroup、互斥锁、原子操作、channel 和 context 的用法，讨论并发同步、取消和竞态检查。
 outline: deep
 ---
 

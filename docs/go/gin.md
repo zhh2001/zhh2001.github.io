@@ -1,4 +1,6 @@
 ---
+title: Gin 路由、中间件与参数绑定
+description: 使用 Gin 编写 Go HTTP 服务，介绍路由分组、路径与查询参数、表单绑定、数据验证、中间件及 Protobuf 响应，并通过示例说明请求处理和优雅退出。
 outline: deep
 ---
 

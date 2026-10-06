@@ -1,4 +1,6 @@
 ---
+title: Docker 安装、镜像构建与容器管理
+description: 在 Ubuntu 上安装与使用 Docker，整理镜像、容器、数据卷和网络的常用命令，通过 MySQL 与 Java 示例说明数据持久化、Dockerfile 编写和镜像构建。
 outline: [2, 3]
 ---
 

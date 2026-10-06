@@ -1,4 +1,6 @@
 ---
+title: gRPC 与 Protobuf 服务开发
+description: 从 Go net/rpc 的调用过程入手，介绍 Protocol Buffers 消息与服务定义、代码生成和 gRPC 流式调用，说明元数据、拦截器、错误处理、超时与取消。
 outline: deep
 ---
 

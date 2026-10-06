@@ -1,4 +1,6 @@
 ---
+title: Eino 组件、RAG 与流程编排
+description: 使用 Eino 连接模型、提示模板、嵌入、检索和工具，结合 Ark 与 Redis 示例说明 RAG 索引和检索，并介绍 Chain、Graph、调用内状态、回调及 CozeLoop 追踪。
 outline: deep
 ---
 
