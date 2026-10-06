@@ -79,10 +79,10 @@ head:
 
 ## 科研成果
 
-1. <span style="font-family: Times New Roman;">**Henghua Zhang**, Jue Chen, Yuhang Wu, and Yujie Xiong. [TT-INT: A time-threshold-based lightweight in-band network telemetry scheme for P4-enabled programmable networks](https://doi.org/10.1109/tnsm.2026.3688086). *IEEE Transactions on Network and Service Management*, 2026.</span> <Badge type="warning" text="中科院二区" /> <Badge type="danger" text="CCF推荐期刊" />
-2. <span style="font-family: Times New Roman;">**Henghua Zhang**, Jue Chen, Haidong Peng, and Junru Chen. [MAT4PM: Machine learning-guided adaptive threshold control for P4-based monitoring in SDNs](https://doi.org/10.1109/tnsm.2026.3677416). *IEEE Transactions on Network and Service Management*, 2026.</span> <Badge type="warning" text="中科院二区" /> <Badge type="danger" text="CCF推荐期刊" />
-3. <span style="font-family: Times New Roman;">Jue Chen, Haidong Peng, **Henghua Zhang**, Junru Chen, and Xihe Qiu. [SCV-IDS: CNN-ViT cross-attention on serialized traffic images for spatiotemporal intrusion detection](https://doi.org/10.1109/jiot.2026.3695912). *IEEE Internet of Things Journal*, 2026.</span> <Badge type="warning" text="中科院一区TOP" /> <Badge type="danger" text="CCF推荐期刊" />
-4. <span style="font-family: Times New Roman;">Junru Chen, Jue Chen, **Henghua Zhang**, and Haidong Peng. [ATHGID: Two-stage graph intrusion detection via attention-fused network-host feature and producer-consumer parallelization](https://doi.org/10.1016/j.comnet.2026.112418). *Computer Networks*, 2026.</span> <Badge type="warning" text="中科院三区" /> <Badge type="danger" text="CCF-B类期刊" />
+1. **Henghua Zhang**, Jue Chen, Yuhang Wu, and Yujie Xiong. [TT-INT: A time-threshold-based lightweight in-band network telemetry scheme for P4-enabled programmable networks](https://doi.org/10.1109/tnsm.2026.3688086). *IEEE Transactions on Network and Service Management*, 2026. <Badge type="warning" text="中科院二区" /> <Badge type="danger" text="CCF推荐期刊" />
+2. **Henghua Zhang**, Jue Chen, Haidong Peng, and Junru Chen. [MAT4PM: Machine learning-guided adaptive threshold control for P4-based monitoring in SDNs](https://doi.org/10.1109/tnsm.2026.3677416). *IEEE Transactions on Network and Service Management*, 2026. <Badge type="warning" text="中科院二区" /> <Badge type="danger" text="CCF推荐期刊" />
+3. Jue Chen, Haidong Peng, **Henghua Zhang**, Junru Chen, and Xihe Qiu. [SCV-IDS: CNN-ViT cross-attention on serialized traffic images for spatiotemporal intrusion detection](https://doi.org/10.1109/jiot.2026.3695912). *IEEE Internet of Things Journal*, 2026. <Badge type="warning" text="中科院一区TOP" /> <Badge type="danger" text="CCF推荐期刊" />
+4. Junru Chen, Jue Chen, **Henghua Zhang**, and Haidong Peng. [ATHGID: Two-stage graph intrusion detection via attention-fused network-host feature and producer-consumer parallelization](https://doi.org/10.1016/j.comnet.2026.112418). *Computer Networks*, 2026. <Badge type="warning" text="中科院三区" /> <Badge type="danger" text="CCF-B类期刊" />
 
 另有多篇一作在投
 
@@ -90,19 +90,11 @@ head:
 
 期刊审稿人：
 
-<div style="font-family: Times New Roman;">
-
 - *Future Generation Computer Systems* (FGCS)
-
-</div>
 
 会议审稿人：
 
-<div style="font-family: Times New Roman;">
-
 - ACM Symposium on Cloud Computing (SoCC)
-
-</div>
 
 ## 实习经历
 
