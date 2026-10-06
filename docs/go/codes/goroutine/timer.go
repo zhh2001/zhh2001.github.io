@@ -1,11 +1,10 @@
-// 会在 3s 后向 Channel timer.C 写入时间
-timer := time.NewTimer(3 * time.Second)
+ch := make(chan string)
+timer := time.NewTimer(100 * time.Millisecond)
+defer timer.Stop()
 
 select {
-case msg1 := <-ch1:
-    fmt.Println(msg1)
-case msg2 := <-ch2:
-    fmt.Println(msg2)
+case msg := <-ch:
+	fmt.Println(msg)
 case <-timer.C:
-    fmt.Println("Timed out")
+	fmt.Println("Timed out")
 }

@@ -1,9 +1,8 @@
 ch := make(chan string)
 
 go func() {
-    time.Sleep(2 * time.Second)
-    ch <- "Zhang"
+	ch <- "Zhang"
 }()
 
 msg := <-ch
-fmt.Println(msg)
+fmt.Println(msg) // Zhang

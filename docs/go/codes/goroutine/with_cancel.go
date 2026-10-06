@@ -1,2 +1,7 @@
 ctx, cancel := context.WithCancel(context.Background())
-defer cancel()  // 确保在不需要时取消上下文，释放资源
+defer cancel()
+
+fmt.Println(ctx.Err()) // <nil>
+cancel()
+<-ctx.Done()
+fmt.Println(ctx.Err()) // context canceled

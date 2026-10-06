@@ -6,3 +6,5 @@ var sendOnly chan<- int = ch
 
 // receiveOnly 只能用于接收数据
 var receiveOnly <-chan int = ch
+
+fmt.Printf("%T %T\n", sendOnly, receiveOnly) // chan<- int <-chan int

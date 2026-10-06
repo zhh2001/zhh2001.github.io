@@ -1,3 +1,7 @@
+package main
+
+import "fmt"
+
 // 生产者函数，只发送数据
 func producer(sendCh chan<- int) {
 	for i := 0; i < 5; i++ {

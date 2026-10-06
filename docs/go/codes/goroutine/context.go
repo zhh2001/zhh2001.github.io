@@ -1,13 +1,13 @@
 type Context interface {
-	// 返回上下文的截止时间
+	// 有截止时间时返回对应时间和 true
 	Deadline() (deadline time.Time, ok bool)
 
-	// 返回一个通道，当上下文被取消或到达截止时间时关闭
+	// 取消时关闭该通道，不可取消的上下文可以返回 nil
 	Done() <-chan struct{}
 
-	// 返回上下文被取消的原因
+	// 未取消时返回 nil，取消后返回 Canceled 或 DeadlineExceeded
 	Err() error
 
 	// 返回与 key 关联的值，如果没有则返回 nil
-	Value(key interface{}) interface{}
+	Value(key any) any
 }
