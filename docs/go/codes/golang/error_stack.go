@@ -37,6 +37,6 @@ func main() {
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
 		fmt.Printf("is empty name: %t\n", errors.Is(err, errEmptyName))
-		fmt.Printf("stack:\n%s", debug.Stack())
+		fmt.Printf("current goroutine stack:\n%s", debug.Stack())
 	}
 }

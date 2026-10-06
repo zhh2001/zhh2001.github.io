@@ -1,4 +1,4 @@
-package main
+package hello
 
 func Hello(name string) string {
 	return "Hello, " + name

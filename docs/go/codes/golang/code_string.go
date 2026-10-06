@@ -18,8 +18,9 @@ const _Code_name = "OK参数错误超时"
 var _Code_index = [...]uint8{0, 2, 14, 20}
 
 func (i Code) String() string {
-	if i < 0 || i >= Code(len(_Code_index)-1) {
+	idx := int(i) - 0
+	if i < 0 || idx >= len(_Code_index)-1 {
 		return "Code(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _Code_name[_Code_index[i]:_Code_index[i+1]]
+	return _Code_name[_Code_index[idx]:_Code_index[idx+1]]
 }
