@@ -4,7 +4,7 @@ description: 使用 Mininet 搭建虚拟主机、交换机和链路，通过命�
 outline: deep
 ---
 
-# Mininet
+# Mininet 网络拓扑与实验 {#mininet}
 
 Mininet 是基于 Linux 的网络仿真（network emulation）工具。它通过进程、网络命名空间和虚拟链路构建主机与交换机，在同一台机器上运行真实的协议栈和应用，常用于 SDN 教学、原型验证和实验复现。
 

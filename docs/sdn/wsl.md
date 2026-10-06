@@ -3,7 +3,7 @@ title: WSL 安装、配置与 Linux 开发环境
 description: 比较 WSL 1 与 WSL 2，记录发行版安装、文件访问、网络配置、systemd 和开发工具的使用方法，并说明备份迁移及相关命令的版本要求。
 ---
 
-# WSL
+# WSL 安装与 Linux 开发环境 {#wsl}
 
 WSL（Windows Subsystem for Linux）提供在 Windows 上运行 Linux 发行版和工具的环境。本仓库中的 Mininet、Scapy 和 P4 实验可以在 WSL 2 中进行，工具的安装和配置仍在相应发行版内完成。
 

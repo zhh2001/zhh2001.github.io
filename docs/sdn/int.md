@@ -4,7 +4,7 @@ description: 按 INT 2.1 与遥测报告 2.0 规范说明 Source、Transit、Sin
 outline: deep
 ---
 
-# P4 INT
+# INT 带内网络遥测原理 {#p4-int}
 
 带内网络遥测（In-band Network Telemetry，INT）在数据平面中采集与报文转发相关的状态，例如经过的节点、接口、设备内时延和队列占用量。采集结果可以随业务报文传递，也可以由沿途节点直接导出到监控系统。
 

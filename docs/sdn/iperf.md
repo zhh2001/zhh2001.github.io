@@ -4,7 +4,7 @@ description: 在 Mininet 等 Linux 实验环境中使用 iperf 2 和 iperf 3 测
 outline: [2, 3]
 ---
 
-# iPerf
+# iPerf 网络吞吐测试 {#iperf}
 
 在 Mininet 中验证转发规则或调整链路参数后，可以用 iperf 生成 TCP、UDP 流量，观察端到端吞吐量、UDP 丢包和抖动。报告统计的是 socket 层的数据传输，不包含 IP、TCP、UDP 和链路层头部开销，不能直接当作物理链路利用率。
 

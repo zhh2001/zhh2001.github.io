@@ -6,7 +6,7 @@ next: false
 outline: deep
 ---
 
-# SDN
+# SDN 软件定义网络 {#sdn}
 
 软件定义网络（Software-Defined Networking，SDN）不是某一种控制器，也不等同于 OpenFlow。它通过可编程接口向软件暴露网络能力，由软件控制和管理网络行为。[RFC 7426](https://doi.org/10.17487/RFC7426) 对 SDN 的架构术语和抽象层次作了说明。
 

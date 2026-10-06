@@ -4,7 +4,7 @@ description: 学术写作中常用的 LaTeX 排版方法，涵盖公式、数值
 outline: false
 ---
 
-# LaTeX 写作
+# LaTeX 学术写作与排版 {#latex-写作}
 
 整理学术写作中常用的 LaTeX 排版方法，包括数学内容、实验结果、代码和参考文献。
 
