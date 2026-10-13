@@ -1030,7 +1030,7 @@ done
 
 Redis 8.2.x 默认启用 `repl-diskless-sync yes`，全量同步可以由子进程直接把 RDB 写入网络，减少主节点的临时磁盘写入，仍有 fork、快照生成和网络传输开销。复制规模应结合数据集大小、带宽和恢复时间评估。级联复制可以分担主节点负载，也会增加同步路径和故障依赖。
 
-复制通常是异步的，已返回成功的写入也可能在故障转移后丢失。`WAIT` 可以等待副本确认，Redis 7.2 加入的 `WAITAOF` 可以等待相应 AOF 同步，但都不能把 Redis 复制变成强一致系统。参见[官方复制说明](https://redis.io/docs/latest/operate/oss_and_stack/management/replication/)。
+复制通常是异步的，已返回成功的写入也可能在故障转移后丢失。`WAIT` 可以等待副本确认，Redis 7.2 加入的 `WAITAOF` 可以等待相应 AOF 同步，但都不能把 Redis 复制变成强一致系统。
 
 ## 17 Redis 哨兵
 
@@ -1210,7 +1210,7 @@ SDS（Simple Dynamic String）通过头部记录长度和容量，再保存字�
 
 `sdshdr5` 用 flags 的高 5 位记录短字符串长度，不单独保存容量。Redis 8.2.x 仍使用这种布局，只是代码通常直接访问 flags，不把它解释为该结构体，不能据此认为该编码已弃用。
 
-SDS 长度查询为 `O(1)`，内容二进制安全，扩容时可以预留空间。Redis 8.2.3 的贪心扩容按所需长度计算：小于 1 MiB 时通常扩大到两倍，达到或超过 1 MiB 时通常额外预留 1 MiB。头部、终止符及分配器取整另计，也有不预分配的扩容路径，不能把公式当成所有 SDS 分配的固定大小。参见 [Redis 8.2.3 的 SDS 实现](https://github.com/redis/redis/blob/8.2.3/src/sds.c)。
+SDS 长度查询为 `O(1)`，内容二进制安全，扩容时可以预留空间。Redis 8.2.3 的贪心扩容按所需长度计算：小于 1 MiB 时通常扩大到两倍，达到或超过 1 MiB 时通常额外预留 1 MiB。头部、终止符及分配器取整另计，也有不预分配的扩容路径，不能把公式当成所有 SDS 分配的固定大小。
 
 键名通常以 SDS 布局保存，字符串值也可能使用 SDS。`int` 编码值则直接保存整数，Redis 8.2.x 还使用带键布局的 `kvobj`，不能从一条 `SET` 推断固定创建两个独立 SDS 分配块。
 
@@ -1227,8 +1227,6 @@ IntSet 是 Set 的一种紧凑编码，把整数按升序保存在连续数组�
 加入超出当前宽度范围的整数时会升级。例如从 16 位升级到 32 位，先设置新编码并扩容，再从后向前按旧宽度读取、按新宽度写入，避免覆盖未搬移的数据。触发升级的负数放在最前面，正数放在最后面。删除元素不会自动降低整数宽度。
 
 <<< @/db/codes/redis/fIntsetAdd.c
-
-参见 [Redis 8.2.3 的 IntSet 实现](https://github.com/redis/redis/blob/8.2.3/src/intset.c)。
 
 ### 20.3 Dict
 
@@ -1254,7 +1252,7 @@ Redis 8.2.3 的一般扩容条件如下，还受字典类型回调和暂停自�
 
 扩容或收缩时建立第二张表，逐步把旧表中的桶迁移过去，再释放旧表。迁移期间读操作需要考虑两张表，新插入元素进入新表。迁移由字典操作和后台维护分批推进，不保证每次操作恰好迁移一个桶，也可能被安全迭代等条件暂停。
 
-这种渐进式 rehash 分摊了搬移成本，但分配新表等操作仍可能造成延迟。参见 [Redis 8.2.3 的字典实现](https://github.com/redis/redis/blob/8.2.3/src/dict.c)。
+这种渐进式 rehash 分摊了搬移成本，但分配新表等操作仍可能造成延迟。
 
 ### 20.4 ZipList 与 Listpack
 
@@ -1296,8 +1294,6 @@ QuickList 在 Redis 3.2 加入，是由紧凑容器节点组成的双向链表�
 
 <<< @/db/codes/redis/sQuickListNode.c
 
-参见 [Redis 8.2.3 的 QuickList 定义](https://github.com/redis/redis/blob/8.2.3/src/quicklist.h)和[配置文件](https://github.com/redis/redis/blob/8.2.3/redis.conf)。
-
 ### 20.6 SkipList
 
 跳表用随机层高建立多级前向指针。Redis 的 ZSet 跳表先按分数排序，同分数时按成员字典序排序，还用 backward 支持反向遍历，用 span 支持排名计算。
@@ -1307,8 +1303,6 @@ QuickList 在 Redis 3.2 加入，是由紧凑容器节点组成的双向链表�
 <<< @/db/codes/redis/sZSkipList.c
 
 <<< @/db/codes/redis/sZSkipListNode.c
-
-参见 [Redis 8.2.3 的跳表实现](https://github.com/redis/redis/blob/8.2.3/src/t_zset.c)。
 
 ### 20.7 RedisObject
 
@@ -1329,7 +1323,7 @@ QuickList 在 Redis 3.2 加入，是由紧凑容器节点组成的双向链表�
 | Hash     | `listpack`、`listpackex`、`hashtable`    |
 | Stream   | `stream`，基于 radix tree 与 listpack    |
 
-Bitmap 使用 String，GEO 使用 ZSet，没有独立对象编码。参见 [Redis 8.2.3 的对象定义](https://github.com/redis/redis/blob/8.2.3/src/server.h)和[对象操作](https://github.com/redis/redis/blob/8.2.3/src/object.c)。
+Bitmap 使用 String，GEO 使用 ZSet，没有独立对象编码。
 
 ### 20.8 常见类型的编码选择
 
@@ -1433,7 +1427,7 @@ ET 不保证总是比 LT 快，也不等同于某连接只通知一次。Redis 8
 
 ### 21.5 信号驱动 IO
 
-通过异步通知配置，可以让就绪事件产生 `SIGIO` 等信号，应用再进行读写。普通信号可能合并，信号处理函数也受异步信号安全约束，实现复杂度不能简单归因于“信号种类不够”。参见 [`signal(7)`](https://man7.org/linux/man-pages/man7/signal.7.html)。
+通过异步通知配置，可以让就绪事件产生 `SIGIO` 等信号，应用再进行读写。普通信号可能合并，信号处理函数也受异步信号安全约束，实现复杂度不能简单归因于“信号种类不够”。
 
 ### 21.6 异步 IO
 
@@ -1490,7 +1484,7 @@ printf '*1\r\n$4\r\nPING\r\n' | nc -N 127.0.0.1 6379
 # 响应字节为 +PONG\r\n。-N 是 OpenBSD netcat 的选项
 ```
 
-RESP3 增加映射、集合、布尔值、浮点数和 push 等类型。解析器必须按已协商的版本处理响应。参见[官方 RESP 规范](https://redis.io/docs/latest/develop/reference/protocol-spec/)。
+RESP3 增加映射、集合、布尔值、浮点数和 push 等类型。解析器必须按已协商的版本处理响应。
 
 ### 22.3 用 Go 模拟客户端
 
@@ -1520,7 +1514,7 @@ Redis 8.2.x 的 `redisDb` 通过 `kvstore *keys` 管理键空间，通过 `kvsto
 
 <<< @/db/codes/redis/sRedisDb.c
 
-这些索引、对象及元数据都有内存开销，不能断言 TTL 只额外占用一个 8 字节整数。普通实例默认有 16 个数据库，可通过 `databases` 配置，Cluster 只使用数据库 `0`。参见 [Redis 8.2.3 的键空间实现](https://github.com/redis/redis/blob/8.2.3/src/db.c)。
+这些索引、对象及元数据都有内存开销，不能断言 TTL 只额外占用一个 8 字节整数。普通实例默认有 16 个数据库，可通过 `databases` 配置，Cluster 只使用数据库 `0`。
 
 #### 惰性删除
 
@@ -1577,4 +1571,4 @@ P = 1 / (base × lfu-log-factor + 1)
 
 `lfu-log-factor` 默认 `10`。访问时以概率 `P` 增加计数，计数最大为 `255`，不是每访问一次就加一。
 
-`lfu-decay-time` 默认 `1` 分钟。访问或评估淘汰候选时，根据经过的衰减周期减少计数，最低为 `0`，不是后台定时器逐分钟遍历所有对象减一。配置为 `0` 时不衰减。LFU 只是对近期频率的近似估计，不是累计访问次数，也不保证选出严格的全局最低频键。参见 [Redis 8.2.3 的淘汰与 LFU 实现](https://github.com/redis/redis/blob/8.2.3/src/evict.c)。
+`lfu-decay-time` 默认 `1` 分钟。访问或评估淘汰候选时，根据经过的衰减周期减少计数，最低为 `0`，不是后台定时器逐分钟遍历所有对象减一。配置为 `0` 时不衰减。LFU 只是对近期频率的近似估计，不是累计访问次数，也不保证选出严格的全局最低频键。
