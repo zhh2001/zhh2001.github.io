@@ -3,3 +3,6 @@ Allow: /
 Disallow:
 
 Sitemap: https://zhh2001.github.io/sitemap.xml
+Sitemap: https://zhh2001.github.io/p4runtime-go-controller/sitemap.xml
+Sitemap: https://zhh2001.github.io/p4net/sitemap.xml
+Sitemap: https://zhh2001.github.io/jp4/sitemap.xml
