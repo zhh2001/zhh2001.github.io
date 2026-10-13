@@ -213,7 +213,7 @@ outline: [2, 3]
 
 <<< @/db/codes/mysql/dql_group.sql
 
-8.4 默认启用 `ONLY_FULL_GROUP_BY`。选择列表中的非聚合列必须出现在 `GROUP BY` 中，或满足 MySQL 可识别的函数依赖等条件。`WHERE` 在分组前筛选行，`HAVING` 筛选分组后的结果。参见[分组规则](https://dev.mysql.com/doc/refman/8.4/en/group-by-handling.html)。
+8.4 默认启用 `ONLY_FULL_GROUP_BY`。选择列表中的非聚合列必须出现在 `GROUP BY` 中，或满足 MySQL 可识别的函数依赖等条件。`WHERE` 在分组前筛选行，`HAVING` 筛选分组后的结果。
 
 #### 1.3.5 排序查询
 
@@ -349,7 +349,7 @@ MySQL 账号由 `'用户名'@'主机'` 共同确定，同名但主机不同的�
 
 <<< @/db/codes/mysql/constraint.sql
 
-`UNIQUE` 允许多个 `NULL`，要禁止空值还需 `NOT NULL`。`CHECK` 从 8.0.16 起真正执行检查，结果为假时拒绝写入，为未知值时通过，因此 `CHECK (age >= 0)` 不能替代 `NOT NULL`。示例中故意违反约束的语句已标明，逐条执行可观察相应错误。参见[CHECK 约束](https://dev.mysql.com/doc/refman/8.4/en/create-table-check-constraints.html)。
+`UNIQUE` 允许多个 `NULL`，要禁止空值还需 `NOT NULL`。`CHECK` 从 8.0.16 起真正执行检查，结果为假时拒绝写入，为未知值时通过，因此 `CHECK (age >= 0)` 不能替代 `NOT NULL`。示例中故意违反约束的语句已标明，逐条执行可观察相应错误。参见 [CHECK 约束](https://dev.mysql.com/doc/refman/8.4/en/create-table-check-constraints.html)。
 
 外键约束要求子表的非空外键值在父表中存在。InnoDB 的关联列需要兼容的数据类型，整数的有无符号属性也要一致。8.4 默认限制引用非唯一键等非标准外键，示例统一引用父表主键。
 
@@ -528,7 +528,7 @@ COMMIT;
 | Repeatable read  | 不发生 |   不发生   | 标准允许 |
 | Serializable     | 不发生 |   不发生   |  不发生  |
 
-上表用于说明隔离级别允许的典型现象。InnoDB 默认是 `REPEATABLE READ`，一致性读复用快照，锁定读和写操作通常用 next-key lock 阻止范围内插入。快照读与锁定读看到的数据可能不同，同一事务也能看到自己的写入，不能笼统地说所有 RR 查询都读取同一份数据。参见 [InnoDB 隔离级别](https://dev.mysql.com/doc/refman/8.4/en/innodb-transaction-isolation-levels.html)。
+上表用于说明隔离级别允许的典型现象。InnoDB 默认是 `REPEATABLE READ`，一致性读复用快照，锁定读和写操作通常用 next-key lock 阻止范围内插入。快照读与锁定读看到的数据可能不同，同一事务也能看到自己的写入，不能笼统地说所有 RR 查询都读取同一份数据。
 
 - 查看事务隔离级别
 
@@ -632,7 +632,7 @@ MEMORY 表将数据放在内存中，服务器重启后表定义仍在，数据�
 | BTREE 索引 | 支持，内部为 B+ 树 |  支持  |  支持  |
 | Hash 索引  |         -          |   -    |  支持  |
 
-这里的 Hash 索引指用户显式创建的索引，InnoDB 的自适应哈希索引是另一种内部机制。参见 [MEMORY 引擎](https://dev.mysql.com/doc/refman/8.4/en/memory-storage-engine.html)。
+这里的 Hash 索引指用户显式创建的索引，InnoDB 的自适应哈希索引是另一种内部机制。
 
 ## 7. 索引
 
@@ -756,8 +756,6 @@ MySQL 的慢查询日志默认没有开启，需要在 MySQL 的配置文件（U
 - **`filtered`**：估计的条件过滤后保留比例，`rows × filtered / 100` 可估算传给后续连接的行数，数值大不代表计划一定更好
 - **`Extra`**：补充信息，例如覆盖索引、索引条件下推、临时表或额外排序
 
-参见 [EXPLAIN 输出](https://dev.mysql.com/doc/refman/8.4/en/explain-output.html)。
-
 ### 7.5 使用规则
 
 #### 7.5.1 最左前缀原则
@@ -771,8 +769,6 @@ MySQL 的慢查询日志默认没有开启，需要在 MySQL 的配置文件（U
 构造多列 BTREE 范围时，遇到非等值范围条件后，通常不能继续用后续列完整收窄所有扫描区间。后续列仍可能参与边界处理、索引条件下推或覆盖查询。将 `>` 改成 `>=` 不保证三个字段都用于定位，需检查实际范围与过滤步骤。
 
 <<< @/db/codes/mysql/combined_index_range.sql
-
-参见[范围优化](https://dev.mysql.com/doc/refman/8.4/en/range-optimization.html)和[索引条件下推](https://dev.mysql.com/doc/refman/8.4/en/index-condition-pushdown-optimization.html)。
 
 #### 7.5.3 难以使用索引定位的情况
 
@@ -916,8 +912,6 @@ filesort 可以全部在内存中完成，名称中的 file 不表示一定写�
 - `sort_buffer_size` 默认 256 KiB，按会话分配。应根据排序规模和并发量测量，不能一律调大
 
   <<< @/db/codes/mysql/sort_buffer_size.sql
-
-参见 [ORDER BY 优化](https://dev.mysql.com/doc/refman/8.4/en/order-by-optimization.html)。
 
 ### 8.4 `GROUP BY` 优化
 
@@ -1221,8 +1215,6 @@ RR 下的锁定读和写操作通常通过记录锁及临键锁保护访问范�
 2. 非唯一键等值查询或范围查询，通常需要 next-key lock 覆盖搜索范围。具体边界取决于谓词、索引和执行计划，不应把某次观察到的锁范围当作所有版本的规则。
 3. RC 下通常不为普通搜索保留间隙锁，但外键检查和重复键检查等仍可能使用间隙锁。
 
-参见 [InnoDB 锁类型](https://dev.mysql.com/doc/refman/8.4/en/innodb-locking.html)。
-
 间隙锁用于阻止插入，多个事务的间隙锁可以共存，获得同一间隙的锁本身不会互相阻塞。
 
 ## 11. InnoDB 引擎
@@ -1284,8 +1276,6 @@ InnoDB 在内存中缓存数据页和日志，在磁盘中管理表空间与日�
 | Doublewrite Buffer                        | 默认启用，先保存待刷数据页的完整副本，用于恢复部分写入的数据页。8.0.20 起使用独立 doublewrite 文件，旧版存于系统表空间 |
 | Redo Log（`#innodb_redo/` 目录）          | 8.0.30 起使用该目录，记录用于崩溃恢复的页修改，容量由 `innodb_redo_log_capacity` 控制                                  |
 
-参见 [undo 表空间](https://dev.mysql.com/doc/refman/8.4/en/innodb-undo-tablespaces.html)、[Doublewrite](https://dev.mysql.com/doc/refman/8.4/en/innodb-doublewrite-buffer.html)和[redo 文件](https://dev.mysql.com/doc/refman/8.4/en/innodb-redo-log.html)。
-
 通用表空间的语法可看下面这条：
 
 <<< @/db/codes/mysql/create_tablespace.sql
@@ -1309,8 +1299,6 @@ InnoDB 是多线程引擎，关键的几个角色：
 
 - **Purge Thread**：清理不再需要的历史版本与删除标记，线程数由 `innodb_purge_threads` 控制
 - **Page Cleaner Thread**：负责 Buffer Pool 的脏页刷盘
-
-参见 [8.4 默认值变化](https://dev.mysql.com/doc/refman/8.4/en/mysql-nutshell.html)和[InnoDB 参数](https://dev.mysql.com/doc/refman/8.4/en/innodb-parameters.html)。
 
 ### 11.3 事务原理
 
@@ -1495,7 +1483,7 @@ MySQL 数据库安装完成后，自带了以下四个数据库，具体作用�
 
 `mysqlimport` 用 `LOAD DATA` 导入分隔文本文件，并根据文件名确定目标表名，不限于 `mysqldump -T` 生成的文件。例如 `tb_insert.csv` 对应已存在的 `tb_insert` 表，列分隔符需与文件一致。
 
-`source /path/to/backup.sql` 是 `mysql` 客户端执行 SQL 文件的命令，也可在终端使用 `mysql -u root -p demo_query < backup.sql`。它与导入 CSV 的 `mysqlimport` 用途不同。参见 [mysqlimport](https://dev.mysql.com/doc/refman/8.4/en/mysqlimport.html)。
+`source /path/to/backup.sql` 是 `mysql` 客户端执行 SQL 文件的命令，也可在终端使用 `mysql -u root -p demo_query < backup.sql`。它与导入 CSV 的 `mysqlimport` 用途不同。
 
 ## 13. 日志
 
@@ -1530,7 +1518,7 @@ MySQL 服务器中提供了多种格式来记录二进制日志，具体格式�
 
 <<< @/db/codes/mysql/show_log_bin_fmt.sql
 
-8.4 默认开启 binlog，并使用 `ROW`。`binlog_format` 从 8.0.34 起已弃用，虽然 8.4 仍支持上述三种格式，新的配置应以行日志为主。DDL 即使在 ROW 模式下仍主要记录为语句事件。参见[二进制日志](https://dev.mysql.com/doc/refman/8.4/en/binary-log.html)。
+8.4 默认开启 binlog，并使用 `ROW`。`binlog_format` 从 8.0.34 起已弃用，虽然 8.4 仍支持上述三种格式，新的配置应以行日志为主。DDL 即使在 ROW 模式下仍主要记录为语句事件。
 
 #### 13.2.1 日志查看
 
@@ -1628,7 +1616,7 @@ MySQL 服务器中提供了多种格式来记录二进制日志，具体格式�
 ### 15.2 实现技术
 
 - **Apache ShardingSphere-JDBC**：在 Java 应用的 JDBC 接口层处理 SQL 解析、路由、改写和结果归并。参见 [5.5.2 文档](https://shardingsphere.apache.org/document/5.5.2/en/overview/)。
-- **MyCat**：独立数据库代理，客户端通过代理访问后端分片。是否需要调整业务取决于路由和 SQL 支持范围，性能需结合实际部署测量。这里仅比较架构，不涉及与 MySQL 8.4 的接入兼容性。参见 [MyCat 1.6.7.5](https://github.com/MyCATApache/Mycat-Server)。
+- **MyCat**：独立数据库代理，客户端通过代理访问后端分片。是否需要调整业务取决于路由和 SQL 支持范围，性能需结合实际部署测量。这里仅比较架构，不涉及与 MySQL 8.4 的接入兼容性。
 - **GORM Sharding**：运行在 Go 应用内的 GORM 分表插件，通过修改访问目标表实现路由，本身不提供跨多个数据库节点的完整分库方案。
 
 ### 15.3 GORM Sharding
