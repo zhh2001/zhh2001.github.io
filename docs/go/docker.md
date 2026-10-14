@@ -46,19 +46,19 @@ Docker CLI 向 Docker daemon 发送请求，由 daemon 管理镜像、容器、�
 
 <<< @/go/codes/docker/install_mysql.sh
 
-首次启动需要初始化数据库，`docker run -d` 返回容器 ID 不表示 MySQL 已可连接。查看日志，待正式服务启动完成后，再执行 `sudo docker exec -it mysql-demo mysql -u root -p`，输入创建容器时设置的密码。
+首次启动时，MySQL 需要先初始化数据库。查看日志，待正式服务启动完成后，再执行 `sudo docker exec -it mysql-demo mysql -u root -p`，输入创建容器时设置的密码。
 
-`MYSQL_ROOT_PASSWORD` 是官方镜像初始化数据库时读取的变量。已有数据库的数据卷不会因重新设置该变量而修改 root 密码。示例通过交互输入避免把密码写进命令历史，但环境变量仍保存在容器配置中，需要更严格地管理密码时可使用镜像支持的 `MYSQL_ROOT_PASSWORD_FILE`。
+`MYSQL_ROOT_PASSWORD` 用于官方镜像首次初始化数据库时设置 root 密码。复用已有数据库的数据卷时，使用数据库中已设置的密码。示例通过交互输入避免把密码写进命令历史，密码环境变量仍保存在容器配置中。也可使用镜像支持的 `MYSQL_ROOT_PASSWORD_FILE` 从文件读取密码。
 
 ### 2.2 镜像和容器
 
-**镜像（image）**包含应用运行所需的文件系统内容和运行配置，例如程序、依赖库、环境变量及默认启动命令。Linux 容器通常共享宿主机内核，镜像不需要包含一套独立的 Linux 内核。
+**镜像（image）**包含应用运行所需的文件系统内容和运行配置，例如程序、依赖库、环境变量及默认启动命令。Linux 容器通常共享宿主机内核。
 
 **容器（container）**是镜像的运行实例，有自己的进程、可写层和运行配置。停止容器会保留它的可写层，删除容器则会删除这部分内容。需要独立于容器生命周期保存的数据，应放在数据卷或绑定挂载中。
 
 **镜像注册服务（registry）**存储和分发镜像，Docker Hub 是常用的公共服务。一个 registry 中可以有多个**镜像仓库（repository）**，每个 repository 可以有多个标签和镜像版本。
 
-`docker run` 默认先查找本地镜像，缺少时再从 registry 拉取。它不会自动搜索一个应用的所有镜像，也不会每次运行都检查远端是否更新。
+`docker run` 默认先在本地查找指定镜像，缺少时从 registry 拉取。
 
 ### 2.3 命令解读
 
@@ -71,7 +71,7 @@ Docker CLI 向 Docker daemon 发送请求，由 daemon 管理镜像、容器、�
 
 镜像引用常见的形式为 `[registry[:port]/][namespace/]repository[:tag]`，也可以通过 `repository@sha256:...` 指定摘要。`mysql:8.4` 是 `docker.io/library/mysql:8.4` 的简写。
 
-未指定标签或摘要时，默认标签是 `latest`。标签是可变的名称，并不保证代表最新或稳定版本。`8.4` 限定了版本系列，但镜像维护者仍可能更新该标签指向的补丁版本或基础系统。需要严格复现时，应记录并使用镜像摘要。
+未指定标签或摘要时，默认标签是 `latest`。标签由镜像维护者定义，指向可以更新。`8.4` 表示版本系列，对应的补丁版本和基础系统仍可能随标签更新。需要严格复现时，应记录并使用镜像摘要。
 
 没有指定宿主机 IP 的 `-p 3307:3306` 默认会发布到宿主机所有网络接口。本文的本机练习显式使用 `127.0.0.1`，若需要远程访问，再按实际需求配置监听地址和访问控制。
 
@@ -98,9 +98,9 @@ Docker CLI 向 Docker daemon 发送请求，由 daemon 管理镜像、容器、�
 
 <<< @/go/codes/docker/example.sh
 
-`docker save` 默认不压缩归档，需要压缩时可配合 `gzip`。它保存镜像，不会备份容器可写层、数据卷或绑定挂载中的业务数据。`docker load` 支持读取相应的压缩镜像归档。
+`docker save` 默认生成未压缩的镜像归档，需要压缩时可配合 `gzip`。容器可写层、数据卷和绑定挂载中的业务数据需要单独备份。`docker load` 支持读取相应的压缩镜像归档。
 
-`docker logs -f nginx-demo` 会持续跟踪日志，按 `Ctrl+C` 停止跟踪，不会停止容器。`docker exec` 中使用的可执行文件必须存在于镜像里，某些精简镜像不包含 Bash，甚至不包含 shell。
+`docker logs -f nginx-demo` 会持续跟踪日志，按 `Ctrl+C` 结束跟踪，容器继续运行。`docker exec` 中使用的可执行文件必须存在于镜像里，某些精简镜像不包含 Bash，甚至不包含 shell。
 
 普通的 `docker rm` 不能删除运行中的容器。需要强制删除时可使用 `docker rm -f`，它会用 `SIGKILL` 结束主进程，应用没有正常退出的机会。
 
@@ -117,7 +117,7 @@ Docker CLI 向 Docker daemon 发送请求，由 daemon 管理镜像、容器、�
 | `docker volume prune`    | 默认清理未被任何容器引用的匿名本地卷     |
 | `docker volume prune -a` | 清理未被任何容器引用的本地卷，包括命名卷 |
 
-已停止的容器也会引用数据卷，不能仅凭“没有容器正在运行”判断卷可清理。删除卷会删除卷中的数据，使用清理命令前应核对用途。默认只清理匿名卷的行为始于 Engine 23.0 的 API 1.42，清理命名卷需要加 `-a`。
+清理以数据卷是否被容器引用为准，已停止的容器也会保留引用。删除卷会删除卷中的数据，使用清理命令前应核对用途。默认只清理匿名卷的行为始于 Engine 23.0 的 API 1.42，清理命名卷需要加 `-a`。
 
 ### 4.1 数据卷挂载
 
@@ -129,24 +129,24 @@ Docker CLI 向 Docker daemon 发送请求，由 daemon 管理镜像、容器、�
 
 <<< @/go/codes/docker/example_v.sh
 
-待 Nginx 启动后，可访问 `http://127.0.0.1:8081` 查看网页。练习结束后执行 `sudo docker stop nginx-volume` 和 `sudo docker rm nginx-volume`，数据卷 `nginx-demo-html` 仍会保留。只有确定不再需要这些内容时，才执行 `sudo docker volume rm nginx-demo-html`。普通 `docker rm` 不删除卷，`docker rm -v` 也只删除关联的匿名卷，不会删除这里的命名卷。
+待 Nginx 启动后，可访问 `http://127.0.0.1:8081` 查看网页。练习结束后执行 `sudo docker stop nginx-volume` 和 `sudo docker rm nginx-volume`，命名卷 `nginx-demo-html` 仍会保留。`docker rm -v` 仅清理关联的匿名卷。确定不再需要这些内容后，可执行 `sudo docker volume rm nginx-demo-html` 删除命名卷。
 
 ### 4.2 本地目录挂载
 
-本地路径属于 Docker daemon 所在的宿主机。若 CLI 连接远程 daemon，不能借此直接挂载 CLI 所在机器的文件。
+绑定挂载使用 Docker daemon 所在宿主机的路径。连接远程 daemon 时，源文件或目录需要位于远程宿主机上。
 
 使用 `-v` 时，下面两种写法有不同含义：
 
 - `-v mysql-data:/var/lib/mysql`：挂载名为 `mysql-data` 的数据卷
 - `-v "$PWD/mysql/data:/var/lib/mysql"`：将当前宿主机目录下的 `mysql/data` 绑定到容器中
 
-示例使用展开后的绝对路径，避免相对路径的处理依赖客户端版本。容器中的目标路径必须是绝对路径。`-v` 遇到不存在的宿主机路径会自动创建目录，容易掩盖路径拼写错误。`--mount type=bind` 默认要求源路径已经存在，否则报错，示例因此先创建目录。
+示例将 `$PWD` 展开为绝对路径，容器中的目标路径也必须是绝对路径。`-v` 在宿主机源路径不存在时会自动创建目录，`--mount type=bind` 默认要求源路径已经存在，示例因此先创建目录。
 
 <<< @/go/codes/docker/example_l.sh
 
 `mysql-bind` 使用独立的数据目录和宿主机 `3308` 端口，可以与前面的 MySQL 示例同时存在。`init` 中的初始化脚本和 `conf` 中的 `.cnf` 配置以只读方式挂载。配置应放在相应配置组下，例如 `[mysqld]`，并确认容器中的 MySQL 用户能读取文件。
 
-`/docker-entrypoint-initdb.d` 中的初始化脚本只在首次初始化数据库时执行，已有数据库不会在每次重启时重新执行。绑定一个目录会遮住镜像目标目录中原有的文件，数据目录也要保证容器进程有写入权限。
+`/docker-entrypoint-initdb.d` 中的初始化脚本仅在首次初始化数据库时执行。绑定一个目录会遮住镜像目标目录中原有的文件，数据目录也要保证容器进程有写入权限。
 
 ## 5. 自定义镜像
 
@@ -154,7 +154,7 @@ Docker CLI 向 Docker daemon 发送请求，由 daemon 管理镜像、容器、�
 
 ### 5.1 镜像结构
 
-**文件系统层（layer）**记录文件的增加、修改和删除。镜像层是只读的，多个镜像可以复用相同的层，容器运行时再加上自己的可写层。Dockerfile 中的 `RUN`、`COPY`、`ADD` 等指令通常产生文件系统层，`ENV`、`CMD`、`ENTRYPOINT` 等主要修改镜像配置，不能把每一条指令都理解成一个新增的文件系统层。
+**文件系统层（layer）**记录文件的增加、修改和删除。镜像层是只读的，多个镜像可以复用相同的层，容器运行时再加上自己的可写层。Dockerfile 中的 `RUN`、`COPY`、`ADD` 等指令通常产生文件系统层，`ENV`、`CMD`、`ENTRYPOINT` 等主要修改镜像配置。
 
 **基础镜像（base image）**由 `FROM` 指定，提供当前构建阶段的起点，例如系统文件、运行时和依赖。`FROM scratch` 表示从空的起点构建，不包含现成的系统环境。
 
@@ -175,11 +175,11 @@ Dockerfile 是构建镜像的文本描述，常见指令如下：
 | `CMD`        | 设置默认命令，或为 `ENTRYPOINT` 提供默认参数      | `CMD ["--server.port=8080"]`             |
 | `ENTRYPOINT` | 设置容器的主程序                                  | `ENTRYPOINT ["java", "-jar", "app.jar"]` |
 
-`RUN` 在构建时执行，`ENTRYPOINT` 和 `CMD` 在容器启动时使用。JSON 数组形式不会自动启动 shell，也不会自动展开 `$变量`。同时使用 exec 形式的 `ENTRYPOINT` 和 `CMD` 时，`CMD` 的内容作为默认参数追加到入口命令后，`docker run 镜像 参数...` 可以替换这些默认参数，`--entrypoint` 可以替换入口程序。
+`RUN` 在构建时执行，`ENTRYPOINT` 和 `CMD` 在容器启动时使用。JSON 数组形式指定命令或参数，默认不经 shell 处理，因此 `$变量` 会按字面传入程序。同时使用 exec 形式的 `ENTRYPOINT` 和 `CMD` 时，`CMD` 的内容作为默认参数追加到入口命令后，`docker run 镜像 参数...` 可以替换这些默认参数，`--entrypoint` 可以替换入口程序。
 
-本例将 Dockerfile 命名为 `e.dockerfile`。先创建这个文本文件，再写入下面的内容。文件名中的 `e` 没有特殊含义，Docker 也不要求使用 `.dockerfile` 扩展名。默认文件名是 `Dockerfile`，使用其他名称时需要通过 `docker build -f` 指定。
+本例将 Dockerfile 命名为 `e.dockerfile`，其中 `e` 仅作示例命名。先创建这个文本文件，再写入下面的内容。默认文件名是 `Dockerfile`，自定义名称需要通过 `docker build -f` 指定。
 
-下面的示例使用 Java 25 JRE，`noble` 表示镜像中的基础系统为 Ubuntu 24.04。JRE 用于运行已经构建好的应用，编译需要 JDK。准备一个包含 `Main-Class`、可在 Java 25 上运行的可执行 `docker-demo.jar`，放在 `e.dockerfile` 同一目录。这里假定应用监听容器的 `0.0.0.0:8080`，实际端口应按应用配置调整。Java 与第三方依赖的兼容性需要实际验证，不能仅根据旧 JAR 的编译版本判断。
+下面的示例使用 Java 25 JRE，`noble` 表示镜像中的基础系统为 Ubuntu 24.04。JRE 用于运行已经构建好的应用，编译需要 JDK。准备一个包含 `Main-Class` 的可执行 `docker-demo.jar`，确认应用及第三方依赖可在 Java 25 上运行，并将 JAR 放在 `e.dockerfile` 同一目录。这里假定应用监听容器的 `0.0.0.0:8080`，实际端口应按应用配置调整。
 
 <<< @/go/codes/docker/e.dockerfile
 
@@ -189,15 +189,15 @@ Dockerfile 是构建镜像的文本描述，常见指令如下：
 
 - `-f e.dockerfile`：明确指定 Dockerfile 文件，省略时默认查找构建上下文根目录中的 `Dockerfile`
 - `-t docker-demo:1.0`：给构建结果设置镜像名和标签，标签由构建者定义，不指定时默认为 `latest`
-- `.`：使用当前目录作为**构建上下文**，`COPY` 的源路径以此为基准，并不是指定 Dockerfile 所在目录
+- `.`：使用当前目录作为**构建上下文**，`COPY` 的源路径以构建上下文为基准
 
-构建上下文应只包含需要的文件，可通过 `.dockerignore` 排除不需要发送给构建器的内容。镜像构建后，可执行 `sudo docker run -d --name java-demo -p 127.0.0.1:8082:8080 docker-demo:1.0`，待应用启动后访问 `http://127.0.0.1:8082`。`EXPOSE 8080` 不会让应用自动监听端口，也不会代替这里的 `-p`。
+构建上下文应只包含需要的文件，可通过 `.dockerignore` 排除不需要发送给构建器的内容。应用的监听地址和端口由应用配置决定，宿主机端口通过 `-p` 发布。镜像构建后，可执行 `sudo docker run -d --name java-demo -p 127.0.0.1:8082:8080 docker-demo:1.0`，待应用启动后访问 `http://127.0.0.1:8082`。
 
 ## 6. 网络
 
-在本文的 Linux Docker Engine 环境中，未指定 `--network` 的普通容器默认加入 `bridge` 网络。还可以使用自定义 bridge、`host`、`none` 等模式，不能把所有容器都视为连接同一个网桥。bridge 网络适用于同一个 Docker 主机中的容器。
+在本文的 Linux Docker Engine 环境中，未指定 `--network` 的普通容器默认加入 `bridge` 网络。也可选择自定义 bridge、`host`、`none` 等模式。bridge 网络适用于同一个 Docker 主机中的容器。
 
-默认 `bridge` 网络不提供容器名的自动 DNS 解析。连接到同一个自定义 bridge 网络的容器，可以通过容器名或网络别名访问对方。同一网络内通信使用**容器端口**，不需要为了容器之间的访问设置 `-p`。容器里的 `localhost` 通常指向容器自身，需要访问别的容器时应使用对方的名字或地址。
+默认 `bridge` 网络不提供容器名的自动 DNS 解析。连接到同一个自定义 bridge 网络的容器，可以通过容器名或网络别名访问对方。同一网络内通信直接使用**容器端口**，无需发布宿主机端口。容器里的 `localhost` 通常指向容器自身，需要访问别的容器时应使用对方的名字或地址。
 
 | 命令                        | 说明                                       |
 | --------------------------- | ------------------------------------------ |
@@ -209,8 +209,8 @@ Dockerfile 是构建镜像的文本描述，常见指令如下：
 | `docker network disconnect` | 将容器从网络断开                           |
 | `docker network inspect`    | 查看网络配置、连接的容器及其地址           |
 
-下面的示例先把已有 Nginx 容器加入自定义网络，再创建一个临时 Alpine 容器，用容器名发起 HTTP 请求。无需发布宿主机端口。
+下面的示例先把已有 Nginx 容器加入自定义网络，再创建一个临时 Alpine 容器，用容器名发起 HTTP 请求。
 
 <<< @/go/codes/docker/net.sh
 
-`--rm` 会在临时容器退出后自动删除该容器，命名卷不会因此删除。网络 ID、网桥名和分配的子网可能随环境变化，应以 `docker network inspect` 的结果为准。删除自定义网络前，先删除或断开连接到它的容器。
+`--rm` 会在临时容器退出后自动删除该容器。网络 ID、网桥名和分配的子网可能随环境变化，应以 `docker network inspect` 的结果为准。删除自定义网络前，先删除或断开连接到它的容器。
