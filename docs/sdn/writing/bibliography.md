@@ -6,7 +6,7 @@ outline: deep
 
 # LaTeX 参考文献
 
-LaTeX 通常把文献数据放在 `.bib` 文件中，再由 BibTeX 或 Biber 生成参考文献列表。投稿时优先遵循期刊、会议模板指定的工具和样式，不要在同一份文档中混用两套流程。
+LaTeX 通常把文献数据放在 `.bib` 文件中，再由 BibTeX 或 Biber 生成参考文献列表。投稿时按期刊、会议模板指定的工具和样式选择对应的编译流程。
 
 ## 1 文献数据库
 
@@ -41,16 +41,16 @@ LaTeX 通常把文献数据放在 `.bib` 文件中，再由 BibTeX 或 Biber 生
 | `@misc`          | 其他材料     | 根据文献类型填写                                   |
 | `@online`        | 在线资料     | `author`、`title`、`url`、`urldate`                |
 
-这张表不是必填字段的完整清单。`@online` 属于 `biblatex` 数据模型，需要兼容传统 BibTeX 时，可改用 `@misc`。传统 BibTeX 的学位论文使用 `school`，biblatex 的对应字段通常使用 `institution`，并以 `@thesis` 及 `type` 区分论文类型。
+`@online` 属于 `biblatex` 数据模型，需要兼容传统 BibTeX 时，可改用 `@misc`。传统 BibTeX 的学位论文使用 `school`，biblatex 的对应字段通常使用 `institution`，并以 `@thesis` 及 `type` 区分论文类型。
 
 ### 1.3 字段写法
 
-- 多位作者使用 `and` 分隔，不能用逗号代替。
+- 多位作者使用 `and` 分隔。
 - 姓名写成 `Zhang, Henghua`，可以明确区分姓和名。
 - 缩写和专有名词用额外的 `{}` 保护，例如 `{P4}`、`{SDN}` 和 `{TT-INT}`。
 - 页码范围使用两个连字符，例如 `pages = {123--135}`。
-- `doi` 字段只填写 DOI，不要添加 `https://doi.org/`。
-- 不确定的信息宁可暂时省略，不要用占位字符串填充。
+- `doi` 字段填写 DOI 标识符，例如 `10.1109/TNSM.2026.3688086`。
+- 填写已核实的文献信息，暂缺字段查证后补充。
 
 机构作为作者时，用额外的一组花括号保护名称，避免被按人名拆分：
 
@@ -91,7 +91,7 @@ xelatex main
 xelatex main
 ```
 
-第一次 XeLaTeX 生成 `.aux`，BibTeX 读取引用、文献库和 `.bst`，生成 `.bbl`，后两次 XeLaTeX 更新参考文献和交叉引用。这里的 `main` 是主文档名，不是 `.bib` 文件名。
+第一次 XeLaTeX 生成 `.aux`，BibTeX 读取引用、文献库和 `.bst`，生成 `.bbl`，后两次 XeLaTeX 更新参考文献和交叉引用。这里的 `main` 对应主文件 `main.tex`。
 
 ### 2.3 常用样式
 
@@ -101,8 +101,6 @@ xelatex main
 | `unsrt`    | 按正文中的引用顺序排列               |
 | `alpha`    | 按作者等信息排序，使用作者与年份标签 |
 | `IEEEtran` | 按 IEEE 格式和引用顺序排列           |
-
-投稿模板已经指定样式时，不要自行替换。
 
 ## 3 `biblatex` 与 Biber
 
@@ -142,7 +140,7 @@ xelatex main
 xelatex main
 ```
 
-第一次 XeLaTeX 为 biblatex 生成 `.bcf`，Biber 根据它读取文献库并生成 `.bbl`。使用 `backend=biber` 时必须运行 `biber`，不能改成 `bibtex`。biblatex 的 `.bbl` 格式与传统 BibTeX 样式生成的格式不同，切换流程时不能直接沿用。
+第一次 XeLaTeX 为 biblatex 生成 `.bcf`，Biber 根据它读取文献库并生成 `.bbl`。`backend=biber` 对应 `biber` 编译命令。biblatex 的 `.bbl` 格式与传统 BibTeX 样式生成的格式不同，切换流程时需重新生成。
 
 ### 3.3 引用命令
 
@@ -204,8 +202,8 @@ xelatex main
 
 ### 5.6 DOI 或 URL 没有显示
 
-参考文献样式决定哪些字段会出现在最终结果中。即使 `.bib` 已填写 `doi` 或 `url`，当前 `.bst` 或 `biblatex` 样式也可能省略它们。投稿时应服从模板样式，不要把 DOI 手工拼进标题字段。
+参考文献样式决定哪些字段会出现在最终结果中。DOI 与 URL 保存在对应字段，是否显示由当前 `.bst` 或 `biblatex` 样式控制。
 
 ### 5.7 投稿模板与 `biblatex` 冲突
 
-部分期刊类文件已经固定了参考文献方案。遇到这种情况应使用模板提供的命令和 `.bst`，不要强行加载 `biblatex`。
+部分期刊类文件已经固定了参考文献方案。这类文档使用模板提供的引用命令和 `.bst`。

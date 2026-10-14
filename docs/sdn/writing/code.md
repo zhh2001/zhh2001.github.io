@@ -19,7 +19,7 @@ LaTeX 中常用 `listings` 或 `minted` 排版源代码。前者完全由 TeX �
 | 投稿兼容性 | 通常更稳妥         | 取决于编译环境是否允许外部程序 |
 | 配置复杂度 | 较低               | 较低，但依赖编译环境           |
 
-期刊模板没有特殊要求时，选一种统一使用即可。两者可以共存，但环境名称、参数和代码清单目录命令并不通用，混用时需分别配置。是否采用 `minted` 还应确认投稿系统允许执行它需要的外部程序。
+期刊模板没有特殊要求时，选一种统一使用即可。`listings` 和 `minted` 各有自己的环境、参数和代码清单目录命令，分别配置后也可共存。
 
 ## 2 使用 `listings`
 
@@ -114,7 +114,7 @@ Use \lstinline[language=Go]|make(chan int)| to create a channel.
 | `label={lst:key}`        | 设置交叉引用标签             |
 | `float=tbp`              | 把代码块作为浮动体           |
 
-较长代码不宜设置 `float`，否则代码块不能自然跨页。
+较长代码使用非浮动环境，可随正文分页。设置 `float` 后，代码块会作为整体排版。
 
 ## 3 使用 `minted`
 
@@ -196,7 +196,7 @@ func add(a, b int) int {
 \end{listing}
 ```
 
-浮动代码清单不能跨页。长代码应直接使用 `minted` 环境，不要放进 `listing`。
+浮动代码清单不能跨页。长代码直接使用非浮动的 `minted` 环境，可随正文分页。
 
 ### 3.5 编译权限
 
@@ -220,7 +220,7 @@ MiKTeX 官方对应选项为 `-enable-write18`。这些选项允许 LaTeX 执行
 
 ### 4.1 长代码行
 
-`listings` 使用 `breaklines=true`。`minted` 使用 `breaklines`，必要时再加 `breakanywhere`。自动折行只改变排版，不会修改源文件。
+`listings` 使用 `breaklines=true`。`minted` 使用 `breaklines`，必要时再加 `breakanywhere`。自动折行用于调整代码的显示布局。
 
 ### 4.2 缩进与制表符
 
@@ -228,11 +228,11 @@ MiKTeX 官方对应选项为 `-enable-write18`。这些选项允许 LaTeX 执行
 
 ### 4.3 中文注释
 
-`listings` 对多字节 UTF-8 源文件支持有限，中文注释可能需要额外转换或转义。需要直接排版含中文的 UTF-8 源代码时，可以使用 minted，并配置支持中文的文档类和等宽字体。只把编译器换成 XeLaTeX 或 LuaLaTeX，还不能保证字体含有所需字形，例如可以使用 `ctexart` 并设置合适的 `\setmonofont`。
+`listings` 对多字节 UTF-8 源文件支持有限，中文注释可能需要额外转换或转义。直接排版含中文的 UTF-8 源代码时，可使用 minted，配合 XeLaTeX 或 LuaLaTeX，并配置支持中文的文档类和字体。例如使用 `ctexart`，再通过 `\setmonofont` 设置合适的等宽字体。
 
 ### 4.4 在代码中插入 LaTeX
 
-仅在确有需要时启用转义，避免源代码被误当作 LaTeX：
+使用 `escapeinside` 指定分隔符，分隔符内的内容按 LaTeX 排版：
 
 ```latex
 % listings
@@ -254,7 +254,7 @@ x := 1 // |\textit{initialize}|
 
 ### 5.2 minted 无法执行
 
-依次检查 `minted.sty`、`latexminted` 和 Python 是否已安装并位于 `PATH`，再检查当前 TeX 发行版是否允许执行 `latexminted`。不要一遇到报错就直接开启全局 shell escape。
+依次检查 TeX 是否能找到 `minted.sty`、`latexminted` 和 Python 是否位于 `PATH`，再检查当前 TeX 发行版是否允许执行 `latexminted`。
 
 ### 5.3 代码超出页边距
 

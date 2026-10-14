@@ -79,7 +79,7 @@ outline: deep
 | `p`  | 单独的浮动体页面 |
 | `!`  | 放宽部分限制     |
 
-`[htbp]` 表示放置偏好，并不保证图片固定在源码位置。LaTeX 会根据页面剩余空间、浮动体数量和排版参数选择位置。
+`[htbp]` 表示放置偏好，实际位置由 LaTeX 根据页面剩余空间、浮动体数量和排版参数决定。
 
 ### 2.2 交叉引用
 
@@ -102,7 +102,7 @@ As shown in Figure~\ref{fig:topology}, the switches form a tree.
 \FloatBarrier
 ```
 
-`\FloatBarrier` 会先排出此前尚未放置的浮动体。它适合章节边界，不宜在每张图片后都使用。
+`\FloatBarrier` 会先排出此前尚未放置的浮动体，可用于控制章节边界处的浮动位置。
 
 需要强制放在当前位置时，可以使用 `float` 提供的 `[H]`：
 
@@ -114,7 +114,7 @@ As shown in Figure~\ref{fig:topology}, the switches form a tree.
 \end{figure}
 ```
 
-`[H]` 会减少 LaTeX 调整页面的空间，连续使用时容易留下大片空白，因此只适合少量确实不能浮动的图片。
+`[H]` 固定图片位置，会限制 LaTeX 调整页面的空间。图片放不进当前页时，可能留下较大的空白。
 
 ## 3 标题设置
 
@@ -141,7 +141,7 @@ As shown in Figure~\ref{fig:topology}, the switches form a tree.
 \end{figure}
 ```
 
-投稿模板已经规定标题格式时，不应再用 `caption` 强行覆盖。
+投稿时，标题格式按模板提供的设置调整。
 
 ### 3.2 目录中的短标题
 
@@ -195,7 +195,7 @@ The result in Figure~\ref{fig:proposed} has lower latency.
 
 引用整个组合图时使用外层标签，引用单个子图时使用对应 `subfigure` 中的标签。
 
-不要同时加载 `subcaption`、`subfig` 和已经过时的 `subfigure`。它们提供相近功能，混用容易造成命令或标题格式冲突。
+`subcaption`、`subfig` 和已经过时的 `subfigure` 提供相近功能，同时加载容易造成命令或标题格式冲突。选择模板支持的一种子图方案即可。
 
 ## 5 裁剪与旋转
 
@@ -238,7 +238,7 @@ The result in Figure~\ref{fig:proposed} has lower latency.
 \end{figure*}
 ```
 
-标准双栏模式下，`figure*` 通常放在页顶或浮动体专页，不能仅凭 `[b]` 要求页底放置。页底双栏浮动需要文档类或额外宏包支持，应先核对投稿模板的要求。
+标准双栏模式下，`figure*` 通常放在页顶或浮动体专页。页底双栏浮动需要文档类或额外宏包支持，再通过 `[b]` 请求页底放置。使用前核对投稿模板的要求。
 
 ### 6.2 文字环绕
 
@@ -261,15 +261,15 @@ The result in Figure~\ref{fig:proposed} has lower latency.
 
 - 曲线图、拓扑图和架构图优先使用 PDF 等矢量格式，缩放后边缘仍然清晰。
 - 截图和带透明区域的图像适合 PNG。
-- 照片适合 JPEG，不要反复压缩后再用于论文。
-- 位图应按最终排版尺寸导出，避免在 LaTeX 中大幅放大。
-- 图中的字体、线宽和颜色应在导出阶段统一，不要依赖整体缩放修正比例。
+- 照片适合 JPEG，使用高质量原图导出。
+- 位图按最终排版尺寸导出，并提供足够的像素分辨率。
+- 图中的字体、线宽和颜色在导出阶段统一。
 
-`\includegraphics` 不能直接处理所有 SVG 工作流。可以预先转换为 PDF，或者在编译环境允许调用外部程序时使用 `svg` 宏包。
+SVG 图片可预先转换为 PDF，或者在编译环境允许调用外部程序时使用 `svg` 宏包。
 
 ## 8 完整示例
 
-下面的 `example-image-a` 和 `example-image-b` 来自 `mwe` 宏包，是排版占位图。实际使用时替换为自己的图片路径，示例标题不表示真实实验结论。
+下面的 `example-image-a` 和 `example-image-b` 来自 `mwe` 宏包，是排版占位图。实际使用时替换为自己的图片路径。
 
 ```latex
 \documentclass[UTF8]{ctexart}
@@ -313,7 +313,7 @@ The result in Figure~\ref{fig:proposed} has lower latency.
 
 ### 9.1 找不到图片
 
-检查相对路径、文件名大小写和扩展名。项目从主文件所在目录编译时，图片路径通常应相对于主文件或通过 `\graphicspath` 配置的目录，而不是相对于被 `\input` 的章节文件。
+检查相对路径、文件名大小写和扩展名。项目从主文件所在目录编译时，图片路径通常相对于主文件所在目录，或通过 `\graphicspath` 配置的目录查找。
 
 ### 9.2 图片超出版心
 
@@ -327,7 +327,7 @@ The result in Figure~\ref{fig:proposed} has lower latency.
 
 ### 9.3 图片没有出现在源码位置
 
-这是浮动体的正常行为。先检查图片是否过大，再尝试 `[!htbp]` 或在章节边界使用 `\FloatBarrier`。不要把 `[H]` 作为所有图片的默认设置。
+LaTeX 会根据页面空间安排浮动体。先检查图片是否过大，再尝试 `[!htbp]` 或在章节边界使用 `\FloatBarrier`。
 
 ### 9.4 引用编号错误
 
@@ -335,7 +335,7 @@ The result in Figure~\ref{fig:proposed} has lower latency.
 
 ### 9.5 图片模糊
 
-优先检查原始文件。LaTeX 只能缩放已有图像，不能恢复被压缩或低分辨率图片中已经丢失的细节。
+清晰度取决于原始文件的分辨率和导出质量。检查原图，必要时按最终排版尺寸重新导出。
 
 ### 9.6 图片周围有大块空白
 

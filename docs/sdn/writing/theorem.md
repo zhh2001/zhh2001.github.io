@@ -17,7 +17,7 @@ outline: deep
 \usepackage{amsthm}
 ```
 
-同时使用两个宏包时，应先加载 `amsmath`，再加载 `amsthm`。AMS 文档类已经包含 `amsthm` 的功能，不需要重复加载。
+同时使用两个宏包时，应先加载 `amsmath`，再加载 `amsthm`。AMS 文档类已经包含 `amsthm` 的功能。
 
 ### 1.2 定义环境
 
@@ -104,7 +104,7 @@ Every finite tree with at least two vertices has at least two leaves.
 
 ### 3.1 自定义样式
 
-默认样式不能满足需求时，可以使用 `\newtheoremstyle`：
+自定义定理样式使用 `\newtheoremstyle`：
 
 ```latex
 \newtheoremstyle{compact}
@@ -162,7 +162,7 @@ paths is finite, so one of them attains the minimum cost.
 \end{proof}
 ```
 
-`proof` 会自动添加证明标题和末尾的 QED 符号，不需要手工输入方框。
+`proof` 会自动添加证明标题和末尾的 QED 符号。
 
 ### 5.2 自定义证明标题
 
@@ -191,8 +191,6 @@ C(P') = C(P) - C(Q) \leq C(P). \qedhere
 \end{equation*}
 \end{proof}
 ```
-
-不要在同一个证明中同时手工输入 `\qed` 和使用自动结束符。
 
 ## 6 完整示例
 
@@ -258,7 +256,7 @@ C(P')=C(P)-C(Q)\leq C(P). \qedhere
 
 ### 7.1 环境未定义
 
-`amsthm` 不会自动创建名为 `theorem`、`lemma` 或 `definition` 的环境。使用前必须在导言区通过 `\newtheorem` 定义。
+在导言区通过 `\newtheorem` 定义 `theorem`、`lemma` 或 `definition` 等环境，再在正文中使用。
 
 ### 7.2 编号没有共享
 
@@ -272,7 +270,7 @@ C(P')=C(P)-C(Q)\leq C(P). \qedhere
 
 ### 7.3 定义正文变成斜体
 
-在定义环境的 `\newtheorem` 之前加入 `\theoremstyle{definition}`。样式切换不会追溯影响已经定义的环境。
+在定义环境的 `\newtheorem` 之前加入 `\theoremstyle{definition}`。样式设置作用于其后定义的环境。
 
 ### 7.4 定理以列表开头时排版异常
 
@@ -294,4 +292,4 @@ C(P')=C(P)-C(Q)\leq C(P). \qedhere
 
 ### 7.6 与投稿模板冲突
 
-部分文档类已经定义了定理或证明环境。遇到重复定义、间距或标题样式异常时，应优先使用模板提供的设置，不要强行覆盖。
+部分文档类已经定义了定理或证明环境。使用这些环境时，通过模板提供的设置调整间距和标题样式。

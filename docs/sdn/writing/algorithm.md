@@ -17,14 +17,14 @@ LaTeX 中的算法排版通常分为两层：`algorithm` 负责浮动体、标�
 \usepackage{algpseudocode}
 ```
 
-`algpseudocode` 会自动加载 `algorithmicx`，不需要重复引入。若不想显示 `end if`、`end while` 等结束标记，可以使用：
+`algpseudocode` 会自动加载 `algorithmicx`。需要隐藏 `end if`、`end while` 等结束标记时，可以使用：
 
 ```latex
 \usepackage[noend]{algpseudocode}
 ```
 
-::: warning 注意
-`algorithmic`、`algpseudocode` 和 `algorithm2e` 是不同的命令体系。比如 `algorithmic` 使用 `\STATE`，`algpseudocode` 使用 `\State`，不要混写。
+::: info 宏包与命令体系
+`algorithmic`、`algpseudocode` 和 `algorithm2e` 各有自己的命令体系。比如 `algorithmic` 使用 `\STATE`，`algpseudocode` 使用 `\State`，命令需与所选宏包对应。
 :::
 
 ## 2 使用 `algpseudocode`
@@ -117,7 +117,7 @@ See Algorithm~\ref{alg:least-loaded-port}.
 
 ### 4.1 添加注释
 
-`algpseudocode` 本身提供 `\Comment`，不需要再加载其他伪代码宏包：
+`algpseudocode` 提供 `\Comment`，用于添加行尾注释：
 
 ```latex
 \begin{algorithmic}[1]
@@ -152,7 +152,7 @@ See Algorithm~\ref{alg:least-loaded-port}.
 
 ### 4.4 长算法与分页
 
-`algorithm` 是浮动体，整个内容不能跨页。长算法可以直接使用 `algorithmic`，让正文自然分页，但它本身不提供浮动体标题和算法编号。若模板要求保留标题，应使用模板认可的非浮动标题方案，或把算法分段。
+`algorithm` 浮动体不能跨页。长算法可将 `algorithmic` 直接放在正文中，随正文分页。标题和算法编号需另用模板认可的非浮动方案设置，也可将算法分段放入浮动体。
 
 需要分段并继续行号、缩进和未结束的代码块时，`algorithmicx` 提供 `\algstore` 和 `\algrestore`：
 
@@ -172,11 +172,11 @@ See Algorithm~\ref{alg:least-loaded-port}.
 \end{algorithmic}
 ```
 
-`\algstore` 必须是前一段结束前的最后一条命令，`\algrestore` 必须是后一段的第一条命令。它们不管理外层 `algorithm` 的标题和编号，分段浮动体的标题仍需另行设置。
+`\algstore` 必须是前一段结束前的最后一条命令，`\algrestore` 必须是后一段的第一条命令。外层 `algorithm` 的标题和编号需在各段浮动体中另行设置。
 
 ### 4.5 使用 `algorithm2e`
 
-`algorithm2e` 是另一套完整方案，不要与前面的 `algorithm`、`algpseudocode` 同时加载。
+采用 `algorithm2e` 时，用它替换前面的 `algorithm`、`algpseudocode` 组合，算法环境与伪代码命令都由 `algorithm2e` 提供。
 
 ```latex
 \usepackage[ruled,vlined,linesnumbered]{algorithm2e}
@@ -197,15 +197,15 @@ See Algorithm~\ref{alg:least-loaded-port}.
 
 ### 5.1 算法位置不符合预期
 
-`[!t]` 会优先把算法放在页顶。必须固定在当前位置时可以改用 `[H]`，但这样可能留下较大的页面空白，一般只在确有需要时使用。
+`[!t]` 请求页顶放置，并放宽部分浮动限制。需要固定在当前位置时，可以改用 `[H]`。算法放不进当前页时，固定位置可能留下较大的空白。
 
 ### 5.2 行号不显示
 
-检查 `\begin{algorithmic}[1]` 中的 `[1]` 是否存在。这个参数控制编号间隔，不是起始行号。
+检查 `\begin{algorithmic}[1]` 中的编号间隔参数，`[1]` 表示每行显示行号，省略时不显示。
 
 ### 5.3 命令未定义
 
-最常见的原因是混用了两套命令：
+核对已加载的宏包与命令写法，例如：
 
 ```latex
 % algpseudocode
@@ -217,7 +217,7 @@ See Algorithm~\ref{alg:least-loaded-port}.
 \STATE $x \leftarrow 1$
 ```
 
-新文档建议使用第一种写法。同一份文档里不要同时加载这两个宏包。
+本页采用 `algpseudocode`，对应 `\State` 等命令。
 
 ### 5.4 中文支持
 
