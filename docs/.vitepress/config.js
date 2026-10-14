@@ -48,33 +48,6 @@ const TechNotes = [
   },
 ]
 
-const keywords = [
-  '张恒华',
-  '软件定义网络', '可编程数据平面', '带内网络遥测',
-  'Henghua Zhang',
-  'SDN', 'Software Defined Network', 'Software-Defined Networking',
-  'Programmable Data Plane', 'PDP',
-  'Programming Protocol-independent Packet Processors', 'P4', 'P4 Lang', 'P4 Language',
-  'P4Runtime', 'P4Runtime API',
-  'V1Model',
-  'BMv2', 'Behavioral Model version 2',
-  'INT', 'In-band Network Telemetry',
-  'OpenFlow',
-  'Mininet',
-  'iPerf',
-  'Scapy',
-  'Go', 'GoLang',
-  'RPC', 'gRPC',
-  'Goroutine', 'GMP',
-  'Gin',
-  'Docker',
-  'Eino',
-  'Database',
-  'Redis',
-  'MySQL',
-  'Protocol Buffer', 'protobuf'
-]
-
 const description_cn = '张恒华的个人网站，存放学习笔记与个人简历。研究领域为软件定义网络、可编程数据平面。'
 const description_en = 'This is Henghua Zhang\'s personal website, where study notes and a resume are stored. The research focus is on SDN (Software-Defined Networking) and PDP (Programmable Data Plane).'
 
@@ -86,7 +59,6 @@ export default defineConfig({
   lastUpdated: true,
   transformPageData,
   head: [
-    ['meta', { name: 'keywords', content: keywords.join(', ') }],
     ['meta', { name: 'google-site-verification', content: 'wMOTcBwCiCMV7ESftQRY3Glvq8UL4xzUKrZ-1wjOpqM' }],
     ['link', { rel: 'icon', href: '/favicon.svg' }],
     ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
