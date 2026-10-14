@@ -14,15 +14,15 @@ Gin 是基于 Go 标准库 `net/http` 的 Web 框架，提供路由、中间件�
 
 <<< @/go/codes/gin/install.sh
 
-将下一节代码保存为模块目录中的 `main.go`，再运行 `go mod tidy` 和 `go run main.go`。`go get` 在这里用于管理模块依赖，不是安装可执行程序。初次安装无需使用 `-u` 同时升级其他依赖。
+上面的 `go get` 命令添加指定版本的 Gin 模块依赖。将下一节代码保存为模块目录中的 `main.go`，再运行 `go mod tidy` 和 `go run main.go`。
 
 ## 2. Hello World
 
 <<< @/go/codes/gin/hello_world.go
 
-`gin.Default()` 创建带有 `Logger` 和 `Recovery` 中间件的路由引擎，分别用于请求日志和请求处理链中的 panic 恢复。`gin.New()` 不添加这些默认中间件。`Recovery` 不能替其他 goroutine 恢复 panic。
+`gin.Default()` 创建带有 `Logger` 和 `Recovery` 中间件的路由引擎。`Logger` 记录请求日志，`Recovery` 恢复请求处理链中同一 goroutine 的 panic。`gin.New()` 创建不带默认中间件的路由引擎。
 
-示例只监听本机的 `127.0.0.1:8000`。`Run` 会阻塞并返回监听或服务错误，应检查返回值。另开终端访问：
+示例监听本机的 `127.0.0.1:8000`。`Run` 会阻塞，监听或服务出错时返回错误，示例检查错误后退出。另开终端访问：
 
 ```shell
 curl http://127.0.0.1:8000/hello
@@ -48,7 +48,7 @@ curl http://127.0.0.1:8000/hello
 
 `goodsList`、`addGoods`、`delGoods` 和最后的 `Run` 保持原样。分组后的完整路径和 HTTP 方法不变。分组也可以接收中间件，统一作用于该组随后注册的路由。
 
-示例的处理函数只返回操作名称，没有访问数据库。GET 用于查询，添加和删除这里用 POST 演示，不应仅因路径名称包含 `delete` 就用 GET 修改资源。
+示例通过 GET 演示查询，通过 POST 演示添加和删除，处理函数返回对应的操作名称。
 
 ## 4. 路径参数
 
@@ -58,7 +58,7 @@ curl http://127.0.0.1:8000/hello
 
 <<< @/go/codes/gin/param.go
 
-`/goods/:id` 匹配一个非空路径段。访问 `/goods/123` 时，`Param("id")` 返回字符串 `"123"`，不会自动转换成整数。只替换上例的 `GET` 注册语句，多个参数可以写为：
+`/goods/:id` 匹配一个非空路径段。访问 `/goods/123` 时，`Param("id")` 返回字符串 `"123"`。只替换上例的 `GET` 注册语句，多个参数可以写为：
 
 <<< @/go/codes/gin/params.go
 
@@ -68,7 +68,7 @@ curl http://127.0.0.1:8000/hello
 {"action":"delete","id":"123"}
 ```
 
-这个路由只回显参数，不执行删除操作。`:action` 只匹配一个非空路径段，不能匹配 `/goods/123/delete/test`。
+这个路由将匹配到的参数写入 JSON 响应。`:action` 匹配一个非空路径段，请求 `/goods/123/delete/test` 时返回 404。
 
 ### 4.2 通配参数
 
@@ -85,9 +85,9 @@ curl http://127.0.0.1:8000/hello
 | `/goods/123/`            | 200    | `"/"`                   |
 | `/goods/123`             | 301    | `Location: /goods/123/` |
 
-最后一种请求由默认开启的 `RedirectTrailingSlash` 重定向，第一次响应不是 JSON。`curl -L` 会跟随重定向，随后得到 `action` 为 `"/"` 的 JSON。关闭这个选项后，该路径返回 404。
+最后一种请求由默认开启的 `RedirectTrailingSlash` 返回 301，重定向到 `/goods/123/`。`curl -L` 会跟随重定向，随后得到 `action` 为 `"/"` 的 JSON。关闭这个选项后，该路径返回 404。
 
-`:action` 和 `*action` 是两种替代写法，不要把这两个相冲突的路由同时注册到同一个引擎。
+`:action` 和 `*action` 两个示例分别运行，同时注册到同一引擎会产生路由冲突。
 
 ### 4.3 绑定路径参数
 
@@ -101,7 +101,7 @@ curl http://127.0.0.1:8000/hello
 {"id":123,"name":"abc"}
 ```
 
-`uri:"id"` 与路由中的 `:id` 对应。`ID` 为 `int`，因此非整数参数会绑定失败，示例返回 400。数值字段的 `required` 会拒绝零值，但不会自动要求它为正数。业务需要正数 ID 时，可再增加 `gt=0`。
+`uri:"id"` 与路由中的 `:id` 对应。`ID` 为 `int`，因此非整数参数会绑定失败，示例返回 400。数值字段的 `required` 要求字段非零，业务需要正数 ID 时，可再增加 `gt=0`。
 
 ## 5. 查询参数与表单
 
@@ -109,7 +109,7 @@ curl http://127.0.0.1:8000/hello
 
 <<< @/go/codes/gin/get.go
 
-`Query` 和 `DefaultQuery` 读取 URL 的查询字符串，并不限定只能在 GET 请求中使用。
+`Query` 和 `DefaultQuery` 读取 URL 的查询字符串，适用于各类 HTTP 请求。
 
 | 请求路径                            | 响应正文                               |
 | ----------------------------------- | -------------------------------------- |
@@ -138,14 +138,14 @@ lang=Go&framework=Gin
 {"framework":"Gin","lang":"Go"}
 ```
 
-表单正文不要在字段名和值之间额外加入空格，否则空格可能成为数据的一部分。也可以用下面的命令，由 curl 编码表单字段：
+也可以用下面的命令，由 curl 编码表单字段：
 
 ```shell
 curl --data-urlencode 'lang=Go' --data-urlencode 'framework=Gin' \
   http://127.0.0.1:8000/hello
 ```
 
-`PostForm` 和 `DefaultPostForm` 读取 URL 编码或 multipart 表单，不读取 URL 查询参数，也不会解析 JSON 正文。`DefaultPostForm` 同样只在字段缺失时使用默认值，`GetPostForm` 可以区分字段缺失和显式空值。
+`PostForm` 和 `DefaultPostForm` 读取请求正文中的 URL 编码或 multipart 表单。URL 查询参数使用 `Query` 系列方法，JSON 正文使用 JSON 绑定方法。`DefaultPostForm` 同样只在字段缺失时使用默认值，`GetPostForm` 可以区分字段缺失和显式空值。
 
 ## 6. Protobuf 渲染
 
@@ -182,7 +182,7 @@ gin-notes/
     └── msg.pb.go
 ```
 
-`c.ProtoBuf` 返回 Protobuf 二进制数据，Content-Type 为 `application/x-protobuf`，不会自动转换成 JSON。另开终端，在模块根目录获取并解码响应：
+`c.ProtoBuf` 返回 Protobuf 二进制数据，Content-Type 为 `application/x-protobuf`。另开终端，在模块根目录获取并解码响应：
 
 ```shell
 curl --output response.bin http://127.0.0.1:8000/hello
@@ -205,7 +205,7 @@ Gin 使用 `go-playground/validator/v10` 执行 `binding` 标签中的验证规�
 
 <<< @/go/codes/gin/validate.go
 
-`ShouldBindJSON` 明确按 JSON 解析请求正文，绑定或验证失败时返回错误，不会自动设置错误响应。示例选择返回 400，并结束当前处理函数。`BindJSON` 则在失败时自动中止处理链并写入 400，不适合在这之后再改成其他响应状态。
+`ShouldBindJSON` 按 JSON 解析并验证请求正文，失败时返回错误，响应由处理函数决定。示例返回 400 后通过 `return` 结束当前函数。`BindJSON` 会在失败时中止后续处理链并写入错误状态，普通绑定错误为 400，`http.MaxBytesError` 为 413。需要自定义错误响应时使用 `ShouldBindJSON`。
 
 | 标签               | 含义                                     |
 | ------------------ | ---------------------------------------- |
@@ -216,7 +216,7 @@ Gin 使用 `go-playground/validator/v10` 执行 `binding` 标签中的验证规�
 | `email`            | 符合该验证器支持的邮箱格式               |
 | `lte=120`          | 数值不大于 120                           |
 
-字符串长度按 Unicode 码点数量检查，不是 UTF-8 字节数。`Age` 使用无符号整数，负数或不匹配的 JSON 类型会在解析阶段失败。这里没有给年龄设置 `required`，省略它时保留零值 0，仍能通过验证。如果需要区分未传字段与显式传入零值，可以使用指针字段。
+字符串长度按 Unicode 码点数量检查。`Age` 使用无符号整数，负数或不匹配的 JSON 类型会在解析阶段失败。它的验证规则为 `lte=120`，省略时取零值 0，也能通过验证。需要区分未传字段与显式传入零值时，可以使用指针字段。
 
 发送以下请求，用户名长度、密码确认、邮箱格式和年龄会分别验证失败：
 
@@ -242,8 +242,6 @@ Key: 'SignUpInfo.Email' Error:Field validation for 'Email' failed on the 'email'
 Key: 'SignUpInfo.Age' Error:Field validation for 'Age' failed on the 'lte' tag
 ```
 
-示例只检查这些字段约束，没有执行完整的用户注册流程。
-
 ### 7.2 中文错误信息
 
 可以在启动服务前注册中文翻译，并使用 JSON 字段名作为响应中的错误键：
@@ -254,9 +252,9 @@ Key: 'SignUpInfo.Age' Error:Field validation for 'Age' failed on the 'lte' tag
 
 <<< @/go/codes/gin/error.json
 
-`eqfield` 的参数仍使用 Go 字段名，因此默认翻译中的 `Password` 对应结构体里的同名字段。示例是平铺结构体，错误键使用 `Field()`。有嵌套结构或切片时，需要设计完整的字段路径，避免同名字段相互覆盖。
+`eqfield` 的参数使用 Go 字段名，默认翻译中的 `Password` 对应结构体里的同名字段。示例是平铺结构体，错误键使用 `Field()`。有嵌套结构或切片时，使用完整的字段路径作为键，以区分同名字段。
 
-只有 `validator.ValidationErrors` 才能按字段翻译。JSON 语法错误、空正文和字段类型不匹配属于绑定错误，示例为它们返回独立的提示。初始化失败会停止启动，避免继续使用未初始化的翻译器。字段名称规则和翻译应在处理并发请求前注册完成。
+`validator.ValidationErrors` 按字段翻译。JSON 语法错误、空正文和字段类型不匹配属于绑定错误，示例为它们返回独立的提示。字段名称规则和翻译在启动服务前注册完成，翻译器初始化失败时停止启动。
 
 ## 8. 中间件
 
@@ -268,7 +266,7 @@ Key: 'SignUpInfo.Age' Error:Field validation for 'Age' failed on the 'lte' tag
 
 `c.Next()` 在当前中间件内部执行尚未执行的处理函数，返回后再执行计时和日志逻辑。多个中间件都使用这个结构时，前置逻辑按注册顺序执行，后置逻辑按相反顺序返回。
 
-上例的 `Logger` 和 `Recovery` 用于全局路由，`MyLogger` 仅用于 `/hello`。也可以在 `Group` 中配置中间件。`Use` 应放在相应路由注册之前，后续添加的中间件不会改变已注册路由的处理链。子组创建时也会复制已有的上级处理链。
+上例的 `Logger` 和 `Recovery` 用于全局路由，`MyLogger` 仅用于 `/hello`。也可以在 `Group` 中配置中间件。组中的中间件在路由注册时加入处理链，所以 `Use` 应放在相应路由注册之前。子组在创建时复制上级已有的处理链。
 
 ### 8.2 return 与 Abort
 
@@ -278,7 +276,7 @@ Key: 'SignUpInfo.Age' Error:Field validation for 'Age' failed on the 'lte' tag
 
 访问 `/continue` 时，最终处理函数仍执行并返回 200。访问 `/abort` 时，`AbortWithStatusJSON` 中止后续处理链并返回 403，最终处理函数不会执行。
 
-`Abort` 不会终止当前函数，也不会撤销已经执行的逻辑。调用后是否继续执行当前函数，由普通 Go 控制流决定。仅调用 `Abort()` 不会自动写入错误状态或正文，所以通常搭配 `AbortWithStatus` 或 `AbortWithStatusJSON`，并按需要 `return`。外层已经进入 `Next` 的中间件仍可能继续执行自己的后置逻辑。
+`Abort` 中止尚未执行的处理链，当前函数继续按 Go 控制流执行，需要结束当前函数时使用 `return`。`Abort()` 本身不写入响应状态或正文，返回错误响应时可使用 `AbortWithStatus` 或 `AbortWithStatusJSON`。已经进入 `Next` 的外层中间件仍可执行后置逻辑。
 
 ### 8.3 处理链源码
 
@@ -302,9 +300,9 @@ Key: 'SignUpInfo.Age' Error:Field validation for 'Age' failed on the 'lte' tag
 
 ### 8.4 goroutine 与请求上下文
 
-`*gin.Context` 会被复用，不应直接交给请求结束后仍在运行的 goroutine。优先在启动 goroutine 前取出需要的数据，确需传递 Gin 上下文时使用 `c.Copy()` 的副本，只用于读取，不能通过副本写入响应。
+`*gin.Context` 会在请求结束后复用。启动 goroutine 前提取需要的数据，或用 `c.Copy()` 获得供异步读取的副本。副本不能用于写入响应。
 
-`Copy` 不会让共享数据自动获得并发保护，也不会延长 `c.Request.Context()` 的生命周期。需要取消信号和请求截止时间的下游调用，应使用请求的标准库 Context。
+`Copy` 中共享对象的并发读写仍需自行同步。`c.Request.Context()` 仍随请求结束取消，需要取消信号和请求截止时间的下游调用应使用这个 Context。
 
 ## 9. 优雅退出
 
@@ -312,15 +310,15 @@ Key: 'SignUpInfo.Age' Error:Field validation for 'Age' failed on the 'lte' tag
 
 <<< @/go/codes/gin/quit.go
 
-示例使用 `signal.NotifyContext` 接收 `SIGINT` 和 `SIGTERM`，适用于这里的 Linux/Unix 信号场景。`SIGKILL` 不能捕获，也不能用于触发优雅退出。
+示例在 Linux/Unix 下使用 `signal.NotifyContext` 接收 `SIGINT` 和 `SIGTERM`。`SIGKILL` 无法捕获。
 
-可以先启动耗时请求，再在服务器终端按 Ctrl+C。服务器停止接受新连接，但该请求在 2 秒后仍可得到响应，随后程序退出。这里使用独立的 `context.Background()` 创建 10 秒关闭期限，不能直接把已经取消的信号上下文传给 `Shutdown`。
+可以先启动耗时请求，再在服务器终端按 Ctrl+C。示例在停止接受新连接后，等待这个耗时 2 秒的请求完成再退出。程序用 `context.Background()` 创建独立的 10 秒关闭期限，让关闭等待与信号 Context 的取消分开。
 
-需要区分几个行为：
+关闭过程如下：
 
-- `ListenAndServe` 在关闭时返回 `http.ErrServerClosed`，这属于正常退出。主 goroutine 仍应等待 `Shutdown` 返回，不能只因监听结束就退出程序。
-- `Shutdown` 的期限限制等待时间，不会在超时时自动强制关闭仍在处理的连接。示例在失败时调用 `Close`，并返回错误。
-- `Shutdown` 不会自动等待自行创建的后台任务，也不会关闭或等待已经被接管的连接，例如 WebSocket。应用需要另外通知这些任务或连接结束，并等待完成。
-- 正常请求不会仅因调用 `Shutdown` 就被强制中断。请求提前取消时，上例通过 `c.Request.Context().Done()` 停止模拟等待。
+- `ListenAndServe` 在关闭时返回 `http.ErrServerClosed`，这属于正常退出。主 goroutine 等待 `Shutdown` 返回后退出。
+- `Shutdown` 的期限限制等待时间，超时本身不会强制关闭正在处理的连接。示例在失败时调用 `Close`，并返回错误。
+- 自行创建的后台任务和被接管的连接，例如 WebSocket，由应用另行通知结束并等待完成。
+- 处理中的正常请求在 `Shutdown` 期间继续执行。请求提前取消时，上例通过 `c.Request.Context().Done()` 停止模拟等待。
 
 这些关闭行为由标准库的 [http.Server.Shutdown](https://github.com/golang/go/blob/go1.26.8/src/net/http/server.go) 定义。使用 `http.Server` 也便于按实际服务需要配置请求读取和响应写入超时。
