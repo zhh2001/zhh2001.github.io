@@ -773,7 +773,7 @@ Stream 在 Redis 5.0 加入，以递增 ID 保存字段与值组成的消息条�
   - `ACKED`：仅裁剪已被所有消费者组读取并确认的条目，可能无法达到数量或 ID 阈值
   - `*`：自动生成 ID，格式为 `毫秒时间戳-序号`。显式 ID 必须大于 Stream 已记录的最大 ID，且不能为 `0-0`
 
-`NOMKSTREAM`、`MINID`、`LIMIT` 在 Redis 6.2 加入，`毫秒时间戳-*` 形式在 7.0 加入，`KEEPREF`、`DELREF`、`ACKED` 在 8.2 加入。后者用于控制裁剪时如何处理消费者组引用。参见 [`XADD` 官方参考](https://redis.io/docs/latest/commands/xadd/)。
+`NOMKSTREAM`、`MINID`、`LIMIT` 在 Redis 6.2 加入，`毫秒时间戳-*` 形式在 7.0 加入，`KEEPREF`、`DELREF`、`ACKED` 在 8.2 加入。后者用于控制裁剪时如何处理消费者组引用。
 
 ```bash
 # 创建 users，并追加一条消息。下面的返回 ID 仅作示意
