@@ -1410,7 +1410,7 @@ Redis 7.4 加入字段级过期。Redis 8.2.x 中，为 listpack Hash 的字段�
 
 <<< @/db/codes/redis/poll.c
 
-返回值是有事件的数组元素数，`0` 表示超时，`-1` 表示错误。应用还要检查挂断和错误等事件。参见 [`poll(2)`](https://man7.org/linux/man-pages/man2/poll.2.html)。
+返回值是有事件的数组元素数，`0` 表示超时，`-1` 表示错误。应用还要检查挂断和错误等事件。
 
 #### epoll
 
@@ -1433,7 +1433,7 @@ Redis 8.2.x 的 epoll 后端未设置 `EPOLLET`，使用 LT。参见 [`epoll(7)`
 
 异步 IO 先提交操作，再通过完成通知或结果队列获取结果。就绪通知表示“现在可以尝试读写”，完成通知表示“提交的操作已经完成”，这是它与多路复用的区别。
 
-Linux 的 POSIX AIO、原生 AIO 和 io_uring 是不同接口，能力与实现也不同。glibc 的 POSIX AIO 通常使用用户态线程实现。Redis 8.2.x 的常规客户端事件循环在 Linux 上使用 epoll。参见 [`aio(7)`](https://man7.org/linux/man-pages/man7/aio.7.html)。
+Linux 的 POSIX AIO、原生 AIO 和 io_uring 是不同接口，能力与实现也不同。glibc 的 POSIX AIO 通常使用用户态线程实现。Redis 8.2.x 的常规客户端事件循环在 Linux 上使用 epoll。
 
 ### 21.7 Redis 的线程与进程
 
@@ -1529,7 +1529,7 @@ Redis 主动扫描过期索引，用时间预算限制单次工作量。Redis 8.
 - 估计过期占比超过 10% 时可继续扫描，直到扫描完成或时间预算耗尽。
 - FAST 周期在事件循环的 `beforeSleep` 中按条件触发，基础预算 1 ms，间隔至少为该预算的两倍。
 
-`active-expire-effort` 可调整扫描力度和预算。Hash 字段有独立的过期维护。参见 [Redis 8.2.3 的过期实现](https://github.com/redis/redis/blob/8.2.3/src/expire.c)。
+`active-expire-effort` 可调整扫描力度和预算。Hash 字段有独立的过期维护。
 
 ### 23.2 内存淘汰
 
