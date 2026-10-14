@@ -10,7 +10,7 @@ Mininet 是基于 Linux 的网络仿真（network emulation）工具。它通过
 
 本文按 [Mininet 2.3.0 源码](https://github.com/mininet/mininet/tree/d7f399d7a1200b602bd6a95ae88bae1009664d4a) 说明命令和 API。验证环境为 Ubuntu 24.04（WSL2）、Python 3.12、Mininet 2.3.0、Open vSwitch 3.3.9 和 iperf 2.1.9。其他发行版的软件包和默认配置可能不同，实验前应记录实际版本。
 
-所有节点共享宿主机内核及计算资源。节点数量和吞吐量受 CPU、内存、调度、交换机实现和链路配置影响，不能将 Mininet 的测量结果直接当作独立物理设备的性能。
+所有节点共享宿主机内核及计算资源。节点数量和吞吐量受 CPU、内存、调度、交换机实现和链路配置影响，测量结果反映该宿主机和实验配置下的软件网络性能。
 
 ## 安装
 
@@ -25,7 +25,7 @@ ovs-vsctl --version
 iperf --version
 ```
 
-不使用 systemd 的环境可以通过相应服务管理方式启动 OVS，例如 `sudo service openvswitch-switch start`。Mininet 的内置带宽测试调用 `iperf`（iperf 2），安装 `iperf3` 不能替代这个程序。
+不使用 systemd 的环境可以通过相应服务管理方式启动 OVS，例如 `sudo service openvswitch-switch start`。Mininet 的内置带宽测试使用 iperf 2，对应的可执行程序为 `iperf`。
 
 先使用不依赖外部控制器的独立桥模式检查安装：
 
@@ -49,11 +49,11 @@ PYTHON=python3 util/install.sh -h
 | `-a`     | 安装 all 函数列出的组件，包括 Mininet、OVS、OpenFlow 参考实现、Wireshark、POX 和测试工具 |
 | `-nfv`   | 安装 Mininet 及其依赖、OpenFlow 参考实现和 OVS                                           |
 | `-s DIR` | 指定依赖源码和构建目录，需放在执行安装的选项之前                                         |
-| `-n`     | 安装 Mininet 的依赖和核心文件，不是只重装 Python 包                                      |
+| `-n`     | 安装 Mininet 的依赖和核心文件                                                            |
 | `-w`     | 安装 Wireshark，并按其版本处理旧版 OpenFlow 解码器                                       |
 | `-h`     | 显示选项说明                                                                             |
 
-例如 `PYTHON=python3 util/install.sh -n` 会选择 Python 3。脚本包含发布时的依赖包名，较新发行版需要检查包名和 Python 包安装方式。本文实测采用发行版软件包，未将这份历史安装脚本作为 Ubuntu 24.04 的已验证安装流程。
+本文实测采用发行版软件包。上表说明 Mininet 2.3.0 安装脚本的选项，例如 `PYTHON=python3 util/install.sh -n` 会选择 Python 3。脚本使用发布时的依赖包名，在较新发行版中执行前需要检查包名和 Python 包安装方式。
 
 ## network namespace 与资源共享
 
@@ -69,7 +69,7 @@ mininet> sh readlink /proc/self/ns/net
 
 通常 h1 的命名空间标识与 s1、`sh` 不同。Mininet 使用的命名空间一般没有注册为 `ip netns` 的命名对象，因此 `ip netns list` 不一定能列出这些 Host。
 
-链路通常由 veth pair 构成。连接 Host 和 OVS 时，一端位于 Host 的网络命名空间，另一端作为 OVS 端口接入交换机。软件交换机可以采用 OpenFlow，也可以使用独立桥模式，Mininet 本身没有要求所有交换机都使用 OpenFlow。
+链路通常由 veth pair 构成。连接 Host 和 OVS 时，一端位于 Host 的网络命名空间，另一端作为 OVS 端口接入交换机。软件交换机可以采用 OpenFlow，也可以使用独立桥模式。
 
 默认 Host 只隔离网络命名空间，文件系统和 PID 空间仍共享。某个 Host 中执行 `pkill` 或 `killall`，可能影响其他 Host 或宿主机的进程。启动后台服务时应保存本次创建的 PID 或 `Popen` 对象，按对象清理。
 
@@ -100,7 +100,7 @@ mininet> exit
 
 `dump` 输出节点类型、接口/IP 和 shell PID 等信息，不直接列出网络命名空间标识。节点命令中的 h2 会被 CLI 替换为相应 IP，`pingall` 则测试主机间两个方向的可达性。
 
-正常退出会调用网络的停止流程。异常终止后的清理见文末，不必在每次正常退出后都执行全局清理。
+正常退出会调用网络的停止流程，异常终止后的残留清理见文末。
 
 ## 内建拓扑
 
@@ -147,7 +147,7 @@ sudo mn --switch ovsbr --controller none --topo tree,depth=2,fanout=3 --test pin
 | `--controller remote,ip=127.0.0.1,port=6653` | 指向已在该地址监听的外部 OpenFlow 控制器               |
 | `--listenport 6654` / `--nolistenport`       | 设置交换机的被动 OpenFlow 监听基准端口，或关闭这种监听 |
 
-`RemoteController` 只描述连接目标，不负责启动外部控制器。标准 OVS 的这个连接使用 OpenFlow，P4Runtime 控制器不能直接接到此处。使用 BMv2 等 P4 目标时，需要相应的 Mininet 交换机类及独立的 P4Runtime 连接配置。
+使用 `RemoteController` 时，先在目标地址启动外部 OpenFlow 控制器，再由 Mininet 配置 OVS 的连接。BMv2 等 P4 目标需要相应的 Mininet 交换机类，并单独配置 P4Runtime 连接。
 
 ### 链路与运行
 
@@ -177,9 +177,9 @@ TCLink 默认会在链路两端的接口出方向配置流量控制。`bw=10` �
 
 在 `h1 -> s1 -> h2` 路径上，报文经过两段链路，往返共经过四个受延迟控制的出接口，因此低负载下 RTT 约为 40 ms。本次环境实测平均值约为 40.5 ms，额外排队、调度和协议处理还会影响结果。
 
-`loss=1` 表示 netem 配置的随机丢包概率为 1%，不是整条路径固定丢失 1% 的报文。`jitter=2ms` 配置延迟变化幅度，Mininet 不会仅凭这个参数自动选择高斯分布。[TCIntf 的实现](https://github.com/mininet/mininet/blob/d7f399d7a1200b602bd6a95ae88bae1009664d4a/mininet/link.py#L292-L310) 将这些参数交给 Linux `tc netem`。
+`loss=1` 表示对应出接口上配置的随机丢包概率为 1%。`jitter=2ms` 配置延迟变化幅度，具体延迟分布由 netem 配置决定。[TCIntf 的实现](https://github.com/mininet/mininet/blob/d7f399d7a1200b602bd6a95ae88bae1009664d4a/mininet/link.py#L292-L310) 将这些参数交给 Linux `tc netem`。
 
-`bw` 是流量控制配置值，iperf 的应用有效吞吐量还会受到协议开销和宿主机资源影响。UDP 的 `-b` 是目标发送速率，也不等于接收端的成功接收速率，速率后缀的倍率应以所用 iperf 版本为准。
+`bw` 是流量控制配置值，iperf 的应用有效吞吐量还会受到协议开销和宿主机资源影响。UDP 的 `-b` 用于设置目标发送速率，实际接收速率以接收端统计为准。速率后缀的倍率应以所用 iperf 版本为准。
 
 ## 交换机后端
 
@@ -190,7 +190,7 @@ TCLink 默认会在链路两端的接口出方向配置流量控制。`bw=10` �
 | `user`         | 用户态 OpenFlow 参考实现                   | 需要 ofdatapath、ofprotocol 等旧版参考实现组件 |
 | `lxbr`         | LinuxBridge                                | 使用 Linux 二层桥，需要 bridge-utils 等依赖    |
 
-后端性能需要在相同拓扑、链路和负载条件下测量。没有统一的“OVS 接近 Gbps”或固定高、中、低等级，也不能将 Mininet 的 `user` 参考交换机与 OVS 的用户态数据路径视为同一种实现。
+后端性能需要在相同拓扑、链路和负载条件下测量。Mininet 的 `user` 后端使用 OpenFlow 参考实现，与 OVS 的用户态数据路径是不同实现。
 
 ## 外接 OpenFlow 控制器
 
@@ -212,7 +212,7 @@ mininet> sh ovs-ofctl -O OpenFlow13 dump-flows s1
 mininet> pingall
 ```
 
-OVSSwitch 默认采用 `fail_mode=secure`。按 [OVS 3.3.9 的定义](https://github.com/openvswitch/ovs/blob/1a3fefbcd0b0f70ced621b92e286fef3dffaac09/vswitchd/vswitch.xml#L1353-L1377)，控制器不可用时，它不会自行建立学习转发规则。已有规则仍按各自的超时和匹配条件处理报文，没有有效规则时无法连通。连接控制器和安装转发规则是两件事，CLI 中也没有用于启动远端控制器的 `controller` 命令。
+OVSSwitch 默认采用 `fail_mode=secure`。按 [OVS 3.3.9 的定义](https://github.com/openvswitch/ovs/blob/1a3fefbcd0b0f70ced621b92e286fef3dffaac09/vswitchd/vswitch.xml#L1353-L1377)，控制器不可用时，它不会自行建立学习转发规则。已有规则仍按各自的超时和匹配条件处理报文，没有有效规则时无法连通。诊断连通性时，应同时检查控制器连接和实际安装的转发规则。
 
 ## Mininet CLI 速查
 
@@ -232,9 +232,9 @@ OVSSwitch 默认采用 `fail_mode=secure`。按 [OVS 3.3.9 的定义](https://gi
 | `sh <shell 命令>`                 | 在 Mininet 进程的宿主网络环境中执行                     |
 | `exit` / Ctrl-D                   | 结束 CLI，随后由启动脚本停止网络                        |
 
-`iperfudp 10M` 不是有效的内置 CLI 写法，要同时给出两个节点。当前验证环境中，内置 UDP 测试正常，但内置 TCP 测试出现等待服务端统计输出的情况，不能将它一概归因于服务端未启动。需要检查 Mininet 与 iperf 版本的输出兼容性，也可以通过 `Node.popen()` 显式启动客户端和服务端。
+指定 UDP 速率时，`iperfudp` 还需要两个节点参数，例如 `iperfudp 10M h1 h2`。当前验证环境中，内置 UDP 测试正常，内置 TCP 测试出现等待服务端统计输出的情况。遇到这种情况，可检查 Mininet 与 iperf 版本的输出兼容性，或通过 `Node.popen()` 显式启动客户端和服务端。
 
-`dpctl` 会将相同参数传给所有交换机，没有 `dpctl add-flow s1 ...` 这种选择单台交换机的语法。针对指定 OVS 交换机，可以使用：
+`dpctl` 会将相同参数传给所有交换机。针对指定 OVS 交换机，可以使用：
 
 ```shell
 mininet> py s1.dpctl('dump-flows')
@@ -247,7 +247,7 @@ mininet> sh ovs-ofctl -O OpenFlow13 dump-flows s1
 mininet> sh ovs-ofctl -O OpenFlow13 add-flow s1 'priority=100,in_port=1,actions=output:2'
 ```
 
-这只增加一条从端口 1 到端口 2 的单向规则，不能据此认为其他方向或其他端口已经连通。控制器也可能随后修改这些规则。
+这条规则用于将端口 1 的入站报文转发到端口 2，其他方向和端口的转发由各自匹配的规则决定。控制器也可能随后更新流表。
 
 Python 命令可以直接引用当前网络和节点：
 
@@ -268,7 +268,7 @@ h1: IP 10.0.0.1，MAC 00:00:00:00:00:01
 h2: IP 10.0.0.2，MAC 00:00:00:00:00:02
 ```
 
-这有利于编写和检查匹配规则，但不是 P4 或 OpenFlow 的必需条件。通过 Python API 显式设置的 IP、MAC 可以覆盖默认值。
+按序分配的 MAC 有利于编写和检查匹配规则。通过 Python API 显式设置的 IP、MAC 可以覆盖默认值。
 
 ## Wireshark 抓取 OpenFlow
 
@@ -278,7 +278,7 @@ Wireshark 已内置 OpenFlow 解码器，新版本通常无需安装旧的外部
 wireshark
 ```
 
-控制器与 OVS 都在本机时通常选择 `lo`，远端控制器则应选择连接实际经过的接口。显示过滤器可以使用 `tcp.port == 6653`、`openflow_v1`（OpenFlow 1.0）或 `openflow_v4`（OpenFlow 1.3）。OpenFlow 1.3 的过滤器名称可对照 [Wireshark v4.2.2 的解码器定义](https://github.com/wireshark/wireshark/blob/40459284278611128aac5cef35a563218933f8da/epan/dissectors/packet-openflow_v4.c)。`of` 不是这里使用的通用 OpenFlow 过滤器名称。非标准端口可能需要手动 Decode As，TLS 连接则不能直接按明文 OpenFlow 消息解析。
+控制器与 OVS 都在本机时通常选择 `lo`，远端控制器则应选择连接实际经过的接口。显示过滤器可以使用 `tcp.port == 6653`、`openflow_v1`（OpenFlow 1.0）或 `openflow_v4`（OpenFlow 1.3）。OpenFlow 1.3 的过滤器名称可对照 [Wireshark v4.2.2 的解码器定义](https://github.com/wireshark/wireshark/blob/40459284278611128aac5cef35a563218933f8da/epan/dissectors/packet-openflow_v4.c)。非标准端口可能需要手动 Decode As，TLS 连接则不能直接按明文 OpenFlow 消息解析。
 
 ## 简单 Web 服务
 
@@ -292,7 +292,7 @@ mininet> px web.terminate()
 mininet> py web.wait(timeout=3)
 ```
 
-HTTP 服务使用共享文件系统中的当前工作目录。停止时只操作 `web` 对应的进程，比按 `http.server` 名称全局查杀更明确。
+HTTP 服务使用共享文件系统中的当前工作目录。停止时通过 `web` 终止对应进程，并等待其退出。
 
 ## Python API 骨架
 
@@ -327,11 +327,11 @@ if __name__ == '__main__':
         net.stop()
 ```
 
-这里明确导入了 `MyTopo`，并在退出或运行异常时调用 `net.stop()`。如果切换为 OVSSwitch 和 RemoteController，还需要配置控制器地址、协议版本及实际转发逻辑。
+程序通过 `finally` 在结束 CLI 或发生异常时调用 `net.stop()`。使用 OVSSwitch 和 RemoteController 时，需要配置控制器地址、协议版本及实际转发逻辑。
 
 ## UDP 多流实验与自定义 CLI
 
-下面的三个文件采用 Mininet 和 CLI 子类，不需要修改上游源码或重装 Mininet。每台主机向另一台主机发送一条 UDP 流，随机种子控制流向选择。运行前检查主机数量，每条流分配独立端口，避免多个客户端选中同一个服务端时发生监听冲突。
+下面的三个文件通过 Mininet 和 CLI 子类实现 UDP 多流测试。每台主机向另一台主机发送一条 UDP 流，随机种子控制流向选择。运行前检查主机数量，每条流分配独立端口，避免多个客户端选中同一个服务端时发生监听冲突。
 
 ### 流的启动与清理
 
@@ -341,7 +341,7 @@ if __name__ == '__main__':
 
 ### 自定义 CLI
 
-`cli.py` 添加 `iperfmulti BW [SECONDS [SEED]]` 命令。Python 的 `cmd` 机制会识别 `do_iperfmulti`，交互补全前缀是 `iperfm`，不是带连字符的 `iperf-m`。
+`cli.py` 添加 `iperfmulti BW [SECONDS [SEED]]` 命令。Python 的 `cmd` 机制会识别 `do_iperfmulti`，交互补全前缀是 `iperfm`。
 
 <<< @/sdn/codes/mn/cli.py
 
@@ -366,21 +366,21 @@ mininet> iperfmulti 1M 5 0
 mininet> exit
 ```
 
-这项扩展属于示例脚本，系统自带 `mn --test iperfmulti` 不会因此获得同名测试。若要集成到 `mn`，需按其测试注册机制另行配置。
+批量测试由 `net.py` 的 `--test` 选项触发，交互命令 `iperfmulti` 由 `UdpCLI` 提供。集成到 `mn --test` 时，需要按 `mn` 的测试注册机制配置。
 
-每次运行会打印 `/tmp/mn-udp/run-*` 日志目录。`flows.json` 记录流向、端口、目标速率和时长，`flow-N-client.log`、`flow-N-server.log` 分别保存两端输出。脚本以 root 运行时，读取该目录通常也需要 sudo。固定种子可以复现流向，不能保证调度顺序和性能数值完全相同。
+每次运行会打印 `/tmp/mn-udp/run-*` 日志目录。`flows.json` 记录流向、端口、目标速率和时长，`flow-N-client.log`、`flow-N-server.log` 分别保存两端输出。脚本以 root 运行时，读取该目录通常也需要 sudo。随机种子用于复现流向，调度顺序和性能数值还受运行时的宿主机负载等因素影响。
 
 ## 常见问题与清理
 
-| 现象                             | 检查方向                                                                                                 |
-| -------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| 找不到默认控制器                 | 确认是否需要 OpenFlow 控制器，或显式使用 ovsbr 与 controller none。ovsc 也需要对应程序，不能保证自动可用 |
-| `RTNETLINK answers: File exists` | 检查重名接口和未结束的实验，确认残留后再清理                                                             |
-| `pingall` 出现 X                 | 检查地址、ARP、接口状态、控制器连接、流表和链路丢包配置                                                  |
-| 内置 iperf 等待不返回            | 检查连通性、进程、端口和版本输出兼容性，必要时改用显式进程管理                                           |
-| Host 中看不到预期接口            | 用 nodes、net、dump 和 ip link 检查命名及创建结果，不能仅凭这一现象判断 --innamespace 异常               |
-| OVS 数据库连接失败               | 检查 ovsdb-server、ovs-vswitchd 和 openvswitch-switch 服务                                               |
-| xterm/Wireshark 无法显示         | 检查图形环境及 DISPLAY，远程 SSH 还需相应显示转发配置                                                    |
+| 现象                             | 检查方向                                                          |
+| -------------------------------- | ----------------------------------------------------------------- |
+| 找不到默认控制器                 | 检查本地控制器程序。独立桥实验可显式使用 ovsbr 与 controller none |
+| `RTNETLINK answers: File exists` | 检查重名接口和未结束的实验，确认残留后再清理                      |
+| `pingall` 出现 X                 | 检查地址、ARP、接口状态、控制器连接、流表和链路丢包配置           |
+| 内置 iperf 等待不返回            | 检查连通性、进程、端口和版本输出兼容性，必要时改用显式进程管理    |
+| Host 中看不到预期接口            | 用 nodes、net、dump 和节点内的 ip link 检查接口命名与创建结果     |
+| OVS 数据库连接失败               | 检查 ovsdb-server、ovs-vswitchd 和 openvswitch-switch 服务        |
+| xterm/Wireshark 无法显示         | 检查图形环境及 DISPLAY，远程 SSH 还需相应显示转发配置             |
 
 异常退出留下资源时，可以使用：
 
@@ -390,4 +390,4 @@ sudo mn -c
 
 [Mininet 2.3.0 的 cleanup 实现](https://github.com/mininet/mininet/blob/d7f399d7a1200b602bd6a95ae88bae1009664d4a/mininet/clean.py) 会查杀多类进程、移除 OVS 桥、删除匹配命名规则的接口及部分临时文件，范围不限于最近一次实验。共享环境中要先检查其他实验和 OVS 桥，不能把这个命令当作每次退出后的固定步骤。
 
-正常实验应先停止自己创建的应用，再调用 `net.stop()`。配置错误、控制器策略、内核能力和链路丢包也可能导致不连通，清理残留只处理其中一类原因。
+正常实验应先停止自己创建的应用，再调用 `net.stop()`。
