@@ -18,9 +18,9 @@ Eino 是 CloudWeGo 的 Go 大模型应用开发框架。它把模型、提示模
 
 其中 Ark ChatModel 使用 v0.1.71，Ark Embedding 使用 v0.1.2，CozeLoop 回调扩展使用 v0.3.1。Redis 索引、检索、Markdown 分割和 HTTP 工具模块使用同一个 Go 伪版本号，它们尚未提供可用于本例的语义版本标签。
 
-每个包含 `package main` 的示例都是独立程序。例如，将生成示例保存为 `cmd/generate/main.go`，然后在模块根目录执行 `go run ./cmd/generate`。不同示例不能全部放进同一个包，否则 `main` 等名称会重复。接口和结构体摘录用于说明框架 API，其中的 `Option` 等类型属于相应组件包，不需要在业务代码里重新定义。
+将包含 `package main` 的示例分别保存到独立目录中。例如，将生成示例保存为 `cmd/generate/main.go`，然后在模块根目录执行 `go run ./cmd/generate`。接口和结构体摘录用于说明框架 API，其中的 `Option` 等类型属于相应组件包。
 
-模型相关示例从进程环境读取配置，不会自动加载 `.env`。运行前设置相应变量：
+模型相关示例通过 `os.Getenv` 从进程环境读取配置。运行前设置相应变量：
 
 | 变量                | 含义                                                                                                  |
 | ------------------- | ----------------------------------------------------------------------------------------------------- |
@@ -32,27 +32,27 @@ Eino 是 CloudWeGo 的 Go 大模型应用开发框架。它把模型、提示模
 | `REDIS_ADDR`        | Redis 的 `host:port`，例如 `127.0.0.1:6379`                                                           |
 | `REDIS_PASSWORD`    | 可选，Redis 密码                                                                                      |
 
-`MODEL` 和 `EMBEDDER` 是这里约定的环境变量名，不是 Eino 自动识别的配置。应填写账号中可用的模型或接入点 ID，并选择该模型支持的接口类型。模板、文档分割、自定义工具和不含模型的编排示例无需 Ark 凭据。
+`MODEL` 和 `EMBEDDER` 由示例代码读取，并作为模型或接入点 ID 传入组件。填写账号中可用的 ID，并选择模型支持的接口类型。模板、文档分割、自定义工具和不含模型的编排示例无需 Ark 凭据。
 
 ## 2. ChatModel 组件
 
 ### 2.1 接口
 
-ChatModel 抽象模型调用。`BaseChatModel` 是 `BaseModel[*schema.Message]` 的类型别名，包含 `Generate` 和 `Stream`。`WithTools` 属于扩展接口 `ToolCallingChatModel`，并非每个基础模型实现都支持它。
+ChatModel 抽象模型调用。`BaseChatModel` 是 `BaseModel[*schema.Message]` 的类型别名，包含 `Generate` 和 `Stream`。`WithTools` 由扩展接口 `ToolCallingChatModel` 提供，绑定工具时使用实现该接口的模型。
 
 <<< @/go/codes/eino/iBaseChatModel.go
 
 `Generate` 返回一条完整响应消息。`Stream` 返回流读取器，后续响应或错误从 `Recv` 获取。两者都接收消息列表、上下文和模型选项。上下文用于取消、超时和传递回调信息，选项的支持情况还取决于模型实现。
 
-接口可以容纳多模态消息，但模型和服务适配器是否支持图片、音频等输入输出，需要分别确认。
+接口可以容纳多模态消息，支持的输入输出形式由具体模型和服务适配器决定。
 
 ### 2.2 `schema.Message`
 
 <<< @/go/codes/eino/sMessage.go
 
-`Role` 区分系统指令、用户输入、模型回复和工具结果。用户问题应放在 `user` 消息中，不应因经过模板处理就改成 `system` 消息。`ToolCalls` 描述模型请求的工具调用，工具结果通过 `ToolCallID` 与对应调用关联。
+`Role` 的 `system`、`user`、`assistant` 和 `tool` 分别表示系统指令、用户输入、模型回复和工具结果。`ToolCalls` 描述模型请求的工具调用，工具结果通过 `ToolCallID` 与对应调用关联。
 
-`MultiContent` 已弃用。用户的多模态输入使用 `UserInputMultiContent`，模型的多模态输出使用 `AssistantGenMultiContent`。`ReasoningContent` 只在服务实际返回相应内容时有值，不能据此认为可以获得模型完整的内部推理过程。
+`MultiContent` 已弃用。用户的多模态输入使用 `UserInputMultiContent`，模型的多模态输出使用 `AssistantGenMultiContent`。`ReasoningContent` 保存模型服务返回的推理相关内容。
 
 ### 2.3 完整生成
 
@@ -64,9 +64,9 @@ ChatModel 抽象模型调用。`BaseChatModel` 是 `BaseModel[*schema.Message]` 
 
 <<< @/go/codes/eino/eStream.go
 
-流块通常是增量内容，不是截至当前时刻的完整答案，也不保证按词或句子划分。只打印 `Content` 适合展示文本，工具调用参数、推理内容和多模态结果还可能位于其他字段中。
+流块通常承载增量内容，划分边界由模型服务和适配器决定。示例打印 `Content` 展示文本，工具调用参数、推理内容和多模态结果需要读取对应的消息字段。
 
-`Recv` 返回 `io.EOF` 表示流正常结束，其他错误应返回给调用方。无论是否读到末尾，都要关闭读取器。需要合并消息时使用 `schema.ConcatMessages`，不能只拼接文本就丢掉其他字段。一个读取器只有一个消费进度，多处消费应先复制流，并分别关闭各自的读取器。
+`Recv` 返回 `io.EOF` 表示流正常结束，其他错误返回给调用方。读取器使用 `defer reader.Close()` 在读取结束或提前退出时关闭。需要合并消息时使用 `schema.ConcatMessages`，将文本、工具调用等字段一并合并。每个读取器由单个消费者读取，多处消费时先用 `Copy` 创建独立的读取器，再分别读取和关闭。
 
 ### 2.5 绑定工具
 
@@ -74,7 +74,7 @@ ChatModel 抽象模型调用。`BaseChatModel` 是 `BaseModel[*schema.Message]` 
 
 <<< @/go/codes/eino/eWithTools.go
 
-`WithTools` 不修改原实例。绑定工具后，模型可能返回 `ToolCalls`，也可能直接回答。模型生成调用名称和参数，并不执行 Go 函数，执行过程由应用代码或 ToolsNode 完成。
+`WithTools` 返回绑定工具的新实例，原实例保持原有配置。绑定后，模型可返回 `ToolCalls` 或直接回答。工具调用中的名称和参数由模型生成，工具函数由应用代码或 ToolsNode 执行。
 
 ## 3. ChatTemplate 组件
 
@@ -82,7 +82,7 @@ ChatModel 抽象模型调用。`BaseChatModel` 是 `BaseModel[*schema.Message]` 
 
 <<< @/go/codes/eino/iChatTemplate.go
 
-`prompt.FromMessages` 把实现 `schema.MessagesTemplate` 的对象组合为模板。`*schema.Message` 实现了相应格式化方法，消息构造函数返回的指针可以直接使用。`Format` 接收变量映射，输出 `[]*schema.Message`，它本身不会调用模型。
+`prompt.FromMessages` 把实现 `schema.MessagesTemplate` 的对象组合为模板。`*schema.Message` 实现了相应格式化方法，消息构造函数返回的指针可以直接使用。`Format` 接收变量映射，输出 `[]*schema.Message`。
 
 `SystemMessage`、`UserMessage`、`AssistantMessage` 和 `ToolMessage` 用于构造不同角色的消息。`AssistantMessage` 还接收工具调用列表，`ToolMessage` 需要对应的工具调用 ID。
 
@@ -92,20 +92,20 @@ ChatModel 抽象模型调用。`BaseChatModel` 是 `BaseModel[*schema.Message]` 
 
 这里使用 `schema.FString`，`{role}` 和 `{topic}` 从变量映射取值。需要输出字面量花括号时，将对应的花括号写两次。缺少必需的格式化变量会返回错误。
 
-`MessagesPlaceholder("history", true)` 把历史消息列表插入模板，第二个参数表示该变量可以缺省。传入历史时，值应为 `[]*schema.Message`。模板不会自动保存历史，需要由应用准备并传入。
+`MessagesPlaceholder("history", true)` 把历史消息列表插入模板，第二个参数表示该变量可以缺省。传入历史时，值应为 `[]*schema.Message`。历史消息由应用保存并传入模板。
 
 ## 4. RAG
 
-RAG（Retrieval-Augmented Generation，检索增强生成）在生成前检索外部资料，再把相关片段作为上下文交给模型。它可以补充训练知识之外的信息，也有助于减少缺乏依据的回答，但不能保证消除幻觉。结果仍取决于资料质量、检索覆盖和模型是否正确使用资料。
+RAG（Retrieval-Augmented Generation，检索增强生成）在生成前检索外部资料，再把相关片段作为上下文交给模型。检索到的资料可以补充训练知识之外的信息，为回答提供依据。回答质量取决于资料质量、检索覆盖和模型对上下文的使用。
 
 典型流程分为两个阶段：
 
 1. 建立索引。收集资料，用 Document Transformer 清理或切分文档。采用向量检索时，用 Embedding 生成向量，再由 Indexer 写入后端。
 2. 检索与生成。Retriever 根据用户问题取回文档，应用整理来源和上下文，通过 ChatTemplate 或消息列表交给 ChatModel。
 
-RAG 不要求必须使用向量数据库，也可以采用关键词检索、稀疏检索或混合检索。向量只是其中一种方式。检索结果是否及时更新，取决于资料和索引的更新流程，并不天然具有实时性。
+RAG 可采用向量检索、关键词检索、稀疏检索或混合检索。检索资料的时效性由资料和索引的更新流程决定。
 
-下面的 Redis 示例演示索引和检索两个步骤，还没有把检索结果传给模型生成最终答案。另有 [RAG_Learning 练习项目](https://github.com/zhh2001/RAG_Learning)，使用时应核对其自身依赖。
+下面的 Redis 示例演示索引和检索两个步骤。相关练习还包括 [RAG_Learning 练习项目](https://github.com/zhh2001/RAG_Learning)。
 
 ## 5. Embedding 组件
 
@@ -121,7 +121,7 @@ RAG 不要求必须使用向量数据库，也可以采用关键词检索、稀�
 
 文本索引和查询应使用同一个嵌入模型，并保持接口类型、维度及其他相关配置一致。两个模型即使输出维度相同，向量空间也不一定兼容。更换模型后通常需要重新生成文档向量。
 
-语义接近的文本在合适的向量空间中通常较接近，但具体排序还取决于余弦距离、内积或欧氏距离等度量，不能只凭向量维度判断检索质量。
+语义接近的文本在合适的向量空间中通常较接近，检索排序还取决于余弦距离、内积或欧氏距离等度量。
 
 ## 6. Indexer 组件
 
@@ -129,11 +129,11 @@ RAG 不要求必须使用向量数据库，也可以采用关键词检索、稀�
 
 <<< @/go/codes/eino/iIndexer.go
 
-`Store` 接收文档并返回写入后的 ID。Indexer 负责与索引后端交互，并不局限于向量数据库。是否生成向量、如何映射字段以及写入后的检索可见性，由具体实现决定。
+`Store` 接收文档并返回写入后的 ID。Indexer 负责与索引后端交互，向量生成、字段映射和写入后的检索可见性由具体实现决定。
 
 ### 6.2 Redis 示例的条件
 
-本例需要支持 `FT.CREATE` 和 `FT.SEARCH` 的 Redis Search/Query Engine。可使用包含这些功能的 Redis 8.2.x 发行包，并确认服务已加载查询引擎。只有普通数据命令可用的 Redis 服务不足以运行这个示例。
+本例需要支持 `FT.CREATE` 和 `FT.SEARCH` 的 Redis Search/Query Engine。可使用包含这些功能的 Redis 8.2.x 发行包，并确认服务已加载查询引擎。
 
 Redis 扩展把嵌入结果转换为 FLOAT32 二进制向量，因此索引的向量字段也使用 `FLOAT32`。以下配置必须对应：
 
@@ -150,9 +150,9 @@ Redis 扩展把嵌入结果转换为 FLOAT32 二进制向量，因此索引的�
 
 <<< @/go/codes/eino/eIndexer.go
 
-程序先生成一个探测向量，用其长度创建索引，再写入三条文档。索引已经存在时，创建步骤会返回错误。复用已有索引前，应核对字段、维度、数据类型和距离度量，不能仅凭索引同名就判断配置相同。
+程序先生成一个探测向量，用其长度创建索引，再写入三条文档。索引已经存在时，创建步骤会返回错误。复用已有索引时，字段、维度、数据类型和距离度量应与本例配置一致。
 
-这里的 `Store` 返回文档 ID，例如 `p4`，实际 Hash 键为 `eino:note:p4`。同一前缀下重复写入相同 ID 会更新对应 Hash 中的字段。示例使用 `Protocol: 2` 让查询结果按 RESP2 解析，不需要同时启用 `UnstableResp3`。
+这里的 `Store` 返回文档 ID，例如 `p4`，实际 Hash 键为 `eino:note:p4`。同一前缀下重复写入相同 ID 会更新对应 Hash 中的字段。示例使用 `Protocol: 2` 让查询结果按 RESP2 解析。
 
 ## 7. Retriever 组件
 
@@ -164,7 +164,7 @@ Redis 扩展把嵌入结果转换为 FLOAT32 二进制向量，因此索引的�
 
 <<< @/go/codes/eino/sRetrieverOptions.go
 
-`TopK` 控制返回数量。`Index`、`SubIndex`、`DSLInfo` 等选项的含义和支持情况由后端实现决定。`ScoreThreshold` 也不是所有检索器通用的“相似度下限”，不能把某个后端的数值解释直接套到另一个后端。
+`TopK` 控制返回数量。`Index`、`SubIndex`、`DSLInfo` 和 `ScoreThreshold` 的含义与支持情况由具体检索器实现决定。
 
 ### 7.2 Redis 检索
 
@@ -172,9 +172,9 @@ Redis 扩展把嵌入结果转换为 FLOAT32 二进制向量，因此索引的�
 
 <<< @/go/codes/eino/eRetriever.go
 
-示例用 KNN 查询返回最多两条文档，并只取回 `content` 字段。该扩展返回的文档 ID 是实际 Redis 键，包含 `eino:note:` 前缀。检索顺序取决于模型的向量响应和距离，正文不固定具体命中的文档。
+示例用 KNN 查询返回最多两条文档，并只取回 `content` 字段。该扩展返回的文档 ID 是实际 Redis 键，包含 `eino:note:` 前缀。结果按向量距离排序，具体顺序取决于嵌入模型的响应。
 
-本文固定的 Redis 扩展使用 `RetrieverConfig.DistanceThreshold` 配置向量范围查询，距离越小表示越接近。它不会把公共 `WithScoreThreshold` 选项作为这个配置的替代。需要限制距离时，应配置 `DistanceThreshold`，而不是按“分数必须大于 0.5”理解阈值。
+本文固定的 Redis 扩展通过 `RetrieverConfig.DistanceThreshold` 设置距离阈值，配置后使用向量范围查询，距离越小表示越接近。公共 `WithScoreThreshold` 选项不改变查询使用的距离阈值。
 
 ## 8. Document Transformer 组件
 
@@ -182,7 +182,7 @@ Redis 扩展把嵌入结果转换为 FLOAT32 二进制向量，因此索引的�
 
 <<< @/go/codes/eino/iTransformer.go
 
-Transformer 接收并返回文档列表，用于切分、清理、过滤或其他转换。它不等同于嵌入模型，也不保证每个实现都会生成向量。
+Transformer 接收并返回文档列表，用于切分、清理、过滤或其他转换。
 
 ### 8.2 按 Markdown 标题切分
 
@@ -190,13 +190,13 @@ Transformer 接收并返回文档列表，用于切分、清理、过滤或其�
 
 `Headers` 把标题级别映射为元数据字段。`TrimHeaders: true` 从输出正文中移除匹配的标题行，标题仍可保存在 `h1`、`h2`、`h3` 元数据中。
 
-标题切分并不保证每块都小于模型的 token 上限，较长章节还需要进一步按长度切分。分块后写入索引时，也需要为每个块分配合适的文档 ID。
+较长章节需要按所用模型的 token 上限进一步切分。分块后写入索引时，为每个块分配合适的文档 ID。
 
 ## 9. Tool 与 ToolsNode
 
 ### 9.1 工具接口
 
-Tool 描述一项可执行能力。ToolsNode 是编排中的执行节点，它根据 assistant 消息里的工具名称和参数调用已注册的工具，再生成工具结果消息，两者职责不同。
+Tool 描述一项可执行能力。ToolsNode 是编排中的执行节点，它根据 assistant 消息里的工具名称和参数调用已注册的工具，再生成工具结果消息。
 
 <<< @/go/codes/eino/iTool.go
 
@@ -206,13 +206,13 @@ Tool 描述一项可执行能力。ToolsNode 是编排中的执行节点，它�
 
 <<< @/go/codes/eino/sToolInfo.go
 
-参数可通过 `NewParamsOneOfByParams` 或 `NewParamsOneOfByJSONSchema` 描述。参数声明用于指导模型生成调用，不应代替工具自身的输入校验。
+参数可通过 `NewParamsOneOfByParams` 或 `NewParamsOneOfByJSONSchema` 描述。参数声明用于指导模型生成调用，工具实现负责输入校验。
 
 ### 9.3 HTTP GET 工具
 
 <<< @/go/codes/eino/eTool.go
 
-示例直接调用工具获取本站的 `sitemap.xml`，不经过模型。工具使用 HTTP 客户端超时，调用本身也带上下文超时。
+示例通过 `InvokableRun` 直接调用 HTTP GET 工具，获取本站的 `sitemap.xml`。工具使用 HTTP 客户端超时，调用本身也带上下文超时。
 
 ### 9.4 创建本地工具
 
@@ -226,7 +226,7 @@ Tool 描述一项可执行能力。ToolsNode 是编排中的执行节点，它�
 
 <<< @/go/codes/eino/eToolsNode.go
 
-这里手工构造一条工具调用消息，因此无需模型服务。返回的工具消息通过 `ToolCallID` 关联到 `call_1`。实际对话中，还要把 assistant 的工具调用消息和 tool 结果追加到消息历史，再交给模型继续回答。ToolsNode 本身不会完成这一整轮对话。
+这里手工构造一条工具调用消息，因此无需模型服务。返回的工具消息通过 `ToolCallID` 关联到 `call_1`。实际对话中，将 assistant 的工具调用消息和 tool 结果追加到消息历史，再交给模型继续回答。
 
 ## 10. 编排
 
@@ -254,7 +254,7 @@ START → classify → cat   → END
 
 <<< @/go/codes/eino/eGraph.go
 
-输入 `1`、`2` 和其他值分别选择三个分支，示例依次输出 `喵喵喵`、`汪汪汪` 和 `你好`。分支由普通 Go 逻辑决定，不需要模型判断。
+输入 `1`、`2` 和其他值分别选择三个分支，示例依次输出 `喵喵喵`、`汪汪汪` 和 `你好`。分支由普通 Go 逻辑决定。
 
 ### 10.3 Graph 中的模型节点
 
@@ -264,15 +264,15 @@ START → classify → cat   → END
 
 ### 10.4 调用内状态
 
-`WithGenLocalState` 为每次图调用创建状态。它在本次调用的节点间共享，不会自动变成跨请求的会话历史或持久化数据。状态生成函数应创建新对象，重复返回同一个共享指针会破坏请求隔离。
+`WithGenLocalState` 为每次图调用创建状态，供本次调用的节点共享。状态生成函数每次创建新对象，以保持调用间隔离。
 
-`StatePreHandler` 和 `StatePostHandler` 在节点前后读取或修改状态，也可以改变节点的输入输出。流式场景有对应的 `StreamStatePreHandler` 和 `StreamStatePostHandler`。在流上使用非流式处理器可能触发聚合，不能据此保证增量输出不受影响。
+`StatePreHandler` 和 `StatePostHandler` 在节点前后读取或修改状态，也可以改变节点的输入输出。流式场景有对应的 `StreamStatePreHandler` 和 `StreamStatePostHandler`。把非流式处理器用于流输入或输出时，框架会先聚合流块再调用处理器。
 
 节点内部访问状态可以使用 `compose.ProcessState`，公开签名如下：
 
 <<< @/go/codes/eino/fProcessState.go
 
-框架在状态处理器和 `ProcessState` 的回调执行期间加锁。不要把状态指针带到回调外直接修改，也不要在持有同一状态锁的回调里再次调用 `ProcessState`，否则可能产生数据竞争或死锁。流式处理器返回后，另起 goroutine 的访问也不自动受这把锁保护。
+框架在状态处理器和 `ProcessState` 的回调执行期间加锁，状态读写应在这些回调内完成。状态锁不支持重入，在持锁回调中用 `ProcessState` 再次访问同一状态会死锁。回调外的异步状态访问需要自行同步。
 
 <<< @/go/codes/eino/eGraphWithState.go
 
@@ -284,7 +284,7 @@ START → classify → cat   → END
 
 <<< @/go/codes/eino/sRunInfo.go
 
-回调输入输出按组件区分，下面的类型定义不代表它们具有统一的结构：
+回调输入输出的具体类型由各组件定义：
 
 <<< @/go/codes/eino/tCallbackInOut.go
 
@@ -292,11 +292,11 @@ START → classify → cat   → END
 
 示例记录开始、结束和错误，并通过 `compose.WithCallbacks` 应用于本次调用。需要读取特定组件的数据时，应使用该组件的转换函数，例如 `model.ConvCallbackInput`，并检查转换结果。
 
-回调不应修改共享的输入输出对象。多个处理器之间没有可依赖的执行顺序，并发节点的日志也可能交错。流式回调拿到的是流副本，使用后同样需要关闭，不能把副本遗留到调用结束以后。
+回调应按只读方式使用共享的输入输出对象。多个处理器的执行顺序不作保证，并发节点的日志可能交错。流式回调读取的是流副本，在读取结束或提前退出时关闭。
 
 ### 10.6 嵌套图
 
-`AddGraphNode` 可以把图或 Chain 直接加入外层图，外层 `Compile` 会处理内部编排，不要求先把内层图编译后再包装为 Lambda。嵌套前后仍需保持输入输出类型匹配。
+`AddGraphNode` 可以把图或 Chain 直接加入外层图，由外层 `Compile` 处理内部编排。嵌套前后仍需保持输入输出类型匹配。
 
 <<< @/go/codes/eino/eGraphWithGraph.go
 
@@ -308,6 +308,6 @@ CozeLoop 回调扩展把 Eino 的执行信息转换为 trace。运行示例前�
 
 <<< @/go/codes/eino/eCozeLoop.go
 
-`AppendGlobalHandlers` 影响整个进程，应在初始化阶段注册一次，不要在每次请求时重复追加，也不要与正在执行的调用并发修改全局回调列表。只想给某次调用添加追踪时，可以使用 `compose.WithCallbacks(handler)`。
+`AppendGlobalHandlers` 为整个进程追加回调，在初始化阶段注册一次，并在注册完成后再执行图调用。单次调用的追踪使用 `compose.WithCallbacks(handler)`。
 
-客户端关闭时需要留出上报时间。示例另建关闭上下文，防止使用已经取消的业务上下文。程序得到 `EINO` 只表示本地编排成功，trace 是否出现在平台上还取决于凭据、网络和服务端接收情况。
+示例通过独立的关闭上下文为 trace 上报留出时间。运行后在对应的 CozeLoop 工作空间确认 trace。
