@@ -1332,7 +1332,7 @@ undo 保存撤销聚簇记录修改和重建旧版本所需的信息，通常归
 - 事务回滚时按 undo log 逆推回去。
 - MVCC 读历史版本时沿着回滚指针往老版本走。
 
-undo log 由回滚段中的 undo slot 管理，槽数与页大小有关。INSERT undo 在提交后不再需要，UPDATE undo 还用于一致性读，必须等历史版本不再被需要时才能 purge。参见 [undo log](https://dev.mysql.com/doc/refman/8.4/en/innodb-undo-logs.html) 和[多版本实现](https://dev.mysql.com/doc/refman/8.4/en/innodb-multi-versioning.html)。
+undo log 由回滚段中的 undo slot 管理，槽数与页大小有关。INSERT undo 在提交后不再需要，UPDATE undo 还用于一致性读，必须等历史版本不再被需要时才能 purge。
 
 ### 11.4 MVCC
 
@@ -1450,7 +1450,7 @@ MySQL 数据库安装完成后，自带了以下四个数据库，具体作用�
 
 <<< @/db/codes/mysql/mysqlbinlog.sh
 
-检查 ROW 事件时使用 `--base64-output=DECODE-ROWS -vv` 可显示带注释的伪 SQL，便于阅读。实际回放需要工具默认生成的可执行输出，并保留完整事务及所需日志文件。参见 [mysqlbinlog](https://dev.mysql.com/doc/refman/8.4/en/mysqlbinlog.html) 和[行事件显示](https://dev.mysql.com/doc/refman/8.4/en/mysqlbinlog-row-events.html)。
+检查 ROW 事件时使用 `--base64-output=DECODE-ROWS -vv` 可显示带注释的伪 SQL，便于阅读。实际回放需要工具默认生成的可执行输出，并保留完整事务及所需日志文件。
 
 #### 12.2.4 `mysqlshow`
 
