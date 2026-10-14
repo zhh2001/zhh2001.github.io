@@ -12,7 +12,7 @@ gRPC 是一套基于服务定义生成客户端与服务端代码的 RPC 框架�
 
 ## 1. RPC
 
-RPC（Remote Procedure Call，远程过程调用）是一种通信模型，不是某一个固定协议。调用方使用本地接口发起请求，框架负责消息编码、网络传输和结果返回。网络故障、超时和重复执行等问题并不会因此消失，业务代码仍要处理这些边界。
+RPC（Remote Procedure Call，远程过程调用）是一种通信模型。调用方使用本地接口发起请求，框架负责消息编码、网络传输和结果返回。业务代码需要处理远程调用中的网络故障、超时和重复执行等情况。
 
 ### 1.1 基本原理
 
@@ -81,7 +81,7 @@ go get google.golang.org/grpc@v1.84.0 google.golang.org/protobuf@v1.36.11
 
 <<< @/go/codes/grpc/msg.proto
 
-字段后的数字是线上的字段编号，不是数组下标。同一消息内的编号必须唯一，范围为 1 到 2<sup>29</sup>−1，其中 19000 到 19999 为保留区间。编号一旦发布就不应随意修改或分配给其他字段。`go_package` 填写生成代码的 Go 导入路径，这里的 `proto` 目录对应 `example.com/grpcdemo/proto`。
+字段后的数字是线上的字段编号。同一消息内的编号必须唯一，范围为 1 到 2<sup>29</sup>−1，其中 19000 到 19999 为保留区间。`go_package` 填写生成代码的 Go 导入路径，这里的 `proto` 目录对应 `example.com/grpcdemo/proto`。
 
 ### 2.3 生成 Go 代码
 
@@ -89,7 +89,7 @@ go get google.golang.org/grpc@v1.84.0 google.golang.org/protobuf@v1.36.11
 
 <<< @/go/codes/grpc/protoc.sh
 
-输出为 `proto/msg.pb.go`。`--go_out` 生成消息代码，后面定义服务时还需要 `--go-grpc_out` 生成 gRPC 接口。`paths=source_relative` 按输入文件相对于导入根目录的路径输出文件，因此不会再生成一层 `example.com/grpcdemo` 目录。
+输出为 `proto/msg.pb.go`。`--go_out` 生成消息代码，后面定义服务时还需要 `--go-grpc_out` 生成 gRPC 接口。`paths=source_relative` 按输入文件相对于导入根目录的路径输出文件。
 
 如果后面的 `proto/hello.proto` 需要导入其他文件，例如：
 
@@ -99,7 +99,7 @@ go get google.golang.org/grpc@v1.84.0 google.golang.org/protobuf@v1.36.11
 
 <<< @/go/codes/grpc/proto_path.sh
 
-`annotations.proto` 还依赖 `http.proto`，两个文件都需要准备。编译时找到 `.proto` 文件，并不代表相应的 Go 包已经安装，还需要引入生成代码使用的 `google.golang.org/genproto/googleapis/api/annotations` 包。仅导入 HTTP 注解不会自动提供 HTTP/JSON 转码，后面的基础示例不使用该导入。
+`annotations.proto` 还依赖 `http.proto`，两个文件都需要准备。`--proto_path` 用于查找 `.proto` 文件，生成的 Go 代码还需要引入 `google.golang.org/genproto/googleapis/api/annotations` 包。HTTP 注解描述 HTTP/JSON 映射，实际转码由网关等组件完成。后面的基础示例省略该导入。
 
 ### 2.4 标量类型
 
@@ -227,13 +227,13 @@ message ClientMessage {
 
 <<< @/go/codes/grpc/ts.proto
 
-`Timestamp` 的主要字段如下。这里仅用于说明结构，项目应导入编译器提供的标准定义，不要另建同名类型：
+下面摘录标准 `Timestamp` 的主要字段，项目通过导入 `google/protobuf/timestamp.proto` 使用该类型：
 
 <<< @/go/codes/grpc/timestamp.proto
 
 `seconds` 表示从 Unix epoch 起的秒数，`nanos` 表示非负的纳秒部分，范围为 0 到 999999999。有效时间范围是公元 0001 年至 9999 年，采用 UTC 表示。
 
-Go 中使用 `google.golang.org/protobuf/types/known/timestamppb`。`Now` 和 `New` 分别从当前时间和 `time.Time` 构造消息。来自外部的时间戳应先用 `CheckValid` 校验，再转换为 `time.Time`，因为 `AsTime` 会对越界的纳秒值做规范化，不会返回校验错误：
+Go 中使用 `google.golang.org/protobuf/types/known/timestamppb`。`Now` 和 `New` 分别从当前时间和 `time.Time` 构造消息。`CheckValid` 负责校验有效性，`AsTime` 转换为 `time.Time`，转换时会规范化越界的纳秒值。处理外部输入时应先校验，再转换：
 
 ```go
 ts := timestamppb.Now()
@@ -258,7 +258,7 @@ message User {
 }
 ```
 
-不要修改已经发布字段的编号，也不要把同一编号改成含义不同的字段。Protobuf 二进制兼容性还涉及字段类型及其线上的编码，不能仅凭编号相同就判断兼容。字段改名可能保持二进制兼容，但会改变生成的 API 和默认 JSON 字段名。以上规则基于 [proto3 语言规范](https://protobuf.dev/programming-guides/proto3/)。
+已发布字段保持原编号，同一编号继续对应原字段。Protobuf 二进制兼容性需要同时考虑字段编号、字段类型及其线上编码。字段改名可能保持二进制兼容，但会改变生成的 API 和默认 JSON 字段名。以上规则基于 [proto3 语言规范](https://protobuf.dev/programming-guides/proto3/)。
 
 ## 3. gRPC
 
@@ -303,7 +303,7 @@ grpcdemo/
 
 <<< @/go/codes/grpc/grpc_server.go
 
-保存为 `server/main.go`。服务结构体按值嵌入 `UnimplementedGreeterServer`，新增 RPC 后，尚未实现的方法会返回 `Unimplemented`。它用于兼容服务接口的扩展，不会自动实现业务逻辑。
+保存为 `server/main.go`。服务结构体按值嵌入 `UnimplementedGreeterServer`，用于兼容服务接口扩展。新增 RPC 后，尚未实现的方法会返回 `Unimplemented`。
 
 ### 3.4 实现客户端
 
@@ -311,7 +311,7 @@ grpcdemo/
 
 保存为 `client/main.go`。在两个终端分别执行 `go run ./server` 和 `go run ./client`，客户端输出 `Hello Zhang`。
 
-`grpc.NewClient` 自 v1.63.0 起提供，创建时不会进行网络 I/O，因此返回成功不代表服务器可达。通常在第一次 RPC 时解析地址并建立连接，调用的 deadline 也涵盖等待连接的时间。`ClientConn` 可以复用并由多个 goroutine 发起 RPC，无需每次调用都重新创建。
+`grpc.NewClient` 自 v1.63.0 起提供，用于创建 `ClientConn`，创建时不进行网络 I/O。通常在首次 RPC 时解析地址并建立连接，调用的 deadline 也涵盖等待连接的时间。`ClientConn` 支持复用和多个 goroutine 并发发起 RPC。
 
 示例只监听本机地址，`insecure.NewCredentials()` 不启用 TLS。跨主机部署时应配置相应的传输凭据。上述 API 的行为以 [gRPC-Go v1.84.0 文档](https://pkg.go.dev/google.golang.org/grpc@v1.84.0) 为准。
 
@@ -319,7 +319,7 @@ grpcdemo/
 
 gRPC 有四种调用模式。同一流的每个发送方向保持消息顺序，不同 RPC 之间没有统一的到达顺序。本文固定的生成插件默认使用泛型流接口。旧版生成代码可能使用服务专属的流接口名称。
 
-第 4.1 至 4.4 节分别展示服务定义和处理方法，不是完整的入口程序。生成方式与第 3 节相同，Go 片段按使用情况导入 `context`、`fmt`、`io`、`grpc` 和 `pb`。第 4.5 节给出可以直接运行的三种流式调用。
+第 4.1 至 4.4 节给出服务定义和处理方法片段。生成方式与第 3 节相同，Go 片段按使用情况导入 `context`、`fmt`、`io`、`grpc` 和 `pb`。第 4.5 节给出可以直接运行的三种流式调用。
 
 ### 4.1 单一请求-响应
 
@@ -396,9 +396,9 @@ protoc --proto_path=. \
 
 先停止第 3 节的服务端，再分别运行 `go run ./stream_server` 和 `go run ./stream_client`。客户端先接收三条日志，再得到 `received 3 messages`，最后接收三条聊天回显。
 
-服务端 `Recv` 返回 `io.EOF` 表示客户端已结束发送，此时服务端仍可以返回响应。客户端 `Recv` 返回 `io.EOF` 表示 RPC 以 `OK` 结束，其他错误表示调用失败。客户端 `Send` 返回 `io.EOF` 则不能视为成功，应继续用 `Recv` 或 `CloseAndRecv` 读取最终状态。
+服务端 `Recv` 返回 `io.EOF` 表示客户端已结束发送，此时服务端仍可以返回响应。客户端 `Recv` 返回 `io.EOF` 表示 RPC 以 `OK` 结束，其他错误表示调用失败。客户端 `Send` 返回 `io.EOF` 时，应继续用 `Recv` 或 `CloseAndRecv` 读取最终状态。
 
-`CloseSend` 只关闭客户端的发送方向，不取消调用，也不等待最终状态。应继续接收到流结束，或取消该调用的上下文，释放相关资源。服务端处理函数应返回错误，避免因请求内的 `panic` 终止整个进程。
+`CloseSend` 关闭客户端的发送方向。随后应继续接收到流结束，或取消该调用的上下文，以释放相关资源。服务端处理函数应返回错误，避免因请求内的 `panic` 终止整个进程。
 
 ## 5. 元数据
 
@@ -410,7 +410,7 @@ protoc --proto_path=. \
 
 <<< @/go/codes/grpc/md.go
 
-元数据可以像 `map` 一样读取，其中每个键对应一组值。它不适合承载大块业务数据，过大的 header 可能被客户端、代理或服务端拒绝。`MD` 是普通 map，不支持并发修改。将它关联到上下文后不要继续修改，需要调整时先调用 `Copy` 创建副本。
+元数据可以像 `map` 一样读取，其中每个键对应一组值。header 大小受客户端、代理和服务端限制，较大的业务数据适合通过消息体传输。`MD` 是普通 map，并发修改需要同步。关联到上下文后保持内容不变，需要调整时先调用 `Copy` 创建副本。
 
 本节的 Go 代码是基于第 3、4 节服务的片段，使用 `metadata` 包，并按需补充其他导入。调用辅助函数时传入已有客户端和带 deadline 的上下文。
 
@@ -436,11 +436,11 @@ protoc --proto_path=. \
 
 #### 5.2.1 发送元数据
 
-有两种方法可以将元数据发送到服务端。推荐的方法是使用 `AppendToOutgoingContext` 将键值对追加到上下文中。当不存在元数据时，则添加元数据；当上下文中已存在元数据时，将合并键值对。
+使用 `AppendToOutgoingContext` 将键值对追加到请求元数据中，并保留上下文中的已有元数据。
 
 <<< @/go/codes/grpc/mdSend.go
 
-也可以使用 `NewOutgoingContext`，但是这会替换上下文中的现有元数据。
+`NewOutgoingContext` 用传入的元数据替换上下文中的现有元数据。
 
 <<< @/go/codes/grpc/mdSendNew.go
 
@@ -472,11 +472,11 @@ protoc --proto_path=. \
 
 <<< @/go/codes/grpc/someStreamingRPC.go
 
-`SetHeader` 先保存响应头，通常在首条响应消息发送时发出。需要提前发送时使用 `SendHeader`，响应头发送后不能再追加。Trailer 随 RPC 的最终状态发送。`metadata.NewOutgoingContext` 用于发起另一个 RPC，不能用来设置当前调用的响应元数据。
+`SetHeader` 先保存响应头，通常在首条响应消息发送时发出。需要提前发送时使用 `SendHeader`，响应头的设置应在发送前完成。Trailer 随 RPC 的最终状态发送。`metadata.NewOutgoingContext` 用于设置新发起 RPC 的请求元数据。
 
 ## 6. 拦截器
 
-拦截器位于应用代码与 gRPC 调用之间，常用于日志、认证、指标和追踪。客户端与服务端分别提供一元和流式拦截器，共四种类型。一元拦截器不处理流式 RPC，流式拦截器也不处理一元 RPC。以下类型声明摘自 `grpc` 包，实际项目使用 `grpc.` 前缀引用这些类型。拦截器必须继续调用传入的 `invoker`、`streamer` 或 `handler`，除非它明确要提前拒绝这次调用。
+拦截器位于应用代码与 gRPC 调用之间，常用于日志、认证、指标和追踪。客户端与服务端分别提供一元和流式拦截器，共四种类型。一元与流式 RPC 分别使用对应的拦截器。以下类型声明摘自 `grpc` 包，实际项目使用 `grpc.` 前缀引用这些类型。正常转发调用时，拦截器通过 `invoker`、`streamer` 或 `handler` 继续执行调用链，提前拒绝时直接返回错误。
 
 ### 6.1 客户端拦截器
 
@@ -488,11 +488,11 @@ protoc --proto_path=. \
 
 一元拦截器通常分为三步：预处理、调用 RPC 方法和后处理。
 
-对于预处理，可以通过检查传入的参数来获取有关当前 RPC 调用的信息。参数包括 RPC 上下文、方法字符串、要发送的请求和配置的 `CallOptions`。有了这些信息甚至可以修改 RPC 调用。
+预处理可检查或调整 RPC 上下文、方法字符串、请求和 `CallOptions`。
 
-预处理后，用户可以通过调用 `invoker` 来调用 RPC 调用。
+预处理后，调用 `invoker` 执行 RPC。
 
-一旦调用程序返回，就可以对 RPC 调用进行后处理。这通常涉及处理返回的回复和错误。
+`invoker` 返回后，处理响应和错误。
 
 要在 `ClientConn` 上安装一元拦截器，可以给 `NewClient` 传入 `WithUnaryInterceptor`。需要组合多个拦截器时使用 `WithChainUnaryInterceptor`，注册顺序决定嵌套顺序。例如注册 A、B 后，执行顺序为 A 前处理、B 前处理、RPC、B 后处理、A 后处理。
 
@@ -506,7 +506,7 @@ protoc --proto_path=. \
 
 预处理类似于一元拦截器。
 
-客户端流拦截器调用 `streamer` 获取 `ClientStream`。此时返回并不表示整个 RPC 已结束。要记录消息收发或最终接收状态，需要包装 `ClientStream`，覆盖 `SendMsg`、`RecvMsg` 等方法，再返回包装后的流。
+客户端流拦截器调用 `streamer` 获取 `ClientStream`，后续通过流对象收发消息并取得最终状态。要记录消息收发或最终接收状态，需要包装 `ClientStream`，覆盖 `SendMsg`、`RecvMsg` 等方法，再返回包装后的流。
 
 流拦截器通过 `WithStreamInterceptor` 安装，多个流拦截器可以使用 `WithChainStreamInterceptor` 组合。
 
@@ -544,7 +544,7 @@ protoc --proto_path=. \
 
 ## 7. 错误处理
 
-gRPC 错误由状态码、说明文本和可选详情组成。HTTP 状态为 200 不代表 RPC 成功，还要读取 gRPC 的最终状态，`OK` 才表示成功。服务端应返回稳定、可判断的状态码，不要把数据库错误或内部堆栈直接暴露给客户端。客户端先判断状态码，再决定提示用户、重试还是终止调用。
+gRPC 错误由状态码、说明文本和可选详情组成。RPC 是否成功由 gRPC 最终状态判断，`OK` 表示成功。服务端应返回稳定、可判断的状态码，不要把数据库错误或内部堆栈直接暴露给客户端。客户端先判断状态码，再决定提示用户、重试还是终止调用。
 
 ### 7.1 状态码
 
@@ -574,7 +574,7 @@ gRPC 错误由状态码、说明文本和可选详情组成。HTTP 状态为 200
 
 <<< @/go/codes/grpc/err_server.go
 
-普通的非状态错误通常映射为 `Unknown`。取消和超时应使用对应状态，而非全部转换成 `Internal`。
+普通的非状态错误通常映射为 `Unknown`。取消和超时应使用对应状态。
 
 ### 7.3 客户端
 
@@ -582,11 +582,11 @@ gRPC 错误由状态码、说明文本和可选详情组成。HTTP 状态为 200
 
 <<< @/go/codes/grpc/err_cli.go
 
-状态码适合程序判断，错误说明文本不应作为稳定的业务协议。`FailedPrecondition` 通常要求先改变系统状态，`Aborted` 常需要重做更高层的操作，`Unavailable` 才可能适合稍后重试，仍需结合幂等性和重试策略。即使收到 `DeadlineExceeded`，服务端也可能已经完成业务写入，不能据此判断操作没有发生。
+状态码用于程序判断，错误说明文本用于诊断。`FailedPrecondition` 通常要求先改变系统状态，`Aborted` 常需要重做更高层的操作，`Unavailable` 可能适合稍后重试，仍需结合幂等性和重试策略。收到 `DeadlineExceeded` 时，服务端也可能已经完成业务写入。
 
 ## 8. 超时与取消
 
-gRPC 默认不会自动给调用设置 deadline。客户端应根据业务耗时设置超时，并在结束后调用 `cancel` 释放计时器。为了演示超时，先用下面的实现替换第 3 节服务端的 `SayHello`，它等待 5 秒，但会响应上下文取消：
+gRPC 调用默认没有 deadline。客户端应根据业务耗时设置超时，并在结束后调用 `cancel` 释放相关资源。为了演示超时，先用下面的实现替换第 3 节服务端的 `SayHello`，它等待 5 秒，并响应上下文取消：
 
 <<< @/go/codes/grpc/timeout_server.go
 
@@ -594,12 +594,12 @@ gRPC 默认不会自动给调用设置 deadline。客户端应根据业务耗时
 
 <<< @/go/codes/grpc/timeout.go
 
-客户端取消上下文或超过 deadline 后，服务端上下文也会被取消。耗时操作应定期检查 `ctx.Err()` 或 `ctx.Done()`，否则业务 goroutine 可能在调用已经失败后继续占用资源。取消上下文不会强制终止 goroutine，也不会自动撤销已经发生的业务写入。服务端继续调用其他服务时应传递当前上下文，子上下文的 deadline 不能延长父上下文的有效期限。
+客户端取消上下文或超过 deadline 后，服务端上下文也会被取消。耗时操作通过定期检查 `ctx.Err()` 或 `ctx.Done()` 协作响应取消。已经发生的业务写入不会因上下文取消而自动撤销。服务端继续调用其他服务时应传递当前上下文，子上下文的截止时间以父上下文更早的截止时间为准。
 
 ## 9. 上线前检查
 
 - **传输安全**：本机示例可以使用 `insecure.NewCredentials()`，跨主机部署应配置 TLS，并校验服务端身份。
 - **优雅退出**：`GracefulStop` 会停止接收新连接和新 RPC，并等待在途调用结束，它本身没有超时参数。可在 goroutine 中执行，主流程用计时器控制等待，超时后调用 `Stop`。长期流式调用可能使等待一直持续，`Stop` 也不会强制杀死忽略取消的业务 goroutine。
-- **健康检查**：标准健康检查服务需要显式注册，并根据实例状态更新 `SERVING` 等值。仅能建立 TCP 连接不代表服务已经就绪。
+- **健康检查**：标准健康检查服务需要显式注册，并根据实例状态更新 `SERVING` 等值，通过健康检查 RPC 查询实例的就绪状态。
 - **反射服务**：服务反射需要显式注册。`grpcurl` 可以使用反射，也可以通过 `-proto` 或 `-protoset` 提供定义。是否开启反射，应根据接口暴露范围决定。
-- **请求边界**：为消息大小、并发数和执行时间设置合理限制，不能只依赖框架默认值。
+- **请求边界**：为消息大小、并发数和执行时间设置合理限制。
