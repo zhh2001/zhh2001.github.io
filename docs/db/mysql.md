@@ -1112,7 +1112,7 @@ InnoDB 的记录锁加在索引记录上。`UPDATE` 缺少可缩小扫描范围�
 
 `mysql -e 'FLUSH TABLES WITH READ LOCK'` 执行后连接即结束，锁也随之释放。备份期间应保持会话 A 的连接。
 
-对 InnoDB 数据，可以使用 `--single-transaction` 取得一致性快照，避免在整个备份期间持有全局读锁。该快照适用于 InnoDB 表，MyISAM、MEMORY 表的一致性需另行保证。备份期间需避免对被备份表执行可能破坏快照读取的 DDL。某些 GTID 或坐标相关选项仍可能需要短暂锁定。参见 [mysqldump](https://dev.mysql.com/doc/refman/8.4/en/mysqldump.html)。
+对 InnoDB 数据，可以使用 `--single-transaction` 取得一致性快照，避免在整个备份期间持有全局读锁。该快照适用于 InnoDB 表，MyISAM、MEMORY 表的一致性需另行保证。备份期间需避免对被备份表执行可能破坏快照读取的 DDL。某些 GTID 或坐标相关选项仍可能需要短暂锁定。
 
 <<< @/db/codes/mysql/mysqldump_single_transaction.sh
 
