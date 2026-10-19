@@ -141,57 +141,46 @@ head:
 
 2026.09-至今 萤火突击\
 项目主体：网易游戏\
-角色：游戏客户端工程师\
-技术栈：`C++`、`Python`、`Messiah引擎`、`SVN`
+角色：游戏客户端工程师
 
 2026.03-2026.06 LiLAC本地化平台\
 项目主体：莉莉丝游戏\
-角色：Golang后端工程师\
-技术栈：`Golang`、`go-zero`、`MongoDB`、`Redis`、`Phrase`、`Docker`、`K8S`、`Jenkins`、`Git`
+角色：Golang后端工程师
 
 2025.09-2026.03 LC-Event交易平台\
 项目主体：简文投资\
-角色：Golang全栈工程师\
-技术栈：`Golang`、`Gin`、`GORM`、`MySQL`、`Redis`、`DolphinDB`、`Vue`、`Element Plus`、`Linux`、`SHELL`、`Nginx`、`Docker`、`pprof`、`k6`、`Grafana`、`Git`
+角色：Golang全栈工程师
 
 2025.09-2026.03 LC-SBL海外借券\
 项目主体：简文投资\
-角色：Python后端工程师\
-技术栈：`Python`、`Flask`、`Pandas`、`MySQL`、`Linux`、`SHELL`、`Git`
+角色：Python后端工程师
 
 2025.09-2025.10 涨停原因分析工具\
 项目主体：简文投资\
-角色：Python全栈工程师\
-技术栈：`Python`、`Selenium`、`Cron`、`Linux`、`SHELL`、`Git`
+角色：Python全栈工程师
 
 2024.11-2025.02 懂经营\
 项目主体：红砥智能\
-角色：微信小程序开发工程师\
-技术栈：`WXML`、`WXS`、`SASS`、`ECharts`、`VantUI`、`Git`
+角色：微信小程序开发工程师
 
 2024.01-2024.08 凤凰山\
 项目主体：华为上研\
-角色：Python工程师\
-技术栈：`Python`、`Pandas`、`NumPy`、`Seaborn`、`PyAutoGUI`、`PyQt`、`Linux`、`SHELL`、`Git`
+角色：Python工程师
 
 2022.12-2023.03 内容审核平台\
 项目主体：多益网络\
-角色：Python后端工程师\
-技术栈：`Python`、`Tornado`、`MySQL`、`SQLAlchemy`、`Linux`、`SHELL`、`SVN`
+角色：Python后端工程师
 
 2022.09-2023.03 随手扫描\
 项目主体：多益网络\
-角色：Python后端工程师\
-技术栈：`Python`、`Tornado`、`MySQL`、`Linux`、`SHELL`、`APScheduler`、`SVN`
+角色：Python后端工程师
 
 2022.07-2022.09 员工客服中心\
 项目主体：多益网络\
-角色：Python后端工程师\
-技术栈：`Python`、`Tornado`、`ElasticSearch`、`MySQL`、`SQLAlchemy`、`Redis`、`Linux`、`SVN`
+角色：Python后端工程师
 
 2021.07-2021.09 铁粉电台后台管理系统\
 项目主体：湖南广电\
-角色：Web前端工程师\
-技术栈：`HTML`、`CSS`、`JavaScript`、`Vue2`、`ElementUI`、`Git`
+角色：Web前端工程师
 
 <Comments />
