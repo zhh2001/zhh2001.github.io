@@ -142,7 +142,7 @@ SDN 的收益来自更一致的策略、更短的变更路径和更完整的状�
 ## 9 本站笔记的阅读顺序
 
 1. [Mininet](/sdn/mininet)：搭建可重复的虚拟拓扑，熟悉主机、交换机和控制器之间的连接。
-2. [P4 Language](/sdn/p4)：理解 Parser、Control、Table、Action 和 Deparser 如何组成转发流水线。
+2. [P4 学习导读与速查](/sdn/p4)：梳理语言、架构与目标的关系，按中文教程完成语言学习和转发实验。
 3. [P4Runtime](/sdn/p4runtime)：学习控制器如何配置流水线、写入实体并接收异步事件。
 4. [P4 INT](/sdn/int)：继续研究数据平面如何采集并导出逐跳状态。
 5. [iPerf](/sdn/iperf)：生成可控流量，检查吞吐量、UDP 丢包与抖动。

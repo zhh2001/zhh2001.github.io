@@ -45,7 +45,7 @@ features:
     title: P4
     details: Programming Protocol-independent Packet Processors
     link: /sdn/p4
-    linkText: View Notes
+    linkText: View Guide
   - icon:
       src: /mininet/favicon.png
       width: 26

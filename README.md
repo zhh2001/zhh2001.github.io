@@ -16,7 +16,7 @@
 
 ### 科研笔记
 
-- **网络架构与编程**：[SDN](docs/sdn/index.md)、[P4](docs/sdn/p4.md)、[P4Runtime](docs/sdn/p4runtime.md)、[INT 带内网络遥测](docs/sdn/int.md)
+- **网络架构与编程**：[SDN](docs/sdn/index.md)、[P4 学习导读](docs/sdn/p4.md)、[P4Runtime](docs/sdn/p4runtime.md)、[INT 带内网络遥测](docs/sdn/int.md)
 - **实验环境与工具**：[Mininet](docs/sdn/mininet.md)、[iPerf](docs/sdn/iperf.md)、[WSL](docs/sdn/wsl.md)
 - **学术写作**：[LaTeX 排版](docs/sdn/writing/index.md)，包括公式、数值与单位、定理、图片、表格、算法、代码和参考文献
 
