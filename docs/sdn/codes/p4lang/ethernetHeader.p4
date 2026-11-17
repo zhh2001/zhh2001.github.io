@@ -1,1 +1,0 @@
-Ethernet_h ethernetHeader;
