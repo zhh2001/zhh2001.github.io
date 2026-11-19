@@ -18,7 +18,7 @@ export const members = [
   },
   {
     name: 'Elykia',
-    desc: '致以无暇之人',
+    desc: '致以无瑕之人',
     avatar: 'https://bu.dusays.com/2024/10/25/671b2438203a6.gif',
     links: [
       { icon: linkIcon, link: 'https://blog.elykia.cn' },
