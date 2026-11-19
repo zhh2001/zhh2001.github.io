@@ -318,6 +318,14 @@ export const members = [
     ]
   },
   {
+    avatar: 'https://avatars.githubusercontent.com/u/202107513?v=4',
+    name: '夜岚风声',
+    desc: '简单的事，重复做',
+    links: [
+      { icon: 'github', link: 'https://github.com/yelanfengsheng' },
+    ]
+  },
+  {
     avatar: 'https://aerisun.top/media/assets/16e8deac-b725-42c5-9807-cb7bcad1742a.jpg',
     name: 'Aerisun',
     desc: '在喧嚣的缝隙里，做一个关于自由和好奇心的梦',
@@ -327,14 +335,6 @@ export const members = [
       { icon: 'github', link: 'https://github.com/Aerisun' },
       { icon: 'telegram', link: 'https://t.me/aerisuni' },
       { icon: 'rss', link: 'https://aerisun.top/rss.xml' },
-    ]
-  },
-  {
-    avatar: 'https://avatars.githubusercontent.com/u/202107513?v=4',
-    name: '夜岚风声',
-    desc: '简单的事，重复做',
-    links: [
-      { icon: 'github', link: 'https://github.com/yelanfengsheng' },
     ]
   },
 ]
