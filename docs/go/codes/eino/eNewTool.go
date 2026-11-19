@@ -38,7 +38,7 @@ func GetNote(ctx context.Context, params *InputParams) (string, error) {
 		return "", fmt.Errorf("技术名称不能为空")
 	}
 	notes := map[string]string{
-		"p4":      "https://zhh2001.github.io/sdn/p4",
+		"p4":      "https://github.com/zhh2001/p4-language-guide-zh",
 		"int":     "https://zhh2001.github.io/sdn/int",
 		"mininet": "https://zhh2001.github.io/sdn/mininet",
 		"iperf":   "https://zhh2001.github.io/sdn/iperf",
@@ -53,7 +53,7 @@ func GetNote(ctx context.Context, params *InputParams) (string, error) {
 func CreateTool() tool.InvokableTool {
 	return utils.NewTool(&schema.ToolInfo{
 		Name: "get_note",
-		Desc: "根据技术名称获取学习笔记链接",
+		Desc: "按技术名称查找教程或笔记链接",
 		ParamsOneOf: schema.NewParamsOneOfByParams(map[string]*schema.ParameterInfo{
 			"name": {Type: schema.String, Desc: "技术名称", Required: true},
 		}),

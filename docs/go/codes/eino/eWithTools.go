@@ -8,6 +8,6 @@ func generateWithTool(ctx context.Context, base model.ToolCallingChatModel, note
 		return nil, err
 	}
 	return bound.Generate(ctx, []*schema.Message{
-		schema.UserMessage("请查找 P4 笔记的链接。"),
+		schema.UserMessage("P4 教程在哪里？"),
 	})
 }

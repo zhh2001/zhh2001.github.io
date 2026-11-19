@@ -5,7 +5,7 @@ const SITE_IMAGE_URL = `${SITE_URL}/avatar.jpg`
 const GA4_ID = 'G-414XCQ3MDV'
 
 const SDNNoteItems = [
-  { text: 'P4 Lang', link: '/sdn/p4' },
+  { text: 'P4 Lang', link: 'https://github.com/zhh2001/p4-language-guide-zh' },
   { text: 'P4Runtime', link: '/sdn/p4runtime' },
   { text: 'P4 INT', link: '/sdn/int' },
   { text: 'WSL', link: '/sdn/wsl' },

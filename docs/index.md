@@ -44,8 +44,8 @@ features:
       width: 30
     title: P4
     details: Programming Protocol-independent Packet Processors
-    link: /sdn/p4
-    linkText: View Guide
+    link: https://github.com/zhh2001/p4-language-guide-zh
+    linkText: View Notes
   - icon:
       src: /mininet/favicon.png
       width: 26

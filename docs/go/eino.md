@@ -218,7 +218,7 @@ Tool 描述一项可执行能力。ToolsNode 是编排中的执行节点，它�
 
 <<< @/go/codes/eino/eNewTool.go
 
-`utils.NewTool` 根据显式的 `ToolInfo` 封装 Go 函数，负责 JSON 参数解码和结果转换。`GetNote` 检查空名称和未知名称，正常运行时输出 P4 笔记链接。也可以用 `utils.InferTool` 从函数参数类型推导参数定义。
+`utils.NewTool` 根据显式的 `ToolInfo` 封装 Go 函数，负责 JSON 参数解码和结果转换。`GetNote` 检查空名称和未知名称，传入 `P4` 时返回中文教程的 GitHub 地址。也可以用 `utils.InferTool` 从函数参数类型推导参数定义。
 
 ### 9.5 通过 ToolsNode 执行
 
