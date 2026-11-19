@@ -381,18 +381,6 @@ export const friends = [
   },
   {
     ...suesInfo,
-    name: '邬雨航',
-    desc: '大模型爱好者',
-    title: '硕士生',
-    avatar: 'https://avatars.githubusercontent.com/u/113747888',
-    links: [
-      { icon: linkIcon, link: 'https://vovyh.github.io' },
-      { icon: 'gmail', link: 'mailto:vovyh0514@gmail.com' },
-      { icon: 'github', link: 'https://github.com/VovyH' },
-    ]
-  },
-  {
-    ...suesInfo,
     name: '杨天成',
     desc: '前沿技术探索者',
     title: '硕士生',
@@ -413,6 +401,18 @@ export const friends = [
       { icon: 'gmail', link: 'mailto:sukkkzcy@gmail.com' },
       { icon: 'github', link: 'https://github.com/Sukkk-zcy' },
       { icon: 'telegram', link: 'https://t.me/sukkkzcy' },
+    ]
+  },
+  {
+    ...suesInfo,
+    name: '邬雨航',
+    desc: '大模型爱好者',
+    title: '硕士生',
+    avatar: 'https://avatars.githubusercontent.com/u/113747888',
+    links: [
+      { icon: linkIcon, link: 'https://vovyh.github.io' },
+      { icon: 'gmail', link: 'mailto:vovyh0514@gmail.com' },
+      { icon: 'github', link: 'https://github.com/VovyH' },
     ]
   },
 ]
