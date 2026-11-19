@@ -329,6 +329,14 @@ export const members = [
       { icon: 'rss', link: 'https://aerisun.top/rss.xml' },
     ]
   },
+  {
+    avatar: 'https://avatars.githubusercontent.com/u/202107513?v=4',
+    name: '夜岚风声',
+    desc: '简单的事，重复做',
+    links: [
+      { icon: 'github', link: 'https://github.com/yelanfengsheng' },
+    ]
+  },
 ]
 
 const suesInfo = {
