@@ -66,8 +66,8 @@ export const members = [
     desc: '坐而言不如起而行',
     avatar: 'https://q1.qlogo.cn/g?b=qq&nk=20447289&s=640',
     links: [
-      { icon: linkIcon, link: 'https://fqzlr.com' },
-      { icon: 'qq', link: 'mailto:20447289@qq.com' },
+      { icon: linkIcon, link: 'https://blog.fqzlr.top/' },
+      { icon: 'qq', link: 'mailto:fqzlr@qq.com' },
       { icon: 'bilibili', link: 'https://space.bilibili.com/2017273493' },
       { icon: 'github', link: 'https://github.com/fqzlr' },
     ]
