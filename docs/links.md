@@ -41,7 +41,9 @@ import { members, friends } from './.vitepress/theme/links-data.js'
 <VPTeamPage>
   <VPTeamPageTitle>
     <template #title>友情链接</template>
-    <template #lead>各路大佬</template>
+    <template #lead>
+      各路大佬 | <a class="apply-link" href="#apply" target="_self">申请友链</a>
+    </template>
   </VPTeamPageTitle>
   <VPTeamMembers size="small" :members="members" />
   <VPTeamPageSection>
@@ -54,12 +56,12 @@ import { members, friends } from './.vitepress/theme/links-data.js'
 </VPTeamPage>
 
 <div style="text-align: center">
-  <h2 style="font-size: 24px; font-weight: bold;">申请友链</h2>
+  <h2 id="apply" tabindex="-1">申请友链</h2>
   <div style="margin: 16px 0 8px;">
     <strong>申请条件</strong>
-    <p>1.请确定贵站可以稳定运营；</p>
-    <p>2.博客更新有一定的活跃度；</p>
-    <p>3.申请前添加本站至您的友链</p>
+    <p>1. 请确定贵站可以稳定运营；</p>
+    <p>2. 博客更新有一定的活跃度；</p>
+    <p>3. 申请前添加本站至您的友链</p>
   </div>
   <div style="margin-bottom: 8px;">
     <strong>申请须知</strong>
@@ -67,11 +69,25 @@ import { members, friends } from './.vitepress/theme/links-data.js'
   </div>
   <div style="margin-bottom: 6px;">
     <strong>申请方式</strong>
-    <p>在本页面底部留言，请包含如下信息：</p>
-    <p>1.网站名称和地址（必须）</p>
-    <p>2.网站描述和Logo（可选）</p>
-    <p>3.各社交平台链接（可选）</p>
+    <p>请在本页评论区留言以下信息：</p>
+    <p>1. 网站名称和地址（必须）</p>
+    <p>2. 网站描述和Logo（可选）</p>
+    <p>3. 各社交平台链接（可选）</p>
   </div>
 </div>
 
 <Comments />
+
+<style scoped>
+.apply-link {
+  color: var(--vp-c-brand-1);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+#apply {
+  scroll-margin-top: calc(var(--vp-nav-height) + 16px);
+  font-size: 24px;
+  font-weight: bold;
+}
+</style>
