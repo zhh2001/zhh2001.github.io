@@ -1,6 +1,7 @@
 ---
 title: 张恒华的个人简历
 titleTemplate: false
+search: false
 sidebar: false
 outline: 2
 prev: false
