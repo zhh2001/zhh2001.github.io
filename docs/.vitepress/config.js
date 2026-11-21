@@ -33,9 +33,7 @@ const TechNotes = [
     text: 'Go', items: [
       { text: 'GoLang', link: '/go/golang' },
       { text: 'Goroutine', link: '/go/goroutine' },
-      { text: 'Gin', link: '/go/gin' },
-      { text: 'gRPC', link: '/go/grpc' },
-      { text: 'Docker', link: '/go/docker' }
+      { text: 'gRPC', link: '/go/grpc' }
     ]
   },
   {

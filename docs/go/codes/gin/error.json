@@ -1,8 +1,0 @@
-{
-    "error": {
-        "age": "age必须小于或等于120",
-        "email": "email必须是一个有效的邮箱",
-        "rePassword": "rePassword必须等于Password",
-        "username": "username长度必须至少为3个字符"
-    }
-}
