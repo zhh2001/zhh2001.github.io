@@ -25,7 +25,6 @@ export const members = [
       { icon: 'qq', link: 'mailto:elykia@qq.com' },
       { icon: 'bilibili', link: 'https://space.bilibili.com/1451399239' },
       { icon: 'gitee', link: 'https://gitee.com/Elykia' },
-      { icon: 'github', link: 'https://github.com/elykia-cn' },
       { icon: 'telegram', link: 'https://t.me/Elykia_cn' },
     ]
   },
