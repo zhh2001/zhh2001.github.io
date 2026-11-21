@@ -175,7 +175,6 @@ export const members = [
     desc: '我会一直走，走到灯火通明',
     links: [
       { icon: linkIcon, link: 'https://blog.hazenix.top/home' },
-      { icon: 'x', link: 'https://x.com/hazenix56591' },
     ]
   },
   {
