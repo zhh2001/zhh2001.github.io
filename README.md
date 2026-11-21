@@ -22,7 +22,7 @@
 
 ### 编程笔记
 
-- **Go 开发**：[语言基础](docs/go/golang.md)、[Goroutine 与并发](docs/go/goroutine.md)、[Gin](docs/go/gin.md)、[gRPC](docs/go/grpc.md)、[Eino](docs/go/eino.md)
+- **Go 开发**：[语言基础](docs/go/golang.md)、[Goroutine 与并发](docs/go/goroutine.md)、[Gin](docs/go/gin.md)、[gRPC](docs/go/grpc.md)
 - **数据库**：[MySQL](docs/db/mysql.md)、[Redis](docs/db/redis.md)
 - **容器**：[Docker](docs/go/docker.md)
 

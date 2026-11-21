@@ -35,7 +35,6 @@ const TechNotes = [
       { text: 'Goroutine', link: '/go/goroutine' },
       { text: 'Gin', link: '/go/gin' },
       { text: 'gRPC', link: '/go/grpc' },
-      { text: 'Eino', link: '/go/eino' },
       { text: 'Docker', link: '/go/docker' }
     ]
   },
