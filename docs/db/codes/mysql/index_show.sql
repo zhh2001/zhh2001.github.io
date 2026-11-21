@@ -1,2 +1,0 @@
--- SHOW INDEX FROM 表名;
-SHOW INDEX FROM `tb_user`;

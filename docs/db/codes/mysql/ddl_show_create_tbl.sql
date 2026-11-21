@@ -1,1 +1,0 @@
-SHOW CREATE TABLE tb_user;

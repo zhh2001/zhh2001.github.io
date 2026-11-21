@@ -1,4 +1,0 @@
--- CREATE [OR REPLACE] VIEW 视图名称[(列名列表)] AS
--- SELECT语句 [WITH [CASCADED | LOCAL] CHECK OPTION];
-CREATE OR REPLACE VIEW `user_v_1` AS
-SELECT `id`, `name` FROM `tb_user` WHERE `id` <= 10;

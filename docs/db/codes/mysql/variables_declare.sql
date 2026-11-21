@@ -1,8 +1,0 @@
--- DECLARE 变量名 变量类型 [DEFAULT ...];
-DELIMITER $$
-CREATE PROCEDURE p2()
-BEGIN
-    DECLARE stu_count INT DEFAULT 0;
-    SELECT stu_count;
-END$$
-DELIMITER ;

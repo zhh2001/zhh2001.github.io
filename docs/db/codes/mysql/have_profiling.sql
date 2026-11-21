@@ -1,1 +1,0 @@
-SELECT @@have_profiling; -- YES

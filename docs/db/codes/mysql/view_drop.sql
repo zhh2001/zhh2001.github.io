@@ -1,2 +1,0 @@
--- DROP VIEW IF EXISTS 视图名称;
-DROP VIEW IF EXISTS `user_v_1`;

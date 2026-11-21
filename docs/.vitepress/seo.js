@@ -12,7 +12,7 @@ export function transformPageData(pageData, { siteConfig }) {
     tag === 'meta' && PAGE_META.has(attrs.property || attrs.name)
   )
 
-  if (['sdn/', 'go/', 'db/'].some(prefix => pageData.relativePath.startsWith(prefix))) {
+  if (['sdn/', 'go/'].some(prefix => pageData.relativePath.startsWith(prefix))) {
     const path = pageData.relativePath
       .replace(/(^|\/)index\.md$/, '$1')
       .replace(/\.md$/, siteConfig.cleanUrls ? '' : '.html')

@@ -1,2 +1,0 @@
--- DROP TABLE [IF EXISTS] 表名;
-DROP TABLE IF EXISTS `tbl_user`;

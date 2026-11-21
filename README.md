@@ -8,7 +8,7 @@
 ![GitHub Repo stars](https://img.shields.io/github/stars/zhh2001/zhh2001.github.io?style=for-the-badge&logo=refinedgithub)
 ![VitePress](https://img.shields.io/github/package-json/dependency-version/zhh2001/zhh2001.github.io/dev/vitepress?style=for-the-badge&logo=vitepress)
 
-这个仓库存放我的个人学习笔记，主要记录软件定义网络与可编程数据平面的学习和实验，也整理 Go 后端开发、数据库及 LaTeX 学术写作中的常用方法。
+这个仓库主要记录我在软件定义网络与可编程数据平面方面的学习和实验，也记录 Go 开发与 LaTeX 排版笔记。
 
 在线阅读：<https://zhh2001.github.io/>
 
@@ -23,7 +23,6 @@
 ### 编程笔记
 
 - **Go 开发**：[语言基础](docs/go/golang.md)、[Goroutine 与并发](docs/go/goroutine.md)、[gRPC](docs/go/grpc.md)
-- **数据库**：[MySQL](docs/db/mysql.md)、[Redis](docs/db/redis.md)
 
 ## 技术栈
 

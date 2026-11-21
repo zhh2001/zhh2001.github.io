@@ -36,13 +36,6 @@ const TechNotes = [
       { text: 'gRPC', link: '/go/grpc' }
     ]
   },
-  {
-    text: 'Database',
-    items: [
-      { text: 'MySQL', link: '/db/mysql' },
-      { text: 'Redis', link: '/db/redis' },
-    ]
-  },
 ]
 
 const description_cn = '张恒华的个人网站，存放学习笔记与个人简历。研究领域为软件定义网络、可编程数据平面。'
@@ -128,7 +121,6 @@ export default defineConfig({
     sidebar: {
       '/sdn/': ResearchNotes,
       '/go/': TechNotes,
-      '/db/': TechNotes,
     },
     socialLinks: [
       { icon: 'github', link: 'https://github.com/zhh2001' },

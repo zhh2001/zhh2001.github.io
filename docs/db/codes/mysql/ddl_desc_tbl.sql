@@ -1,1 +1,0 @@
-DESC tb_user;
